@@ -1,0 +1,270 @@
+/*  Shape Finder – intro-lean version (p5.js)
+    - Random shapes/colors (RGB)
+    - Poster shows the target (two-line title; never spills)
+    - Click matching shape to win
+    - Shapes are spread out (low overlap) and biased left
+    - Press R to reset
+*/
+
+let crowd = [];
+let targetIdx = -1;
+let timer = 15;
+let lastTick;
+let gameOver = false;
+
+// Poster geometry
+const poster = { x: 20, y: 20, w: 200, h: 120, r: 12 };
+let posterG; // off-screen poster buffer
+
+function setup() {
+  createCanvas(900, 550);
+  noStroke();
+  posterG = createGraphics(poster.w, poster.h);
+  resetRound();
+}
+
+function resetRound() {
+  background(30);
+  crowd = [];
+  gameOver = false;
+  timer = 15;
+  lastTick = millis();
+
+  const N = 36;
+  crowd = spawnSpreadCrowd(N);
+  targetIdx = floor(random(crowd.length));
+
+  drawScene();
+}
+
+function draw() {
+  if (gameOver) return;
+
+  const now = millis();
+  if (now - lastTick >= 1000) {
+    timer--;
+    lastTick = now;
+    drawScene();
+  }
+  if (timer <= 0) {
+    gameOver = true;
+    showResult(false);
+  }
+}
+
+function drawScene() {
+  background(30);
+
+  // ===== Poster (composited & clipped inside buffer) =====
+  drawPosterBuffer();
+  image(posterG, poster.x, poster.y);
+
+  // ===== Timer =====
+  fill(240);
+  textStyle(NORMAL);
+  textSize(18);
+  text(`Time: ${timer}s`, width - 120, 40);
+
+  // ===== Crowd =====
+  for (const s of crowd) {
+    drawShape(s.type, s.col, s.x, s.y, s.size);
+  }
+}
+
+/* ---------- Poster buffer composition ---------- */
+function drawPosterBuffer() {
+  const pg = posterG;
+  pg.clear();
+
+  // Rounded poster background
+  pg.noStroke();
+  pg.fill(235);
+  pg.rect(0, 0, poster.w, poster.h, poster.r);
+
+  // Clip to rounded rect so nothing spills
+  const ctx = pg.drawingContext;
+  ctx.save();
+  roundedRectPath(ctx, 0, 0, poster.w, poster.h, poster.r);
+  ctx.clip();
+
+  // Title: always two lines, centered & auto-scaled
+  drawTwoLineTitle(pg, "SHAPE", "FINDER");
+
+  // Target preview inside poster (buffer coords)
+  const t = crowd[targetIdx];
+  const cx = poster.w / 2;
+  const cy = poster.h * 0.73;
+  drawShapePG(pg, t.type, t.col, cx, cy, 44);
+
+  ctx.restore();
+}
+
+// Two-line title with tiny auto-shrink
+function drawTwoLineTitle(pg, line1, line2) {
+  const margin = 14;
+  const maxW = poster.w - 2 * margin;
+  const topPad = 10;
+  const maxTitleHeight = poster.h * 0.46;
+
+  pg.fill(40);
+  pg.textStyle(pg.BOLD);
+  pg.textAlign(pg.CENTER, pg.TOP);
+
+  let size = 24;
+  while (size >= 12) {
+    pg.textSize(size);
+    const w1 = pg.textWidth(line1);
+    const w2 = pg.textWidth(line2);
+    const lineH = pg.textAscent() + pg.textDescent();
+    const totalH = lineH * 2 + 6;
+    const fits = (w1 <= maxW * 0.94 && w2 <= maxW * 0.94 && totalH <= maxTitleHeight);
+    if (fits) break;
+    size--;
+  }
+
+  const lineH = pg.textAscent() + pg.textDescent();
+  pg.text(line1, poster.w / 2, topPad);
+  pg.text(line2, poster.w / 2, topPad + lineH + 4);
+}
+
+/* ---------- Input & feedback ---------- */
+function mousePressed() {
+  if (gameOver) return;
+  for (let i = crowd.length - 1; i >= 0; i--) {
+    if (containsPoint(crowd[i], mouseX, mouseY)) {
+      const win = i === targetIdx;
+      gameOver = true;
+      showResult(win);
+      return;
+    }
+  }
+}
+
+function showResult(win) {
+  fill(win ? color(60, 180, 90) : color(200, 60, 60));
+  rect(width / 2 - 140, height / 2 - 40, 280, 80, 12);
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(20);
+  text(win ? 'You found it!' : 'Time up / Wrong pick!', width / 2, height / 2);
+  textAlign(LEFT, BASELINE);
+}
+
+/* ------------------- helpers ------------------- */
+
+// Rounded-rectangle path for clipping
+function roundedRectPath(ctx, x, y, w, h, r) {
+  const rr = Math.max(0, Math.min(r, Math.min(w, h) / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.lineTo(x + w - rr, y);
+  ctx.arcTo(x + w, y, x + w, y + rr, rr);
+  ctx.lineTo(x + w, y + h - rr);
+  ctx.arcTo(x + w, y + h, x + w - rr, y + h, rr);
+  ctx.lineTo(x + rr, y + h);
+  ctx.arcTo(x, y + h, x, y + h - rr, rr);
+  ctx.lineTo(x, y + rr);
+  ctx.arcTo(x, y, x + rr, y, rr);
+  ctx.closePath();
+}
+
+// Simple random RGB color
+function randomColor() {
+  return color(random(255), random(255), random(255));
+}
+
+function drawShape(type, col, x, y, d) {
+  fill(col);
+  if (type === 'circle') {
+    circle(x, y, d);
+  } else if (type === 'square') {
+    rectMode(CENTER);
+    rect(x, y, d, d, 6);
+  } else {
+    const h = d * 0.9;
+    triangle(x - d/2, y + h/2, x + d/2, y + h/2, x, y - h/2);
+  }
+}
+
+// Same as drawShape but for the poster buffer (RGB channels)
+function drawShapePG(pg, type, col, x, y, d) {
+  pg.fill(red(col), green(col), blue(col));
+  if (type === 'circle') {
+    pg.circle(x, y, d);
+  } else if (type === 'square') {
+    pg.rectMode(CENTER);
+    pg.rect(x, y, d, d, 6);
+  } else {
+    const h = d * 0.9;
+    pg.triangle(x - d/2, y + h/2, x + d/2, y + h/2, x, y - h/2);
+  }
+}
+
+// Spread-out, left-biased spawn (rejection sampling)
+function spawnSpreadCrowd(N) {
+  const shapes = [];
+  const types = ['circle', 'square', 'triangle'];
+
+  const left = 220, right = width * 0.72, top = 140, bottom = height - 40;
+
+  let attempts = 0, maxAttempts = N * 80;
+  while (shapes.length < N && attempts < maxAttempts) {
+    attempts++;
+    const type = random(types);
+    const size = random(28, 54);
+    const x = random(left, right);
+    const y = random(top, bottom);
+    const col = randomColor();
+    const candidate = { type, x, y, size, col };
+
+    const pad = 18;
+    let ok = true;
+    for (const s of shapes) {
+      if (dist(x, y, s.x, s.y) < (s.size * 0.5) + (size * 0.5) + pad) {
+        ok = false; break;
+      }
+    }
+    if (ok) shapes.push(candidate);
+  }
+
+  // fallback if we didn't place enough
+  while (shapes.length < N) {
+    shapes.push({
+      type: random(types),
+      x: random(left, right),
+      y: random(top, bottom),
+      size: random(28, 54),
+      col: randomColor()
+    });
+  }
+  return shapes;
+}
+
+// Hit tests (accurate triangle test)
+function containsPoint(s, px, py) {
+  const d = s.size;
+  if (s.type === 'circle') return dist(px, py, s.x, s.y) <= d / 2;
+  if (s.type === 'square') return abs(px - s.x) <= d / 2 && abs(py - s.y) <= d / 2;
+
+  const h = d * 0.9;
+  const A = createVector(s.x - d/2, s.y + h/2);
+  const B = createVector(s.x + d/2, s.y + h/2);
+  const C = createVector(s.x,       s.y - h/2);
+  return pointInTri(px, py, A, B, C);
+}
+
+function pointInTri(px, py, A, B, C) {
+  const v0 = p5.Vector.sub(C, A);
+  const v1 = p5.Vector.sub(B, A);
+  const v2 = createVector(px - A.x, py - A.y);
+  const dot00 = v0.dot(v0), dot01 = v0.dot(v1), dot02 = v0.dot(v2);
+  const dot11 = v1.dot(v1), dot12 = v1.dot(v2);
+  const inv = 1 / (dot00 * dot11 - dot01 * dot01);
+  const u = (dot11 * dot02 - dot01 * dot12) * inv;
+  const v = (dot00 * dot12 - dot01 * dot02) * inv;
+  return u >= 0 && v >= 0 && u + v <= 1;
+}
+
+function keyPressed() {
+  if (key === 'r' || key === 'R') resetRound();
+}
