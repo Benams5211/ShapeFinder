@@ -18,13 +18,10 @@ let posterG; // off-screen poster buffer
 
 let posterBackground;
 
-function preload() {
-  posterBackground = loadImage('assets/poster-background.png');
-}
-
 function setup() {
   createCanvas(750, 900);
   noStroke();
+  posterBackground = loadImage('assets/poster-background.png');
   poster = { x: width/2 - 175, y: 0, w: 350, h: 350 };
   posterG = createGraphics(poster.w, poster.h);
   resetRound();
