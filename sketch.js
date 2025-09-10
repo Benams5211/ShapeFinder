@@ -1,6 +1,6 @@
 /*  Shape Finder – intro-lean version (p5.js)
     - Random shapes/colors (RGB)
-    - Poster shows the target (two-line title; never spills)
+    - Poster shows the target
     - Click matching shape to win
     - Shapes are spread out (low overlap) and biased left
     - Press R to reset
@@ -16,16 +16,16 @@ let gameOver = false;
 let poster;
 let posterG; // off-screen poster buffer
 
-let posterBackgroundRect;
+let posterBackground;
 
 function preload() {
-  posterBackgroundRect = loadImage('assets/poster-background-rect.png');
+  posterBackground = loadImage('assets/poster-background.png');
 }
 
 function setup() {
-  createCanvas(900, 550);
+  createCanvas(750, 900);
   noStroke();
-  poster = { x: width/2, y: 20, w: 200, h: 200, r: 12 };
+  poster = { x: width/2 - 175, y: 0, w: 350, h: 350 };
   posterG = createGraphics(poster.w, poster.h);
   resetRound();
 }
@@ -82,42 +82,25 @@ function drawScene() {
 function drawPosterBuffer() {
   const pg = posterG;
   pg.clear();
-  
-  pg.imageMode(CENTER);
-  pg.image(posterBackgroundRect, pg.width/2, pg.height/2, pg.width, pg.height);
-    
-  // Create a circular mask
-  pg.push();
-  pg.drawingContext.globalCompositeOperation = 'destination-in';
-    pg.noStroke();
-    pg.fill(255);
-    pg.ellipse(pg.width/2, pg.height/2, pg.width-5, pg.height-5);
-    pg.pop();
 
-  /*
-  // Rounded poster background
   pg.noStroke();
-  pg.fill(240, 220, 180);
-
-  // Use poster buffer dimensions, not main canvas
+  
   const centerX = poster.w / 2;
   const centerY = poster.h / 2;
-  pg.ellipse(centerX, centerY, poster.w - 5, poster.h - 5);
-  */
+
+  pg.imageMode(CENTER);
+  pg.image(posterBackground, centerX, centerY, poster.w, poster.h);
+  
+  // gray box behind image
+  pg.fill(60);
+  pg.rectMode(CENTER);
+  pg.rect(centerX, centerY - 30, 120, 120);
 
   // Target preview inside poster (buffer coords)
   const t = crowd[targetIdx];
-  const cx = poster.w / 2;
-  const cy = poster.h * 0.73;
+  const cx = centerX;
+  const cy = centerY - 30;
   drawShapePG(pg, t.type, t.col, cx, cy, 44);
-  
-  // WANTED text
-  fill(160, 0, 0);
-  textSize(26);
-  pg.textAlign(CENTER, CENTER);
-  pg.text("WANTED", centerX, poster.h - 30);
-
-  //ctx.restore();
 }
 
 /* ---------- Input & feedback ---------- */
@@ -198,7 +181,7 @@ function spawnSpreadCrowd(N) {
   const shapes = [];
   const types = ['circle', 'square', 'triangle'];
 
-  const left = 220, right = width * 0.72, top = 140, bottom = height - 40;
+  const left = -5, right = width + 5, top = poster.h, bottom = height - 40;
 
   let attempts = 0, maxAttempts = N * 80;
   while (shapes.length < N && attempts < maxAttempts) {
