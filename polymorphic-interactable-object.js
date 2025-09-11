@@ -85,7 +85,7 @@ function mousePressed() {
     const it = interactors[i];
     if (it.enabled && it.contains(mouseX, mouseY)) {
       it.onClick(); // polymorphism moment
-      // return here makes it only activate one at a time
+      // return here makes it only activate one per click
       return false;
     }
   }
