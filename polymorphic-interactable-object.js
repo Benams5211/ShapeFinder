@@ -20,7 +20,7 @@ class ClickableObject {
 // -----------------------------------------------------------------------------
 class ClickRect extends ClickableObject {
   constructor(x, y, w, h, fillCol = [220,50,50], radius = 0) {
-    // super keyword just calls parent so this is just calling the parent constuctor
+    // super keyword calls parent so this is just calling the parent constuctor
     super(x, y);
     this.w = w;
     this.h = h;
@@ -46,7 +46,7 @@ class ClickRect extends ClickableObject {
 // -----------------------------------------------------------------------------
 class ClickCircle extends ClickableObject {
   constructor(x, y, r, fillCol = [90,210,130]) {
-    // super keyword just calls parent so this is just calling the parent constuctor
+    // super keyword calls parent so this is just calling the parent constuctor
     super(x, y);
     this.r = r;
     this.fillCol = fillCol;
