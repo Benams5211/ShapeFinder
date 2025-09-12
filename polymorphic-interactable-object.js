@@ -100,10 +100,10 @@ function buildInteractors() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  buildInteractors()
 }
 
 function draw() {
-  buildInteractors()
   background(18, 22, 30);
   for (const it of interactors) it.render();
 }
