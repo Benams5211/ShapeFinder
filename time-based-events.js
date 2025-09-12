@@ -78,7 +78,7 @@ function keyPressed() {
   if (key === 'a') {
     // checks to see if example event is currently active
     if(events.isActive(EXAMPLE_EVENT)) {
-      // if event is active and you pressed a anyway it ends the event early congrats
+      // if event is active and you pressed 'a' anyway it ends the event early congrats
       console.log("You ended the event " + 
                   events.timeLeft(EXAMPLE_EVENT)/1000 + " seconds early, your the worst.")
       events.cancel(EXAMPLE_EVENT, true)
