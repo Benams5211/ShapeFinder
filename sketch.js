@@ -8,14 +8,14 @@ Game.shapes = Game.shapes || [];
 // Called at the beginning of a p5 project to create essential elements.
 function setup() {
     const holder = document.getElementById("canvas-holder"); // Grabs div from index.HTML to create p5 canvas.
-    const c = createCanvas(80, 600);
+    const c = createCanvas(800, 600); // Creates a canvas that's 800 pixels long x 600 pixels wide.
     if (holder) c.parent(holder); // Assings the canvas "c" as a child of "holder".
-    textAlign(Center, Center);
+    textAlign(CENTER, CENTER);
 }
 
 // Called 60 times/second to draw each new frame of the project.
 function draw() {
-    background(245);
+    background(255); // Defines a white background for the canvas.
 
     // Tells shapes.js to render everything:
     if (typeof window.renderAllShapes === "function") {
@@ -26,5 +26,4 @@ function draw() {
     fill(0);
     noStroke();
     textSize(14);
-    text('Shapes: ${Game.shapes.length}', width / 2, height - 20);
 }
