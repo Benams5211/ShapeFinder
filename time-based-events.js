@@ -72,7 +72,7 @@ class EventManager {
 // global dictionary of events
 const events = new EventManager();
 
-// pressing a will start example event if you press a again before the event has concluded
+// pressing 'a' will start example event if you press 'a' again before the event has concluded
 // the event will end prematurely, event will end naturally after set time
 function keyPressed() {
   if (key === 'a') {
