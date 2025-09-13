@@ -1,94 +1,122 @@
 // List of Shape objects
 let shapes = []
 
-// Default modifier list to merge with user-provided modifierList
-// Used in filling missing settings/configs within the modifierList dict (default vals)
-let modifierTemplate = {
-  // lerpStrength   : (0,1) -> How 'snappy' the smoothed movement on velocity switch feels.
-  // velocityLimit  : The limit in which the shape is allowed to move (Pixels per Frame)
-  // switchRate     : How often the shape switches velocity (Frames)
-  // followShape    : Pass another shape object to bias movement towards
-  // followStrength : (0,1) -> How closely the follower Shape follows the followShape
-  // jitterRate     : Jitter rate of Shape in Pixels per Frame.
-  // freezeChance   : The chance in which a Shape will pause movement (per frame)
-  // freezeLength   : Length, in frames, of freeze duration.
-  // teleportChance : Chance, per frame, of shape teleporting to a random position.
-  lerpStrength      : 0.03,
-  velocityLimit     : 3,
-  switchRate        : 60,
-  followShape       : false,
-  followStrength    : 0.3,
-  jitterRate        : 0.1,
-  freezeChance      : 0.001,
-  freezeLength      : 60,
-  teleportChance    : 0.001,
+// movementConfig format for Shape class:
+// {
+// lerpStrength   : (0,1) -> How 'snappy' the smoothed movement on velocity switch feels.
+// velocityLimit  : The limit in which the shape is allowed to move (Pixels per Frame)
+// switchRate     : How often the shape switches velocity (Frames)
+// }
+
+// ---- Movement modifiers
+// Freeze  : Freezes a shape for length per a defined interval
+// chance  : The chance in which a Shape will pause movement (per frame)
+// length  : Length, in frames, of freeze duration.
+class FreezeModifier {
+  constructor({chance = 0.001, length = 60}) {
+    this.chance    = chance;
+    this.length    = length;
+    this.remaining = 0;
+  }
+  apply(shape) {
+    if (this.remaining > 0) {
+      this.remaining--;
+      shape.state.frozen = true;
+      return;
+    }
+    shape.state.frozen = false;
+    if (random() < this.chance) {
+      this.remaining = this.length;
+      shape.state.frozen = true;
+    }
+  }
 }
 
-// Shape class
+// FollowShape   : Biases a shape's movement toward another shape
+// otherShape    : The other Shape object that a given Shape will follow
+// followStrength: (0,1) ->How closely the folloewr Shape follows the FollowShape
+class FollowShape {
+  constructor({otherShape, followStrength = 0.01}) {
+    this.otherShape     = otherShape
+    this.followStrength = followStrength
+  }
+  apply(shape) {
+    if (!this.otherShape) return;
+    let dx = this.otherShape.x - shape.x;
+    let dy = this.otherShape.y - shape.y;
+
+    // Bias current velocity toward the other Shape
+    // Pulls the velocity slightly closer to the other Shape's velocity while retaining
+    // its original random velocity.
+    shape.vx = lerp(shape.vx, dx * 0.02, this.followStrength);
+    shape.vy = lerp(shape.vy, dy * 0.02, this.followStrength);
+  }
+}
+
+// JitterModifier : Applies a jitter to a shape
+// rate           : Pixels per frame in which the shape jitters back&forth
+class JitterModifier {
+  constructor({ rate = 0.3 } = {}) {
+    this.rate = rate;
+  }
+  apply(shape) {
+    shape.x += random(-this.rate, this.rate);
+    shape.y += random(-this.rate, this.rate);
+  }
+}
+
+// TeleportModifier 
+// chance           : Chance, per frame, of shape teleporting to a random position.
+class TeleportModifier {
+  constructor({ chance = 0.001 } = {}) {
+    this.chance = chance;
+  }
+  apply(shape) {
+    if (random() < this.chance) {
+      shape.x = random(width);
+      shape.y = random(height);
+    }
+  }
+}
+
+// ----
+
+// ---- Shape class
 // We should be able to easily integrate this Shape class with our clickable class.
 class Shape {
-  constructor(x, y, size, type, layer, modifierList, num) {
+  constructor(x, y, size, type, movementConfig, num) {
     this.x     = x;
     this.y     = y;
     this.size  = size;
     this.type  = type;
-    // NOT IMPLEMENTED: the layer in which the shape will render on compared to the other shapes on the same spot.
-    this.layer = layer;
+    
+    // movementConfig contains lerpStrength, velocityLimit, switchRate
+    this.movement =  { ...movementConfig }
+    // A list of modifier objects used in updatePos()
+    this.modifierList = [];
     
     // A starting velocity
     this.vx    = random(-2, 2);
     this.vy    = random(-2, 2);
 
-    this.targetVx = random(-modifierList.velocityLimit, modifierList.velocityLimit);
-    this.targetVy = random(-modifierList.velocityLimit, modifierList.velocityLimit);
-    
-    
-    // Movement modifiers, useful for when implementing new levels/difficulties
-    // If the passed modifierList is missing modifiers, we fill in those missing modifiers
-    // using the modifierTemplate with its default values.
-    this.modifierList =  { ...modifierTemplate, ...modifierList };
+    this.targetVx = random(-this.movement.velocityLimit, this.movement.velocityLimit);
+    this.targetVy = random(-this.movement.velocityLimit, this.movement.velocityLimit);
     
     // Track current state of shape, like 'frozen.' More can be easily implemented in the future
     this.state = {};
-    // The index in which the Shape object resides within 'shapes' (Using this for testing)
+    // The index of Shape in the shapes list. Using this for testing
     this.num = num;
-    
   }
   
   
   updatePos() {
-    let m = this.modifierList;
+    let m = this.movement;
     
-    // Apply frozen modifier if still enabled
-    if (this.state.frozenFor > 0) {
-      this.state.frozenFor--;
-      this.state.frozen = true;
-    } else {
-      // Remove frozen modifier
-      this.state.frozen = false;
-      if (random() < m.freezeChance) {
-        this.state.frozenFor = m.freezeLength;
-        this.state.frozen = true;
-      }
-    }
-    // Just simply return if state is frozen
+    for (let modifier of this.modifierList) 
+      modifier.apply(this);
+    
+    // Ignore movement on this frame if Shape's state is 'frozen'
     if (this.state.frozen) return;
-    
-    //------
-    
-    
-    // Apply shape follow if followShape is provided
-    if (m.followShape) {
-      // Get distance x,y from the provided followShape
-      let dx = m.followShape.x - this.x;
-      let dy = m.followShape.y - this.y;
-
-      // Bias current velocity toward the other Shape
-      // Pulls the velocity slightly closer to the other Shape's velocity while retaining
-      // its original random velocity.
-      this.vx = lerp(this.vx, dx * 0.02, m.followStrength);
-      this.vy = lerp(this.vy, dy * 0.02, m.followStrength);
-    }
     
     // Pick a new target velocity every switchRate frames
     if (frameCount % m.switchRate === 0) {
@@ -103,15 +131,8 @@ class Shape {
     this.vy = lerp(this.vy, this.targetVy, m.lerpStrength);
   
     // Finally, update the actual position of the Shape
-    // Also add in jitterRate if provided.
-    this.x += this.vx + random(-m.jitterRate, m.jitterRate);
-    this.y += this.vy + random(-m.jitterRate, m.jitterRate);
-    
-    
-    if (random() < m.teleportChance) {
-      this.x = random(width);
-      this.y = random(height);
-    }
+    this.x += this.vx
+    this.y += this.vy 
 
     // There is definitely a better method of keeping the shape within bounds,
     // But this is a fix for some modifiers allowing shapes to clip out of bounds.
@@ -134,10 +155,17 @@ class Shape {
   }
   render() {
     fill(255, 100, 100);
-    // Indicates a shape that is following
-    if (this.modifierList.followShape) {
-      fill(0, 255, 0);
+    // Fill shape 0 with blue
+    if (this.num === 0) {
+      fill(100,255,255);
     }
+
+    // Cycle through modifierList, if contains a FollowShape,
+    // Indicate by filling the shape green.
+    if (this.modifierList.some(m => m instanceof FollowShape)) {
+      fill(0,255,0);
+    }
+    
     // Indicates a shape that is currently frozen
     if (this.state.frozen) {
       fill(255,255,255);
@@ -171,37 +199,33 @@ function spawnShapes(count) {
   
   for (i = 0; i < count; i++) {
     
-    let followShape = false
-    // Force shape 1 to follow shape 0 (testing)
-    if (shapes.length === 1) {
-      followShape = shapes[0];
-      console.log(i + " is following " + followShape.num)
+    let movementConfig = {
+      lerpStrength      : 0.1,
+      velocityLimit     : 4,
+      switchRate        : 60,
+    }
+    let s = new Shape(windowWidth/2, windowHeight/2, 
+                          40, random(choices), movementConfig,i);
+    
+    // Shapes 1-7 will follow shape 0
+    if (shapes.length > 0 && shapes.length < 8 ) {
+      toFollow = shapes[0];
+      console.log(i + " is following " + toFollow.num)
+      s.modifierList.push(new FollowShape({otherShape: toFollow, followStrength: 0.3}));
     }
     
-    let modifierList = {
-      
-      lerpStrength    : 0.03,
-      velocityLimit   : 3,
-      switchRate      : 60,
-      followShape     : followShape,
-      followStrength  : 0.1,
-      jitterRate      : 0.1,
-      freezeChance    : 0.001,
-      freezeLength    : 60,
-      teleportChance  : 0.001,
-      
-    }
+    s.modifierList.push(new FreezeModifier({chance: 0.001, length: 60}));
+    s.modifierList.push(new JitterModifier( {rate: 0.1} ))
+    s.modifierList.push(new TeleportModifier( {chance: 0.005} ))
     
-    shapes.push(new Shape(windowWidth/2, windowHeight/2, 
-                          40, random(choices), 1, 
-                          modifierList, i
-                         ));
+    shapes.push(s);
+    
   }
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  spawnShapes(20)
+  spawnShapes(100)
 }
 
 function draw() {
