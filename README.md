@@ -22,3 +22,4 @@ Should be easily integrable with our existing classes.
 ## To implement
 - `layer` parameter for Shape, allowing user choice of render layer.  
 - More future-proof implementation of modifiers for easy add/remove.
+- A cleaner Shape bound check
