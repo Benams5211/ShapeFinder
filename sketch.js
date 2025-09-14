@@ -1,40 +1,11 @@
-let fx, fy;
-let darkness;
-let coverW, coverH;
-
-let intensity = 0.55;
-
-const innerMin = 0,  innerMax = 120;
-const outerMin = 200, outerMax = 480;
-
-const minGap = 15;
-const bands = 10;
-const darknessAlpha = 245;
-
 score = 0;
+
+/////////////////////////////////////////////////////
+//Classes for shape spawning
+/////////////////////////////////////////////////////
 
 // List of Shape objects
 let shapes = []
-
-class FreezeModifier {
-  constructor({chance = 0.001, length = 60}) {
-    this.chance    = chance;
-    this.length    = length;
-    this.remaining = 0;
-  }
-  apply(shape) {
-    if (this.remaining > 0) {
-      this.remaining--;
-      shape.state.frozen = true;
-      return;
-    }
-    shape.state.frozen = false;
-    if (random() < this.chance) {
-      this.remaining = this.length;
-      shape.state.frozen = true;
-    }
-  }
-}
 
 // FollowShape   : Biases a shape's movement toward another shape
 // otherShape    : The other Shape object that a given Shape will follow
@@ -54,6 +25,30 @@ class FollowShape {
     // its original random velocity.
     shape.vx = lerp(shape.vx, dx * 0.02, this.followStrength);
     shape.vy = lerp(shape.vy, dy * 0.02, this.followStrength);
+  }
+}
+
+// ---- Movement modifiers
+// Freeze  : Freezes a shape for length per a defined interval
+// chance  : The chance in which a Shape will pause movement (per frame)
+// length  : Length, in frames, of freeze duration.
+class FreezeModifier {
+  constructor({chance = 0.001, length = 60}) {
+    this.chance    = chance;
+    this.length    = length;
+    this.remaining = 0;
+  }
+  apply(shape) {
+    if (this.remaining > 0) {
+      this.remaining--;
+      shape.state.frozen = true;
+      return;
+    }
+    shape.state.frozen = false;
+    if (random() < this.chance) {
+      this.remaining = this.length;
+      shape.state.frozen = true;
+    }
   }
 }
 
@@ -82,8 +77,6 @@ class TeleportModifier {
     }
   }
 }
-
-// ----
 
 // ---- Shape class
 // We should be able to easily integrate this Shape class with our clickable class.
@@ -230,6 +223,14 @@ function spawnShapes(count) {
   }
 }
 
+function clearShapes(){
+  shapes = [];
+}
+
+//////////////////////////////////////////////////
+//Classes and stuff for menu
+//////////////////////////////////////////////////
+
 // tracks which part of the program we are in, right now its just  "menu", "game", or "modes"
 let gameState = "menu"; 
 // the two button definitions, x, y, width, height, and label
@@ -256,44 +257,6 @@ function setup() {
   fx = width / 2;
   fy = height / 2;
   rebuildLayer();
-}
-
-//draw loop
-function draw() {
-  background(30); // dark gray background for contrast
-
-  // which screen is shown based on gameState
-  if (gameState === "menu") {
-    drawMenu();
-  } else if (gameState === "game") {
-    drawGame(); // Put actual game code here
-  } else if (gameState === "modes") {
-    drawModes();
-  }
-}
-
-
-function mouseWheel(e) {
-  const old = intensity;
-  // delta is scroll wheel position
-  const delta = -e.deltaY * 0.0015;
-  
-  // doesnt lag if you mash scroll down
-  if (old <= 0 && delta < 0) return false;
-  
-  // doesnt lag if you mash scroll up
-  if (old >= 1 && delta > 0) return false;
-
-  const next = constrain(old + delta, 0, 1);
-  
-  // only update darkness when the wheel is actively used or it lags
-  intensity = next;
-  buildDarknessLayer();
-  return false;
-}
-
-function clearShapes(){
-  shapes = [];
 }
 
 function playMode() {
@@ -346,47 +309,6 @@ function drawButton(btn) {
   text(btn.label, btn.x + btn.w/2, btn.y + btn.h/2);
 }
 
-// GAME (placeholder)
-function drawGame() {
-  background(255,255,255); //white
-  fill(0);
-  
-  const mx = isFinite(mouseX) ? mouseX : width / 2;
-  const my = isFinite(mouseY) ? mouseY : height / 2;
-
-  fx = lerp(fx, mx, 0.2);
-  fy = lerp(fy, my, 0.2);
-
-  
-  
-  playMode();
-  
-  const dx = fx - coverW / 2;
-  const dy = fy - coverH / 2;
-  
-  // draws darkness at offset
-  image(darkness, dx, dy);
-  image(UILayer, 0,0);
-  
-  UILayer.textSize(24);
-  UILayer.textAlign(RIGHT, TOP);
-  UILayer.text("Score: " + score, UILayer.width - 20, 10); 
-  
-  // Back button to return to menu
-  drawBackButton();
-}
-
-
-function rebuildLayer() {
-  // makes the darkness not end early on screen vertically
-  coverW = floor(max(width, height) * 3);
-  // makes the darkness not end early on screen horizontally
-  coverH = coverW;
-  // graphic buffer
-  darkness = createGraphics(coverW, coverH);
-  buildDarknessLayer();
-}
-
 // modes (placeholder)
 function drawModes() {
   background(60); // dark gray
@@ -425,6 +347,57 @@ function mousePressed() {
       gameState = "menu";
     }
   }
+}
+
+// helper, checks if mouse is inside a rectangle button
+function mouseInside(btn) {
+  return mouseX > btn.x && mouseX < btn.x + btn.w &&
+         mouseY > btn.y && mouseY < btn.y + btn.h;
+}
+
+/////////////////////////////////////////
+//Flashlight classes and setup
+/////////////////////////////////////////
+let fx, fy;
+let darkness;
+let coverW, coverH;
+
+let intensity = 0.55;
+
+const innerMin = 0,  innerMax = 120;
+const outerMin = 200, outerMax = 480;
+
+const minGap = 15;
+const bands = 10;
+const darknessAlpha = 245;
+
+function mouseWheel(e) {
+  const old = intensity;
+  // delta is scroll wheel position
+  const delta = -e.deltaY * 0.0015;
+  
+  // doesnt lag if you mash scroll down
+  if (old <= 0 && delta < 0) return false;
+  
+  // doesnt lag if you mash scroll up
+  if (old >= 1 && delta > 0) return false;
+
+  const next = constrain(old + delta, 0, 1);
+  
+  // only update darkness when the wheel is actively used or it lags
+  intensity = next;
+  buildDarknessLayer();
+  return false;
+}
+
+function rebuildLayer() {
+  // makes the darkness not end early on screen vertically
+  coverW = floor(max(width, height) * 3);
+  // makes the darkness not end early on screen horizontally
+  coverH = coverW;
+  // graphic buffer
+  darkness = createGraphics(coverW, coverH);
+  buildDarknessLayer();
 }
 
 // the darkness effect works as a large black rectangle that has circles
@@ -488,8 +461,47 @@ function easeOutQuad(x) {
   return 1 - (1 - x) * (1 - x);
 }
 
-// helper, checks if mouse is inside a rectangle button
-function mouseInside(btn) {
-  return mouseX > btn.x && mouseX < btn.x + btn.w &&
-         mouseY > btn.y && mouseY < btn.y + btn.h;
+////////////////////////////////////////////
+//Important draw functions
+////////////////////////////////////////////
+
+//draw loop
+function draw() {
+  background(30); // dark gray background for contrast
+
+  // which screen is shown based on gameState
+  if (gameState === "menu") {
+    drawMenu();
+  } else if (gameState === "game") {
+    drawGame(); // Put actual game code here
+  } else if (gameState === "modes") {
+    drawModes();
+  }
+}
+// GAME (placeholder)
+function drawGame() {
+  background(255,255,255); //white
+  fill(0);
+  
+  const mx = isFinite(mouseX) ? mouseX : width / 2;
+  const my = isFinite(mouseY) ? mouseY : height / 2;
+
+  fx = lerp(fx, mx, 0.2);
+  fy = lerp(fy, my, 0.2);
+  
+  playMode();
+  
+  const dx = fx - coverW / 2;
+  const dy = fy - coverH / 2;
+  
+  // draws darkness at offset
+  image(darkness, dx, dy);
+  image(UILayer, 0,0);
+  
+  UILayer.textSize(24);
+  UILayer.textAlign(RIGHT, CENTER);
+  UILayer.text("Score: " + score, UILayer.width - 20, UILayer.height /2); 
+  
+  // Back button to return to menu
+  drawBackButton();
 }
