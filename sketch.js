@@ -1,9 +1,17 @@
-//Ok Im trying to keep this as like clean and easy to merge as i can let me know if I did that wrong. I basically tried to keep my code seperate. super sorry if i was supposed to like add the main code in. 
+let fx, fy;
+let darkness;
+let coverW, coverH;
 
-//if im stepping on anyones already done code with this please let me know but I think you should be able to just swap the drawGame function for the actual gamecode?
+let intensity = 0.55;
 
-//Right now we dont have diffrent modes but im assuming we will with the amount of ideas people have, so it has a start and modes button for now. 
+const innerMin = 0,  innerMax = 120;
+const outerMin = 200, outerMax = 480;
 
+const minGap = 15;
+const bands = 10;
+const darknessAlpha = 245;
+
+score = 0;
 
 // List of Shape objects
 let shapes = []
@@ -140,8 +148,9 @@ class Shape {
       this.x = width - this.size / 2;
       this.vx *= -1;
     }
-    if (this.y < this.size / 2) {
-      this.y = this.size / 2;
+    let topLimit = UILayer.height + this.size / 2;
+    if (this.y < topLimit) {
+      this.y = topLimit;
       this.vy *= -1;
     }
     if (this.y > height - this.size / 2) {
@@ -242,6 +251,11 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   startButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "START" };
   modesButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "MODES" };
+  UILayer = createGraphics(windowWidth, windowHeight * 0.1);
+  UILayer.background(255,255,255);
+  fx = width / 2;
+  fy = height / 2;
+  rebuildLayer();
 }
 
 //draw loop
@@ -256,6 +270,26 @@ function draw() {
   } else if (gameState === "modes") {
     drawModes();
   }
+}
+
+
+function mouseWheel(e) {
+  const old = intensity;
+  // delta is scroll wheel position
+  const delta = -e.deltaY * 0.0015;
+  
+  // doesnt lag if you mash scroll down
+  if (old <= 0 && delta < 0) return false;
+  
+  // doesnt lag if you mash scroll up
+  if (old >= 1 && delta > 0) return false;
+
+  const next = constrain(old + delta, 0, 1);
+  
+  // only update darkness when the wheel is actively used or it lags
+  intensity = next;
+  buildDarknessLayer();
+  return false;
 }
 
 function clearShapes(){
@@ -314,20 +348,43 @@ function drawButton(btn) {
 
 // GAME (placeholder)
 function drawGame() {
-  background(200); // light gray
+  background(255,255,255); //white
   fill(0);
-  textSize(32);
-  textAlign(CENTER, CENTER);
-  text("placeholder", width/2, height/2);
+  
+  const mx = isFinite(mouseX) ? mouseX : width / 2;
+  const my = isFinite(mouseY) ? mouseY : height / 2;
+
+  fx = lerp(fx, mx, 0.2);
+  fy = lerp(fy, my, 0.2);
 
   
   
   playMode();
   
+  const dx = fx - coverW / 2;
+  const dy = fy - coverH / 2;
   
+  // draws darkness at offset
+  image(darkness, dx, dy);
+  image(UILayer, 0,0);
+  
+  UILayer.textSize(24);
+  UILayer.textAlign(RIGHT, TOP);
+  UILayer.text("Score: " + score, UILayer.width - 20, 10); 
   
   // Back button to return to menu
   drawBackButton();
+}
+
+
+function rebuildLayer() {
+  // makes the darkness not end early on screen vertically
+  coverW = floor(max(width, height) * 3);
+  // makes the darkness not end early on screen horizontally
+  coverH = coverW;
+  // graphic buffer
+  darkness = createGraphics(coverW, coverH);
+  buildDarknessLayer();
 }
 
 // modes (placeholder)
@@ -368,6 +425,67 @@ function mousePressed() {
       gameState = "menu";
     }
   }
+}
+
+// the darkness effect works as a large black rectangle that has circles
+// erased from the center at differing alpha levels
+
+function buildDarknessLayer() {
+  
+  // the darkness is a graphic buffer
+  // https://p5js.org/reference/p5/p5.Graphics/
+  
+  const cx = coverW / 2;
+  const cy = coverH / 2;
+  
+  // buffer setup so IT doesnt explode
+  darkness.push();
+  darkness.clear();
+  
+  darkness.noStroke();
+  darkness.background(0, darknessAlpha);
+
+  let inner = lerp(innerMin, innerMax, intensity);
+  let outer = lerp(outerMax, outerMin, intensity);
+  if (outer < inner + minGap) outer = inner + minGap;
+
+  const innerCoreAlpha = lerp(60, 255, intensity);
+  
+  darkness.erase();
+
+  // creates next circle for erasure color doesnt matter
+  darkness.fill(255, innerCoreAlpha);
+  
+  darkness.circle(cx, cy, inner);
+  
+  // ethically sourced from stackoverflow
+  
+  for (let i = 0; i < bands; i++) {
+    
+    const t0 = i / bands;
+    const t1 = (i + 1) / bands;
+
+    const e0 = easeOutQuad(t0);
+    const e1 = easeOutQuad(t1);
+
+    const r0 = lerp(inner, outer, e0);
+    const r1 = lerp(inner, outer, e1);
+    
+    // makes the alpha fade
+    // https://p5js.org/reference/p5/map/
+    
+    const a = map(i, 0, bands - 1, innerCoreAlpha * 0.6, 0);
+    darkness.fill(255, a);
+    darkness.circle(cx, cy, r1);
+  }
+  // contains the buffer so WE dont explode
+  darkness.noErase();
+  darkness.pop();
+}
+
+function easeOutQuad(x) {
+  // idiom
+  return 1 - (1 - x) * (1 - x);
 }
 
 // helper, checks if mouse is inside a rectangle button
