@@ -1,3 +1,8 @@
+/////////////////////////////////////////////////////
+//General project vars
+/////////////////////////////////////////////////////
+
+let gameOver = false;
 score = 0;
 
 /////////////////////////////////////////////////////
@@ -234,7 +239,7 @@ function clearShapes(){
 // tracks which part of the program we are in, right now its just  "menu", "game", or "modes"
 let gameState = "menu"; 
 // the two button definitions, x, y, width, height, and label
-let startButton, modesButton;
+let startButton, modesButton, againButton;
 
 // image variables
 let menuBgImg;   // optional menu background
@@ -246,26 +251,6 @@ function preload() {
   // menuBgImg = loadImage("menuBackground.png");
   // logoImg = loadImage("gameLogo.png");
   // buttonImg = loadImage("buttonImage.png");
-}
-
-function setup() {
-  createCanvas(windowWidth, windowHeight);
-  startButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "START" };
-  modesButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "MODES" };
-  UILayer = createGraphics(windowWidth, windowHeight * 0.1);
-  UILayer.background(255,255,255);
-  fx = width / 2;
-  fy = height / 2;
-  rebuildLayer();
-}
-
-function playMode() {
-  background(50);
-  spawnShapes(100);
-  for (let s of shapes) {
-    s.updatePos();
-    s.render();
-  }
 }
 
 function drawMenu() {
@@ -284,7 +269,7 @@ function drawMenu() {
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(48);
-    text("GAME LOGO PlaceHolder", width/2, height/2 - 120);
+    text("Shape Finder!", width/2, height/2 - 120);
   }
 
   // Draw buttons
@@ -321,6 +306,26 @@ function drawModes() {
   drawBackButton();
 }
 
+function drawOverMenu() {
+  // darken everything below the UI bar
+  fill(0, 200); 
+  noStroke();
+  rect(0, UILayer.height, windowWidth, windowHeight - UILayer.height);
+
+  // redraw UI bar so it’s visible on top
+  image(UILayer, 0, 0);
+
+  // draw "time's over" + final score
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(50);  
+  text("Final Score: " + score, windowWidth / 2, windowHeight / 2); 
+  text("Time's Over!", windowWidth / 2, windowHeight / 2.5);
+
+  drawButton(againButton);
+  drawBackButton();
+}
+
 // back button in the corner// honestly just for me to switch back, can be removed
 function drawBackButton() {
   fill(255, 80, 80); // red button
@@ -334,16 +339,19 @@ function drawBackButton() {
 //mouse input
 function mousePressed() {
   if (gameState === "menu") {
-    // if on menu, check buttons
     if (mouseInside(startButton)) {
-      clearShapes();
-      gameState = "game"; // switch to game scene
+      startGame();
     } else if (mouseInside(modesButton)) {
-      gameState = "modes"; // switch to modes scene
+      gameState = "modes";
     }
   } else if (gameState === "game" || gameState === "modes") {
-    // if on game or modes screen, check "back" button
     if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60) {
+      gameState = "menu";
+    }
+  } else if (gameState === "over") {
+    if (mouseInside(againButton)) {
+      startGame();  // restart fresh
+    } else if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60){
       gameState = "menu";
     }
   }
@@ -460,48 +468,111 @@ function easeOutQuad(x) {
   // idiom
   return 1 - (1 - x) * (1 - x);
 }
+////////////////////////////////////////////
+//Timer vars
+////////////////////////////////////////////
+let StartTime = 5;      // seconds for a round
+let Timer;              // total time for current round (in seconds)
+let times = 0;          // time remaining
+let startMillis = 0;    // when this round started (millis)
+let TimeOver = false;
+
 
 ////////////////////////////////////////////
-//Important draw functions
+//Functions for whole project
 ////////////////////////////////////////////
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  
+  //menu business
+  startButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "START" };
+  modesButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "MODES" };
+  againButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "AGAIN" };
+  
+  //gameplay ui business
+  UILayer = createGraphics(windowWidth, windowHeight * 0.1);
+  
+  //flashlight business
+  fx = width / 2;
+  fy = height / 2;
+  rebuildLayer();
+}
+
+//makes the shapes
+function playMode() {
+  background(50);
+  spawnShapes(100);
+  for (let s of shapes) {
+    s.updatePos();
+    s.render();
+  }
+}
+
+function startGame() {
+  Timer = StartTime;        // reset round length
+  startMillis = millis();   // bookmark the start time ONCE
+  TimeOver = false;
+  gameOver = false;
+  gameState = "game";
+  score = 0;
+}
 
 //draw loop
 function draw() {
   background(30); // dark gray background for contrast
 
-  // which screen is shown based on gameState
   if (gameState === "menu") {
     drawMenu();
   } else if (gameState === "game") {
-    drawGame(); // Put actual game code here
+    drawGame();
   } else if (gameState === "modes") {
     drawModes();
+  } else if (gameState === "over") {
+    drawOverMenu();
   }
 }
+
 // GAME (placeholder)
 function drawGame() {
-  background(255,255,255); //white
   fill(0);
-  
+
+  // compute time left based on the single startMillis
+  let elapsed = int((millis() - startMillis) / 1000);
+  times = Timer - elapsed;
+
+  // clamp
+  if (times <= 0) {
+    times = 0;
+    TimeOver = true;
+    gameOver = true;
+    gameState = "over";
+  }
+
+  // play mode only while not gameOver
+  if (!gameOver) {
+    playMode();
+  }
+
+  // darkness/flashlight stuff
   const mx = isFinite(mouseX) ? mouseX : width / 2;
   const my = isFinite(mouseY) ? mouseY : height / 2;
-
   fx = lerp(fx, mx, 0.2);
   fy = lerp(fy, my, 0.2);
-  
-  playMode();
-  
+
   const dx = fx - coverW / 2;
   const dy = fy - coverH / 2;
-  
-  // draws darkness at offset
   image(darkness, dx, dy);
-  image(UILayer, 0,0);
-  
+
+  //drawing the top UI bar
+  UILayer.clear();
+  UILayer.background(255,255,255);
   UILayer.textSize(24);
   UILayer.textAlign(RIGHT, CENTER);
-  UILayer.text("Score: " + score, UILayer.width - 20, UILayer.height /2); 
-  
-  // Back button to return to menu
+  UILayer.fill('black');
+  UILayer.text("Score: " + score + " Time: " + times, UILayer.width - 20, UILayer.height /2);
+  image(UILayer, 0,0);
+
+  // back button
   drawBackButton();
 }
