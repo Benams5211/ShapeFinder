@@ -1,0 +1,46 @@
+<!-- HTML File to load in p5.js library & project scripts in order. -->
+<!-- Parker Franklin / 9/6/25 -->
+
+<!doctype html>
+<html lang="en">
+    <!-- Basic configurations/metadata of the page. -->
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>ShapeFinder</title>
+
+        <!-- Inline CSS to control the basic layout & appearance of the page. -->
+        <style>
+            body { margin: 0; font-family: system-ui sans-serif; }
+            header { padding: 12px; display: flex; gap: 8px; align-items: center; }
+            main { display: flex; justify-content: center; }
+            #canvas-holder { max-width: 100%; }
+            button { padding: 8px 12px; cursor: pointer; }
+            canvas { outline: 2px solid #333; display: block; }
+        </style>
+    </head>
+
+    <!-- Visible content of the page. -->
+    <body>
+        <header>
+            <button id="spawnBtn">Spawn Random Shape</button>
+            <button id="playBgmBtn">Play Music</button> 
+            <button id="stopBgmBtn">Stop Music</button>
+            <!-- Creates a Span that let's JavaScript write messages (= like the console for C++!) -->
+            <span id="status"></span>
+        </header>
+        <main>
+            <div id="canvas-holder"></div> <!-- Defines a container where the drawing canvas will be placed by p5. -->
+        </main>
+
+        <!-- Core p5 library -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+        <!-- p5 sound library -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/addons/p5.sound.min.js"></script>
+        
+        <!-- Modules of Random Shape Spawn feature -->
+        <script src="./shapes.js"></script>
+        <script src="./ui.js"></script>
+        <script src="./sketch.js"></script>
+    </body>
+</html>
