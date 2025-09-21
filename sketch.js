@@ -47,7 +47,7 @@ function drawMenu() {
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(48);
-    text("Shape Finder!", width/2, height/2 - 120);
+    text("Shape Finder!\nVersion 0.3", width/2, height/2 - 120);
   }
 
   // Draw buttons
@@ -259,4 +259,5 @@ function drawGame() {
 
   // back button
   drawBackButton();
+
 }
