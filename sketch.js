@@ -130,6 +130,7 @@ function mousePressed() {
   if (gameState === "menu") {
     if (mouseInside(startButton)) {
       startGame();
+      console.log("game start");
     } else if (mouseInside(modesButton)) {
       gameState = "modes";
     }
@@ -165,6 +166,10 @@ function setup() {
   //gameplay ui business
   UILayer = createGraphics(windowWidth, windowHeight * 0.1);
   
+  //for poster business
+  poster = { x: width/2 - 175, y: 0, w: 350, h: 350 };
+  posterG = createGraphics(poster.w, poster.h);
+  
   //flashlight business
   fx = width / 2;
   fy = height / 2;
@@ -174,11 +179,15 @@ function setup() {
 //makes the shapes
 function playMode() {
   background(50);
-  spawnInteractors(100);
   for (const it of interactors) {
     it.update();  // runs movement + modifiers
     it.render();  // draws the object
   }
+}
+
+function nextRound(){
+  clearInteractors();
+  spawnInteractors(100);
 }
 
 function startGame() {
@@ -188,6 +197,9 @@ function startGame() {
   gameOver = false;
   gameState = "game";
   score = 0;
+  clearInteractors();
+  spawnInteractors(100);
+  playMode();
 }
 
 //draw loop

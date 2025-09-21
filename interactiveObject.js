@@ -178,6 +178,7 @@ class ScoreDownCircle extends ClickCircle {
   onClick() {
     super.onClick()
     score--;
+    Timer-=5;
   }
 }
 
@@ -185,13 +186,27 @@ class ScoreDownRect extends ClickRect {
   onClick() {
     super.onClick()
     score--;
+    Timer-=5;
   }
 }
 
 class WinRect extends ClickRect {
   onClick() {
     super.onClick();
-    triggerWin();
+    score++;
+    //triggerWin();
+    nextRound();
+    Timer+=3;
+  }
+}
+
+class WinCircle extends ClickCircle {
+  onClick() {
+    super.onClick();
+    score++;
+    nextRound();
+    Timer+=3;
+    //triggerWin();
   }
 }
 
@@ -280,9 +295,53 @@ class TeleportModifier {
   }
 }
 
+function spawnWinShape(){
+const movement = {
+      enabled: true,
+      lerpStrength: 0.1,
+      velocityLimit: 4,
+      switchRate: 60,
+    };
+
+    // build the same style of modifier chain as before
+    const mods = [
+      new FreezeModifier({ chance: 0.001, length: 60 }),
+      new JitterModifier({ rate: 0.1 }),
+      new TeleportModifier({ chance: 0.005 }),
+    ];
+
+    // pick a type; we have ClickCircle and ClickRect available
+    const makeCircle = random([true, false]);
+
+    let obj;
+    if (makeCircle) {
+      // roughly the same visual size as Shape size=40
+      obj = new WinCircle(
+        windowWidth / 2,
+        windowHeight / 2,
+        20,                       // radius ~ size/2
+        [255, 255, 255],          // color similar to your special case
+        { movement, modifiers: mods, deleteOnClick: true }
+      );
+    } else {
+      obj = new WinRect(
+        windowWidth / 2,
+        windowHeight / 2,
+        40,                        // w
+        40,                        // h
+        [255, 255, 255],           // color similar to your default
+        8,                         // corner radius
+        { movement, modifiers: mods, deleteOnClick: true }
+      );
+    }
+
+    interactors.push(obj);
+
+}
+
 function spawnInteractors(count) {
   // put a hard cap similar to the old code
-  if (interactors.length >= 100) return;
+  if (interactors.length >= count) return;
 
   for (let i = 0; i < count; i++) {
     // movement config similar to old Shape movement settings
@@ -333,7 +392,10 @@ function spawnInteractors(count) {
 
     interactors.push(obj);
   }
+    spawnWinShape();
+
 }
+
 
 function clearInteractors() {
   interactors.length = 0;
