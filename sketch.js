@@ -9,6 +9,8 @@ let Timer = StartTime;  // countdown mirror
 let startMillis = 0;    // when the round started
 let TimeOver = false;   // flag used in drawGame
 let times = StartTime;  // display value
+let sfxCorrect = null;  // sound effect for correct shape click
+let sfxIncorrect = null; // sound effect for incorrect shape click
 
 //////////////////////////////////////////////////
 //Classes and stuff for menu
@@ -29,6 +31,22 @@ function preload() {
   // menuBgImg = loadImage("menuBackground.png");
   // logoImg = loadImage("gameLogo.png");
   // buttonImg = loadImage("buttonImage.png");
+
+  // Preload correct sound effect if p5.sound/audio file is available:
+  if (typeof loadSound === 'function') {
+    try { // Attempt to load "correct.mp3":
+      sfxCorrect = loadSound('assets/correct.mp3');
+    } catch (e) {
+      sfxCorrect = null;
+      console.warn('Failed to preload "correct.mp3"!', e);
+    }
+    try { // Attempt to load "incorrect.mp3":
+      sfxIncorrect = loadSound('assets/incorrect.mp3');
+    } catch (e) {
+      sfxIncorrect = null;
+      console.warn('Failed to preload "incorrect.mp3"!', e);
+    }
+  }
 }
 
 function drawMenu() {
@@ -261,4 +279,3 @@ function drawGame() {
   drawBackButton();
 
 }
-
