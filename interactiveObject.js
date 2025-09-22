@@ -108,6 +108,18 @@ class InteractiveObject {
   // the parent (super) onClick function in child classes when developing additional objects
   onClick() {
     if (this.deleteOnClick) this.deleteSelf();
+
+    // Attempt to play "incorrect.mp3" if a non-"Win" shape was clicked:
+    try {
+      const isWin = (this instanceof WinRect) || (this instanceof WinCircle);
+      if (!isWin) { // If "isWin" was not one of the "Win" shapes:
+        if (typeof sfxIncorrect !== 'undefined' && sfxIncorrect && typeof sfxIncorrect.play === 'function') {
+          sfxIncorrect.play();
+        }
+      }
+    } catch (e) {
+      console.warn('Could not play "incorrect.mp3"!', e);
+    }
   }
 
   deleteSelf() {
@@ -197,6 +209,15 @@ class WinRect extends ClickRect {
     //triggerWin();
     nextRound();
     Timer+=3;
+    
+    // Attempt to play "correct.mp3" when the correct shape is picked:
+    try {
+      if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') { // If the .mp3 file was loaded correctly:
+        sfxCorrect.play();
+      }
+    } catch (e) { // Else, throw warning:
+      console.warn('Could not play "correct.mp3"!', e);
+    }
   }
 }
 
@@ -207,6 +228,14 @@ class WinCircle extends ClickCircle {
     nextRound();
     Timer+=3;
     //triggerWin();
+    // Attempt to play "correct.mp3" when the correct shape is picked:
+    try {
+      if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') { // If the .mp3 file was loaded correctly:
+        sfxCorrect.play();
+      }
+    } catch (e) { // Else, throw warning:
+      console.warn('Could not play "correct.mp3"!', e);
+    }
   }
 }
 
