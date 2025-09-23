@@ -1,3 +1,5 @@
+// abstract class definition of score indicator
+// -----------------------------------------------------------------------------
 class ScoreIndicator {
   constructor(x, y) {
     this.x = x;
@@ -20,6 +22,9 @@ class ScoreIndicator {
   }
 }
 
+// -----------------------------------------------------------------------------
+// indicating +1 score shape implementation
+// -----------------------------------------------------------------------------
 class StarScoreIndicator extends ScoreIndicator {
   show() { 
     push();
@@ -63,6 +68,9 @@ class StarScoreIndicator extends ScoreIndicator {
   }
 }
 
+// -----------------------------------------------------------------------------
+// indicating -1 score shape implementation
+// -----------------------------------------------------------------------------
 class CircleBurstScoreIndicator extends ScoreIndicator {
   show() {
     push();
