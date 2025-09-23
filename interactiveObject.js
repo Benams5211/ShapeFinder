@@ -108,6 +108,13 @@ class InteractiveObject {
   // the parent (super) onClick function in child classes when developing additional objects
   onClick() {
     if (this.deleteOnClick) this.deleteSelf();
+
+    const isWin = (this instanceof WinRect) || (this instanceof WinCircle);
+    if (isWin) {
+      stars.push(new StarScoreIndicator(mouseX, mouseY));
+    } else {
+      circleBursts.push(new CircleBurstScoreIndicator(mouseX, mouseY));
+    }
   }
 
   deleteSelf() {

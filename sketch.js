@@ -9,6 +9,8 @@ let Timer = StartTime;  // countdown mirror
 let startMillis = 0;    // when the round started
 let TimeOver = false;   // flag used in drawGame
 let times = StartTime;  // display value
+let stars = [];         // shapes of +1 score indicator
+let circleBursts = [];  // shapes of -1 score indicator
 
 //////////////////////////////////////////////////
 //Classes and stuff for menu
@@ -215,6 +217,8 @@ function draw() {
   } else if (gameState === "over") {
     drawOverMenu();
   }
+
+  updateScoreIndicators()
 }
 
 // GAME (placeholder)
@@ -260,4 +264,25 @@ function drawGame() {
   // back button
   drawBackButton();
 
+}
+
+function updateScoreIndicators() {
+
+  // handle stars
+  for (let i = stars.length - 1; i >= 0; i--) {
+    stars[i].update();
+    stars[i].show();
+    if (stars[i].isDead()) {
+      stars.splice(i, 1);
+    }
+  }
+
+  // handle circle bursts
+  for (let i = circleBursts.length - 1; i >= 0; i--) {
+    circleBursts[i].update();
+    circleBursts[i].show();
+    if (circleBursts[i].isDead()) {
+      circleBursts.splice(i, 1);
+    }
+  }
 }
