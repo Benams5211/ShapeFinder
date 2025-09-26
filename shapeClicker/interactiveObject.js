@@ -430,79 +430,6 @@ function pointInTriangle(px, py, ax, ay, bx, by, cx, cy) {
   return u >= 0 && v >= 0 && (u + v) <= 1;
 }
 
-// Replace an interactor with a new instance of NewClass, preserving state & z-order.
-function transformInteractor(oldObj, NewClass, newCtorArgs = []) {
-  // 1) Keep array position so z-order stays the same
-  const idx = interactors.indexOf(oldObj);
-  if (idx === -1) return null;
-
-  // 2) Build opts from old object
-  const opts = {
-    movement: { ...oldObj.movement },
-    modifiers: [...oldObj.modifierList],   // we'll rewire follow refs below
-    deleteOnClick: oldObj.deleteOnClick,
-    randomColor: oldObj.randomColor,
-    stroke: oldObj.stroke ? { ...oldObj.stroke } : undefined,
-    angle: oldObj.angle ?? 0,
-    clickAction: oldObj.clickAction ?? null,
-  };
-
-  // 3) Decide visual size mapping based on old/new types
-  let fillCol = oldObj.fillCol ?? [220,50,50];
-  let x = oldObj.x, y = oldObj.y;
-
-  // infer a "nominal size"
-  let nominalSize = 40;
-  if (oldObj instanceof ClickCircle) nominalSize = oldObj.r * 2;
-  if (oldObj instanceof ClickRect)   nominalSize = Math.max(oldObj.w, oldObj.h);
-  if (oldObj instanceof ClickTri)    nominalSize = oldObj.size;
-
-  // 4) Construct new instance (simple shapes shown)
-  let newObj;
-  if (NewClass === ClickCircle) {
-    const r = (newCtorArgs[0] ?? nominalSize/2);
-    newObj = new ClickCircle(x, y, r, fillCol, opts);
-  } else if (NewClass === ClickRect) {
-    const s = (newCtorArgs[0] ?? nominalSize);
-    const corner = (newCtorArgs[1] ?? 8);
-    newObj = new ClickRect(x, y, s, s, fillCol, corner, opts);
-  } else if (NewClass === ClickTri) {
-    const size = (newCtorArgs[0] ?? nominalSize);
-    newObj = new ClickTri(x, y, size, fillCol, opts);
-  } else {
-    // Fallback: create via generic constructor signature if you have others
-    console.warn('Unknown NewClass; update transformInteractor for this type.');
-    return null;
-  }
-
-  // 5) Preserve instantaneous motion (if enabled)
-  if (oldObj.movement?.enabled) {
-    newObj.vx = oldObj.vx ?? 0;
-    newObj.vy = oldObj.vy ?? 0;
-    newObj.targetVx = oldObj.targetVx ?? 0;
-    newObj.targetVy = oldObj.targetVy ?? 0;
-  }
-
-  // 6) Optional: carry over any metadata you use
-  if (oldObj.meta) newObj.meta = { ...oldObj.meta };
-
-  // 7) Insert new object at same z-order
-  interactors[idx] = newObj;
-
-  // 8) Rewire FollowShape modifiers:
-  //    a) In other objects that were following oldObj → follow newObj
-  //    b) Inside newObj’s own modifiers (if any referenced oldObj)
-  for (const o of interactors) {
-    for (const m of (o.modifierList || [])) {
-      if (m instanceof FollowShape && m.otherShape === oldObj) {
-        m.otherShape = newObj;
-      }
-    }
-  }
-
-  return newObj;
-}
-
 function isUnderFlashlight(x, y, pad = 0) {
   if (typeof fx === 'undefined' || typeof fy === 'undefined' ||
       typeof coverW === 'undefined' || typeof coverH === 'undefined') {
@@ -522,3 +449,4 @@ function clearInteractors() {
   wantedObj == null;
 
 }
+
