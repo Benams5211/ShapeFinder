@@ -400,104 +400,6 @@ class TeleportModifier {
   }
 }
 
-function spawnInteractors(count) {
-  // NEW: tiny helper to make a static (no-move) clone for the wanted list
-  // rare nested function utility
-  function makeStaticWantedFrom(o) {
-    const baseOpts = {
-      movement: { enabled: false },  // <- no movement
-      modifiers: [],                 // <- no jitter/teleport/follow
-      deleteOnClick: false,
-      randomColor: false,
-      stroke: o.stroke ? { ...o.stroke } : undefined,
-    };
-    if (o instanceof ClickCircle) {
-      return new ClickCircle(width/2-o.r/2, 60-o.r/2, o.r, o.fillCol, baseOpts);
-    } else if (o instanceof ClickRect) {
-      return new ClickRect(width/2-o.w/2, 60-o.h/2, o.w, o.h, o.fillCol, o.radius || 0, baseOpts);
-    } else if (o instanceof ClickTri) {
-      return new ClickTri(width/2-o.size/2, 60-o.size/2, o.size, o.fillCol, { ...baseOpts, angle: o.angle || 0 });
-    }
-    return null;
-  }
-
-  for (let i = 0; i < count; i++) {
-    const movement = {
-      enabled: true,
-      lerpStrength: 0.1,
-      velocityLimit: 4,
-      switchRate: 60,
-    };
-
-    const mods = [
-      new FreezeModifier({ chance: 0.001, length: 60 }),
-      new JitterModifier({ rate: 0.1 }),
-      new TeleportModifier({ chance: 0.005 }),
-    ];
-
-    if (interactors.length > 0 && interactors.length < 8) {
-      const toFollow = interactors[0];
-      mods.push(new FollowShape({ otherShape: toFollow, followStrength: 0.3 }));
-    }
-
-    const choice = random(['circle','rect','tri']);
-    const opts = {
-      movement, modifiers: mods,
-      deleteOnClick: true,
-      randomColor: true,
-      stroke: { enabled: true, weight: 2, color: [0,0,0] },
-    };
-
-    let obj;
-    
-    if (choice === 'circle') {
-      const r = random(12, 56);
-      const x = random(r, width  - r);
-      const y = random(r, height - r);
-      if (i != count-1) {
-        obj = new ScoreDownCircle(x, y, r, null, opts);
-      } else {
-        obj = new WinCircle(x, y, r, null, opts);
-        // CHANGED: push a static clone to wantedObj (not the live obj)
-        const preview = makeStaticWantedFrom(obj);
-        if (preview) wantedObj = preview;
-      }
-
-    } else if (choice === 'rect') {
-      const w = random(24, 110);
-      const h = random(24, 110);
-      const rad = random(0, min(12, min(w, h) / 3));
-      const x = random(w / 2, width  - w / 2);
-      const y = random(h / 2, height - h / 2);
-      if (i != count-1) {
-        obj = new ScoreDownRect(x, y, w, h, null, rad, opts);
-      } else {
-        obj = new WinRect(x, y, w, h, null, rad, opts);
-        // CHANGED: static clone for wanted panel
-        const preview = makeStaticWantedFrom(obj);
-        if (preview) wantedObj = preview;
-      }
-
-    } else {
-      const s  = random(28, 90);
-      const R  = s / Math.sqrt(3);
-      const x  = random(R, width  - R);
-      const y  = random(R, height - R);
-      if (i != count-1) {
-        obj = new ScoreDownTri(x, y, s, null, { ...opts, angle: random(TWO_PI) });
-      } else {
-        obj = new WinTri(x, y, s, null, { ...opts, angle: random(TWO_PI) });
-        // CHANGED: static clone for wanted panel
-        const preview = makeStaticWantedFrom(obj);
-        if (preview) wantedObj = preview;
-      }
-    }
-    interactors.push(obj);
-  }
-}
-
-
-
 // helpers
 function randomColor() {
   return [ floor(random(256)), floor(random(256)), floor(random(256)) ];
@@ -618,4 +520,5 @@ function isUnderFlashlight(x, y, pad = 0) {
 function clearInteractors() {
   interactors.length = 0;
   wantedObj == null;
+
 }
