@@ -410,7 +410,6 @@ function clearInteractors() {
 }
 
 function spawnInteractors(count) {
-  // NEW: tiny helper to make a static (no-move) clone for the wanted list
   // rare nested function utility
   function makeStaticWantedFrom(o) {
     const baseOpts = {
@@ -543,6 +542,7 @@ function clearInteractors() {
   wantedObj == null;
 
 }
+
 
 
 
