@@ -467,7 +467,6 @@ function spawnInteractors(count) {
         obj = new ScoreDownCircle(x, y, r, null, opts);
       } else {
         obj = new WinCircle(x, y, r, null, opts);
-        // CHANGED: push a static clone to wantedObj (not the live obj)
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
       }
@@ -545,5 +544,6 @@ function clearInteractors() {
   wantedObj == null;
 
 }
+
 
 
