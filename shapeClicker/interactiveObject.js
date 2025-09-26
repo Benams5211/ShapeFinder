@@ -495,7 +495,6 @@ function spawnInteractors(count) {
         obj = new ScoreDownTri(x, y, s, null, { ...opts, angle: random(TWO_PI) });
       } else {
         obj = new WinTri(x, y, s, null, { ...opts, angle: random(TWO_PI) });
-        // CHANGED: static clone for wanted panel
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
       }
@@ -544,6 +543,7 @@ function clearInteractors() {
   wantedObj == null;
 
 }
+
 
 
 
