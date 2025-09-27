@@ -32,7 +32,7 @@ function mouseWheel(e) {
 
 function rebuildLayer() {
   // makes the darkness not end early on screen vertically
-  coverW = floor(max(width, height) * 3);
+  coverW = floor(max(width, height) * 2);
   // makes the darkness not end early on screen horizontally
   coverH = coverW;
   // graphic buffer
@@ -102,3 +102,4 @@ function easeOutQuad(x) {
   return 1 - (1 - x) * (1 - x);
 
 }
+
