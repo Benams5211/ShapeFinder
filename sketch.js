@@ -4,13 +4,16 @@
 
 let gameOver = false;
 let score = 0;
-const StartTime = 60;   // length of a round in seconds (set what you want)
-let Timer = StartTime;  // countdown mirror
-let startMillis = 0;    // when the round started
-let TimeOver = false;   // flag used in drawGame
-let times = StartTime;  // display value
-let sfxCorrect = null;  // sound effect for correct shape click
-let sfxIncorrect = null; // sound effect for incorrect shape click
+const StartTime = 60;       // length of a round in seconds (set what you want)
+let Timer = StartTime;      // countdown mirror
+let startMillis = 0;        // when the round started
+let TimeOver = false;       // flag used in drawGame
+let times = StartTime;      // display value
+let sfxCorrect = null;      // sound effect for correct shape click
+let sfxIncorrect = null;    // sound effect for incorrect shape click
+let stars = [];             // shapes of +1 score indicator
+let circleBursts = [];      // shapes of -1 score indicator
+let difficulty = "medium";  // default
 
 //////////////////////////////////////////////////
 //Classes and stuff for menu
@@ -65,7 +68,7 @@ function drawMenu() {
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(48);
-    text("Shape Finder!\nVersion 0.3.2", width/2, height/2 - 120);
+    text("Shape Finder!\nVersion 0.4", width/2, height/2 - 120);
   }
 
   // Draw buttons
@@ -90,16 +93,27 @@ function drawButton(btn) {
   text(btn.label, btn.x + btn.w/2, btn.y + btn.h/2);
 }
 
-// modes (placeholder)
+// modes
 function drawModes() {
-  background(60); // dark gray
-  fill(255);
-  textAlign(CENTER, CENTER);
-  textSize(40);
-  text("Modes Menu (Coming Soon)", width/2, height/2);
+    background(60); 
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(40);
+    text("Select Difficulty", width/2, height/2 - 150);
+  
+    // difficulty buttons
+    drawButton({ x: width/2 - 100, y: height/2 - 50, w: 200, h: 60, label: "EASY" });
+    drawButton({ x: width/2 - 100, y: height/2 + 50, w: 200, h: 60, label: "MEDIUM" });
+    drawButton({ x: width/2 - 100, y: height/2 + 150, w: 200, h: 60, label: "HARD" });
+  
+    drawBackButton();
+}
 
-  // Back button to return to menu// just for ease of dev
-  drawBackButton();
+function keyPressed() {
+  if (key === 'a') triggerBoatLines(15000);
+  if (key === 'b') triggerBlackHoleEvent(3000);
+  if (key === 'w') triggerWarning(5000);
+  if (key === 'z') triggerZombieEvent(5000);
 }
 
 function drawOverMenu() {
@@ -145,25 +159,45 @@ function handleInteractorClick() {
 
 //mouse input
 function mousePressed() {
-  if (gameState === "menu") {
-    if (mouseInside(startButton)) {
-      startGame();
-      console.log("game start");
-    } else if (mouseInside(modesButton)) {
-      gameState = "modes";
-    }
-  } else if (gameState === "game" || gameState === "modes") {
-    if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60) {
-      gameState = "menu";
+    if (gameState === "menu") {
+      if (mouseInside(startButton)) {
+        startGame();
+      } else if (mouseInside(modesButton)) {
+        gameState = "modes";
+      }
+  
     } else if (gameState === "game") {
-      handleInteractorClick();
-    }
-  } else if (gameState === "over") {
-    if (mouseInside(againButton)) {
-      startGame();  // restart fresh
-    } else if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60){
-      gameState = "menu";
-    }
+      if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60) {
+        gameState = "menu";
+      } else {
+        handleInteractorClick();
+      }
+  
+    } else if (gameState === "over") {
+      if (mouseInside(againButton)) {
+        startGame();
+      } else if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60) {
+        gameState = "menu";
+      }
+  
+    } else if (gameState === "modes") {
+        // back button
+        if (mouseInside({ x: 20, y: 20, w: 120, h: 40 })) {
+          gameState = "menu";
+          return;
+        }
+      
+        // difficulty buttons — set difficulty AND start game immediately
+        if (mouseInside({ x: width/2 - 100, y: height/2 - 50, w: 200, h: 60 })) {
+          difficulty = "easy";
+          startGame();
+        } else if (mouseInside({ x: width/2 - 100, y: height/2 + 50, w: 200, h: 60 })) {
+          difficulty = "medium";
+          startGame();
+        } else if (mouseInside({ x: width/2 - 100, y: height/2 + 150, w: 200, h: 60 })) {
+          difficulty = "hard";
+          startGame();
+        }
   }
 }
 
@@ -201,11 +235,12 @@ function playMode() {
     it.update();  // runs movement + modifiers
     it.render();  // draws the object
   }
+  events.update();
 }
 
 function nextRound(){
   clearInteractors();
-  spawnInteractors(100);
+  spawnInteractors();
 }
 
 function startGame() {
@@ -216,7 +251,7 @@ function startGame() {
   gameState = "game";
   score = 0;
   clearInteractors();
-  spawnInteractors(100);
+  spawnInteractors();
   playMode();
 }
 
@@ -233,6 +268,8 @@ function draw() {
   } else if (gameState === "over") {
     drawOverMenu();
   }
+
+  updateScoreIndicators();
 }
 
 // GAME (placeholder)
@@ -274,8 +311,30 @@ function drawGame() {
   UILayer.fill('black');
   UILayer.text("Score: " + score + " Time: " + times, UILayer.width - 20, UILayer.height /2);
   image(UILayer, 0,0);
+  wantedObj.render();
 
   // back button
   drawBackButton();
 
+}
+
+function updateScoreIndicators() {
+
+  // handle stars
+  for (let i = stars.length - 1; i >= 0; i--) {
+    stars[i].update();
+    stars[i].show();
+    if (stars[i].isDead()) {
+      stars.splice(i, 1);
+    }
+  }
+
+  // handle circle bursts
+  for (let i = circleBursts.length - 1; i >= 0; i--) {
+    circleBursts[i].update();
+    circleBursts[i].show();
+    if (circleBursts[i].isDead()) {
+      circleBursts.splice(i, 1);
+    }
+  }
 }
