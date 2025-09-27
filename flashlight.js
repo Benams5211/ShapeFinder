@@ -100,4 +100,5 @@ function buildDarknessLayer() {
 function easeOutQuad(x) {
   // idiom
   return 1 - (1 - x) * (1 - x);
+
 }
