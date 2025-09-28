@@ -31,16 +31,30 @@ function preload() {
   // menuBgImg = loadImage("menuBackground.png");
   // logoImg = loadImage("gameLogo.png");
   // buttonImg = loadImage("buttonImage.png");
+  // Prefer using the project's AudioManager (if present). AudioManager.preload
+  // will call p5.loadSound when available, which registers assets with p5's
+  // loading system (so calling it inside preload() is safe).
 
-  // Preload correct sound effect if p5.sound/audio file is available:
-  if (typeof loadSound === 'function') {
-    try { // Attempt to load "correct.mp3":
+  // 
+  // Preload the Audio Manager:
+  // 
+  if (window.AudioManager && typeof AudioManager.preload === 'function') {
+    // List of Audio Files to be proloaded by the Audio Manager:
+    AudioManager.preload([
+      { name: 'sfxCorrect', path: 'assets/correct.mp3' },
+      { name: 'sfxIncorrect', path: 'assets/incorrect.mp3' }
+    ]);
+
+    if (AudioManager.sounds['sfxCorrect']) sfxCorrect = AudioManager.sounds['sfxCorrect'].obj;
+    if (AudioManager.sounds['sfxIncorrect']) sfxIncorrect = AudioManager.sounds['sfxIncorrect'].obj;
+  } else if (typeof loadSound === 'function') { // If the Audio Manager can't be loaded properly, then just load the sound effects like from previous iteration (with "loadSound()"):
+    try {
       sfxCorrect = loadSound('assets/correct.mp3');
     } catch (e) {
       sfxCorrect = null;
       console.warn('Failed to preload "correct.mp3"!', e);
     }
-    try { // Attempt to load "incorrect.mp3":
+    try {
       sfxIncorrect = loadSound('assets/incorrect.mp3');
     } catch (e) {
       sfxIncorrect = null;

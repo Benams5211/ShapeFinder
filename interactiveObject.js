@@ -113,8 +113,10 @@ class InteractiveObject {
     try {
       const isWin = (this instanceof WinRect) || (this instanceof WinCircle);
       if (!isWin) { // If "isWin" was not one of the "Win" shapes:
-        if (typeof sfxIncorrect !== 'undefined' && sfxIncorrect && typeof sfxIncorrect.play === 'function') {
-          sfxIncorrect.play();
+        if (window.AudioManager && typeof AudioManager.play === 'function') {
+          AudioManager.play('sfxIncorrect', { vol: 1.0 }); // Play "sfxIncorrect" from the Audio Manager:
+        } else if (typeof sfxIncorrect !== 'undefined' && sfxIncorrect && typeof sfxIncorrect.play === 'function') {
+          sfxIncorrect.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
         }
       }
     } catch (e) {
@@ -212,8 +214,10 @@ class WinRect extends ClickRect {
     
     // Attempt to play "correct.mp3" when the correct shape is picked:
     try {
-      if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') { // If the .mp3 file was loaded correctly:
-        sfxCorrect.play();
+      if (window.AudioManager && typeof AudioManager.play === 'function') {
+        AudioManager.play('sfxCorrect', { vol: 1.0 }); // Play "sfxCorrect" with the Audio Manager:
+      } else if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') {
+        sfxCorrect.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
       }
     } catch (e) { // Else, throw warning:
       console.warn('Could not play "correct.mp3"!', e);
@@ -230,8 +234,10 @@ class WinCircle extends ClickCircle {
     //triggerWin();
     // Attempt to play "correct.mp3" when the correct shape is picked:
     try {
-      if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') { // If the .mp3 file was loaded correctly:
-        sfxCorrect.play();
+      if (window.AudioManager && typeof AudioManager.play === 'function') {
+        AudioManager.play('sfxCorrect', { vol: 1.0 }); // play "sfxCorrect" using the Audio Manager:
+      } else if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') {
+        sfxCorrect.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
       }
     } catch (e) { // Else, throw warning:
       console.warn('Could not play "correct.mp3"!', e);
