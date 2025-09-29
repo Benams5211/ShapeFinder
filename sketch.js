@@ -16,6 +16,10 @@ let circleBursts = [];      // shapes of -1 score indicator
 let difficulty = "medium";  // default
 const MENU_SHAPE_CAP=80;
 
+// stuff for paused
+let pauseStartMillis = 0;
+let totalPausedTime = 0;
+
 //////////////////////////////////////////////////
 //Classes and stuff for menu
 //////////////////////////////////////////////////
@@ -77,7 +81,7 @@ function drawMenu() {
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(48);
-    text("Shape Finder!\nVersion 0.4.2, width/2, height/2 - 120);
+    text("Shape Finder!\nVersion 0.4.2", width/2, height/2 - 120);
   }
 
   // Draw buttons
@@ -144,6 +148,13 @@ function keyPressed() {
   if (key === 'b') triggerBlackHoleEvent(3000);
   if (key === 'w') triggerWarning(5000);
   if (key === 'z') triggerZombieEvent(5000);
+  if (gameState === "game" && key === 'p') {
+    gameState = "pause";
+    pauseStartMillis = millis();
+  } else if (gameState === "pause" && key === 'p') {
+    gameState = "game";
+    totalPausedTime += millis() - pauseStartMillis;
+  }
 }
 
 function drawOverMenu() {
@@ -268,6 +279,12 @@ function mousePressed() {
           difficulty = "hard";
           startGame();
         }
+  } else if (gameState === "pause") {
+    if (mouseInside(pauseButton)) {
+      gameState = "game"; // resume
+    } else if (mouseInside(backToMenuButton)) {
+      gameState = "menu"; // goes back to main menu
+    }
   }
 }
 
@@ -284,7 +301,10 @@ function setup() {
   startButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "START" };
   modesButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "MODES" };
   againButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "AGAIN" };
-  
+  pauseButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "RESUME" }; // i added this
+  backToMenuButton = { x: width/2 - 100, y: height/2 + 80, w: 200, h: 60, label: "MENU" }; // i added this
+
+
   //gameplay ui business
   UILayer = createGraphics(windowWidth, windowHeight * 0.1);
   
@@ -321,10 +341,12 @@ function nextRound(){
 function startGame() {
   Timer = StartTime;        // reset round length
   startMillis = millis();   // bookmark the start time ONCE
+  totalPausedTime = 0;
   TimeOver = false;
   gameOver = false;
   gameState = "game";
   score = 0;
+
   clearInteractors();
   setTimeout(() => {
     blackout = false;
@@ -345,6 +367,9 @@ function draw() {
     drawModes();
   } else if (gameState === "over") {
     drawOverMenu();
+  } else if (gameState === "pause") {
+    drawGame();        // shows the frozen game
+    drawPauseMenu();   // overlay pause menu
   }
 
   updateScoreIndicators();
@@ -355,8 +380,12 @@ function drawGame() {
   fill(0);
 
   // compute time left based on the single startMillis
-  let elapsed = int((millis() - startMillis) / 1000);
+  // added totalPaused time so that it only counts time spent NOT pause
+  if (gameState !== "pause") {
+  let elapsed = int((millis() - startMillis - totalPausedTime) / 1000);
   times = Timer - elapsed;
+  }
+
 
   // clamp
   if (times <= 0) {
@@ -367,7 +396,7 @@ function drawGame() {
   }
 
   // play mode only while not gameOver
-  if (!gameOver) {
+  if (!gameOver && gameState !== "pause") {
     playMode();
   }
 
@@ -416,4 +445,18 @@ function updateScoreIndicators() {
       circleBursts.splice(i, 1);
     }
   }
+}
+
+function drawPauseMenu() {
+  fill(0, 180);
+  rect(0, 0, width, height);
+
+  // text
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(48);
+  text("Paused", width / 2, height / 2 - 100);
+  //drawing the buttons 
+  drawButton(pauseButton);
+  drawButton(backToMenuButton);
 }
