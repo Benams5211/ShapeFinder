@@ -11,6 +11,8 @@ const minGap = 15;
 const bands = 10;
 const darknessAlpha = 245;
 
+let blackout = false;
+
 function mouseWheel(e) {
   const old = intensity;
   // delta is scroll wheel position
@@ -103,3 +105,25 @@ function easeOutQuad(x) {
 
 }
 
+
+function drawFlashlightOverlay () {
+  const mx = isFinite(mouseX) ? mouseX : width / 2;
+  const my = isFinite(mouseY) ? mouseY : height / 2;
+  fx = lerp(fx, mx, 0.2); //what is lerp
+  fy = lerp(fy, my, 0.2);
+
+  const dx = fx - coverW / 2;
+  const dy = fy - coverH / 2;
+  
+  if(blackout){
+    //screen goes black
+    push();
+    fill(0);
+    noStroke();
+    rect(0, 0, width, height);
+    pop();
+  }
+  else{
+    image(darkness, dx, dy);
+  }
+}
