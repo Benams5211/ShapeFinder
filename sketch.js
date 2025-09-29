@@ -68,7 +68,7 @@ function drawMenu() {
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(48);
-    text("Shape Finder!\nVersion 0.4", width/2, height/2 - 120);
+    text("Shape Finder!\nVersion 0.4.1", width/2, height/2 - 120);
   }
 
   // Draw buttons
@@ -218,10 +218,6 @@ function setup() {
   //gameplay ui business
   UILayer = createGraphics(windowWidth, windowHeight * 0.1);
   
-  //for poster business
-  poster = { x: width/2 - 175, y: 0, w: 350, h: 350 };
-  posterG = createGraphics(poster.w, poster.h);
-  
   //flashlight business
   fx = width / 2;
   fy = height / 2;
@@ -239,8 +235,14 @@ function playMode() {
 }
 
 function nextRound(){
-  clearInteractors();
-  spawnInteractors();
+  blackout = true; //turn flashlight off
+
+  //wait, spawn new shapes, turn flashlight back on
+  setTimeout(() => {
+    clearInteractors();
+    spawnInteractors();
+    blackout = false; //turn flashlight on
+  }, 400); //1 sec, half second?
 }
 
 function startGame() {
@@ -251,6 +253,9 @@ function startGame() {
   gameState = "game";
   score = 0;
   clearInteractors();
+  setTimeout(() => {
+    blackout = false;
+  }, 1000);
   spawnInteractors();
   playMode();
 }
@@ -301,7 +306,8 @@ function drawGame() {
 
   const dx = fx - coverW / 2;
   const dy = fy - coverH / 2;
-  image(darkness, dx, dy);
+  //image(darkness, dx, dy);
+  drawFlashlightOverlay();
 
   //drawing the top UI bar
   UILayer.clear();
