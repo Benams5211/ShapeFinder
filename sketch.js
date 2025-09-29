@@ -14,6 +14,7 @@ let sfxIncorrect = null;    // sound effect for incorrect shape click
 let stars = [];             // shapes of +1 score indicator
 let circleBursts = [];      // shapes of -1 score indicator
 let difficulty = "medium";  // default
+const MENU_SHAPE_CAP=80;
 
 //////////////////////////////////////////////////
 //Classes and stuff for menu
@@ -59,6 +60,14 @@ function drawMenu() {
   } else {
     background(200);
   }
+
+  // draw drifting shapes in background
+  playModeMenu();
+
+  // overlay darkness
+  fill(0, 180);
+  noStroke();
+  rect(0, 0, width, height);
   
   // Title text or logo image
   if (logoImg) {
@@ -68,13 +77,34 @@ function drawMenu() {
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(48);
-    text("Shape Finder!\nVersion 0.4.1", width/2, height/2 - 120);
+    text("Shape Finder!\nVersion 0.4.2, width/2, height/2 - 120);
   }
 
   // Draw buttons
   drawButton(startButton);
   drawButton(modesButton);
 }
+
+function spawnMenuShape() {
+  const r = random(20, 40);
+  const x = random(r, width - r);
+  const y = random(r, height - r);
+  const opts = {
+    movement: { enabled: true, lerpStrength: 0.2, velocityLimit: 0.3, switchRate: 60 },
+    modifiers: [],
+    deleteOnClick: false,
+    randomColor: true
+  };
+  const choice = random(['circle', 'rect', 'tri']);
+  if (choice === 'circle') {
+    interactors.push(new ClickCircle(x, y, r, randomColor(), opts));
+  } else if (choice === 'rect') {
+    interactors.push(new ClickRect(x, y, r*1.5, r*1.5, randomColor(), 8, opts));
+  } else {
+    interactors.push(new ClickTri(x, y, r*2, randomColor(), opts));
+  }
+}
+
 
 // helper function to draw a button
 function drawButton(btn) {
@@ -135,6 +165,46 @@ function drawOverMenu() {
   drawButton(againButton);
   drawBackButton();
 }
+
+// passive renderer for menu (no clicks, no game logic)
+function playModeMenu() {
+  background(50);
+
+  // occasionally add a shape if under cap
+  if (frameCount % 60 === 0 && interactors.length < MENU_SHAPE_CAP) {
+    spawnMenuShape(); // new helper
+  }
+
+  for (const it of interactors) {
+    it.update();
+    it.render();
+  }
+}
+
+// background shapes for menu
+function spawnMenuShapes() {
+  clearInteractors();
+  for (let i = 0; i < 40; i++) {
+    const r = random(20, 40);
+    const x = random(r, width - r);
+    const y = random(r, height - r);
+    const opts = {
+      movement: { enabled: true, lerpStrength: 0.1, velocityLimit: 2, switchRate: 60 },
+      modifiers: [],
+      deleteOnClick: false,
+      randomColor: true
+    };
+    const choice = random(['circle', 'rect', 'tri']);
+    if (choice === 'circle') {
+      interactors.push(new ClickCircle(x, y, r, randomColor(), opts));
+    } else if (choice === 'rect') {
+      interactors.push(new ClickRect(x, y, r*1.5, r*1.5, randomColor(), 8, opts));
+    } else {
+      interactors.push(new ClickTri(x, y, r*2, randomColor(), opts));
+    }
+  }
+}
+
 
 // back button in the corner// honestly just for me to switch back, can be removed
 function drawBackButton() {
@@ -222,6 +292,9 @@ function setup() {
   fx = width / 2;
   fy = height / 2;
   rebuildLayer();
+
+  // spawn drifting shapes for menu
+  spawnMenuShapes();
 }
 
 //makes the shapes
