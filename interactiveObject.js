@@ -481,7 +481,6 @@ class TeleportModifier {
 }
 
 function spawnInteractors() {
-  // NEW: tiny helper to make a static (no-move) clone for the wanted list
   // rare nested function utility
   function makeStaticWantedFrom(o) {
     const baseOpts = {
@@ -572,13 +571,11 @@ function spawnInteractors() {
         const x  = random(R, width  - R);
         const y  = random(R, height - R);
         obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false });
-        // CHANGED: static clone for wanted panel
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
       } else if (i === count-1 && winShapeType === 'circle'){//final shape, is the shape type
         obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false});
-        // CHANGED: push a static clone to wantedObj (not the live obj)
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
       }
@@ -601,7 +598,6 @@ function spawnInteractors() {
         const x  = random(R, width  - R);
         const y  = random(R, height - R);
         obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false });
-        // CHANGED: static clone for wanted panel
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
@@ -610,13 +606,11 @@ function spawnInteractors() {
         const x = random(r, width  - r);
         const y = random(r, height - r);
         obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false});
-        // CHANGED: push a static clone to wantedObj (not the live obj)
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
       } else if (i === count-1 && winShapeType === 'rect') { //final shape, is the shape type
         obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false});
-        // CHANGED: static clone for wanted panel
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
       }
@@ -637,7 +631,6 @@ function spawnInteractors() {
         const x = random(r, width  - r);
         const y = random(r, height - r);
         obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false});
-        // CHANGED: push a static clone to wantedObj (not the live obj)
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
@@ -648,13 +641,11 @@ function spawnInteractors() {
         const x = random(w / 2, width  - w / 2);
         const y = random(h / 2, height - h / 2);
         obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false});
-        // CHANGED: static clone for wanted panel
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
       } else if (i === count-1 && winShapeType === 'tri') {//final shape, same win type
-        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false });//angle can be random(TWO_PI)
-        // CHANGED: static clone for wanted panel
+        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false }); //angle can be random(TWO_PI)
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
       }
@@ -800,3 +791,4 @@ function clearInteractors() {
   wantedObj == null;
 
 }
+
