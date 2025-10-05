@@ -268,6 +268,14 @@ function playHardBGM(){
   }
 }
 
+function stopHardBGM(){
+  if (window.AudioManager && typeof AudioManager.play === 'function') {
+          AudioManager.stop('bgmHard');
+  } else if (typeof bgmHard !== 'undefined' && bgmHard && typeof bgmHard.play === 'function') {
+    bgmHard.stop('bgmHard');
+  }
+}
+
 
 // passive renderer for menu (no clicks, no game logic)
 function playModeMenu() {
@@ -343,16 +351,14 @@ function mousePressed() {
       if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60) {
         playMenuSFX();
         gameState = "menu";
-        if (window.AudioManager && typeof AudioManager.play === 'function') {
-          AudioManager.stop('bgmHard');}
+        stopHardBGM();
       } else {
         handleInteractorClick();
       }
   
     } else if (gameState === "over") {
       if (mouseInside(againButton)) {
-        if (window.AudioManager && typeof AudioManager.play === 'function') {
-          AudioManager.stop('bgmHard');}
+        stopHardBGM();
         startGame();
       } else if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60) {
         playMenuSFX();
@@ -381,6 +387,7 @@ function mousePressed() {
     if (mouseInside(pauseButton)) {
       gameState = "game"; // resume
     } else if (mouseInside(backToMenuButton)) {
+      stopHardBGM();
       gameState = "menu"; // goes back to main menu
     }
   }
@@ -398,7 +405,7 @@ function mouseInside(btn) {
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
-  console.log("Version 5.1");//change this each master commit to see when changes happen
+  console.log("Version 5.2");//change this each master commit to see when changes happen
   
   //menu business
   startButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "START" };
@@ -568,5 +575,6 @@ function drawPauseMenu() {
   drawButton(backToMenuButton);
 
 }
+
 
 
