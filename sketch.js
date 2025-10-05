@@ -14,6 +14,11 @@ let sfxIncorrect = null;    // sound effect for incorrect shape click
 let stars = [];             // shapes of +1 score indicator
 let circleBursts = [];      // shapes of -1 score indicator
 let difficulty = "medium";  // default
+const MENU_SHAPE_CAP=80;
+
+// stuff for paused
+let pauseStartMillis = 0;
+let totalPausedTime = 0;
 
 //////////////////////////////////////////////////
 //Classes and stuff for menu
@@ -59,6 +64,14 @@ function drawMenu() {
   } else {
     background(200);
   }
+
+  // draw drifting shapes in background
+  playModeMenu();
+
+  // overlay darkness
+  fill(0, 180);
+  noStroke();
+  rect(0, 0, width, height);
   
   // Title text or logo image
   if (logoImg) {
@@ -68,13 +81,34 @@ function drawMenu() {
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(48);
-    text("Shape Finder!\nVersion 0.4", width/2, height/2 - 120);
+    text("Shape Finder!\nVersion 0.4.2", width/2, height/2 - 120);
   }
 
   // Draw buttons
   drawButton(startButton);
   drawButton(modesButton);
 }
+
+function spawnMenuShape() {
+  const r = random(20, 40);
+  const x = random(r, width - r);
+  const y = random(r, height - r);
+  const opts = {
+    movement: { enabled: true, lerpStrength: 0.2, velocityLimit: 0.3, switchRate: 60 },
+    modifiers: [],
+    deleteOnClick: false,
+    randomColor: true
+  };
+  const choice = random(['circle', 'rect', 'tri']);
+  if (choice === 'circle') {
+    interactors.push(new ClickCircle(x, y, r, randomColor(), opts));
+  } else if (choice === 'rect') {
+    interactors.push(new ClickRect(x, y, r*1.5, r*1.5, randomColor(), 8, opts));
+  } else {
+    interactors.push(new ClickTri(x, y, r*2, randomColor(), opts));
+  }
+}
+
 
 // helper function to draw a button
 function drawButton(btn) {
@@ -114,6 +148,13 @@ function keyPressed() {
   if (key === 'b') triggerBlackHoleEvent(3000);
   if (key === 'w') triggerWarning(5000);
   if (key === 'z') triggerZombieEvent(5000);
+  if (gameState === "game" && key === 'p') {
+    gameState = "pause";
+    pauseStartMillis = millis();
+  } else if (gameState === "pause" && key === 'p') {
+    gameState = "game";
+    totalPausedTime += millis() - pauseStartMillis;
+  }
 }
 
 function drawOverMenu() {
@@ -135,6 +176,46 @@ function drawOverMenu() {
   drawButton(againButton);
   drawBackButton();
 }
+
+// passive renderer for menu (no clicks, no game logic)
+function playModeMenu() {
+  background(50);
+
+  // occasionally add a shape if under cap
+  if (frameCount % 60 === 0 && interactors.length < MENU_SHAPE_CAP) {
+    spawnMenuShape(); // new helper
+  }
+
+  for (const it of interactors) {
+    it.update();
+    it.render();
+  }
+}
+
+// background shapes for menu
+function spawnMenuShapes() {
+  clearInteractors();
+  for (let i = 0; i < 40; i++) {
+    const r = random(20, 40);
+    const x = random(r, width - r);
+    const y = random(r, height - r);
+    const opts = {
+      movement: { enabled: true, lerpStrength: 0.1, velocityLimit: 2, switchRate: 60 },
+      modifiers: [],
+      deleteOnClick: false,
+      randomColor: true
+    };
+    const choice = random(['circle', 'rect', 'tri']);
+    if (choice === 'circle') {
+      interactors.push(new ClickCircle(x, y, r, randomColor(), opts));
+    } else if (choice === 'rect') {
+      interactors.push(new ClickRect(x, y, r*1.5, r*1.5, randomColor(), 8, opts));
+    } else {
+      interactors.push(new ClickTri(x, y, r*2, randomColor(), opts));
+    }
+  }
+}
+
 
 // back button in the corner// honestly just for me to switch back, can be removed
 function drawBackButton() {
@@ -198,6 +279,12 @@ function mousePressed() {
           difficulty = "hard";
           startGame();
         }
+  } else if (gameState === "pause") {
+    if (mouseInside(pauseButton)) {
+      gameState = "game"; // resume
+    } else if (mouseInside(backToMenuButton)) {
+      gameState = "menu"; // goes back to main menu
+    }
   }
 }
 
@@ -214,18 +301,20 @@ function setup() {
   startButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "START" };
   modesButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "MODES" };
   againButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "AGAIN" };
-  
+  pauseButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "RESUME" }; // i added this
+  backToMenuButton = { x: width/2 - 100, y: height/2 + 80, w: 200, h: 60, label: "MENU" }; // i added this
+
+
   //gameplay ui business
   UILayer = createGraphics(windowWidth, windowHeight * 0.1);
-  
-  //for poster business
-  poster = { x: width/2 - 175, y: 0, w: 350, h: 350 };
-  posterG = createGraphics(poster.w, poster.h);
   
   //flashlight business
   fx = width / 2;
   fy = height / 2;
   rebuildLayer();
+
+  // spawn drifting shapes for menu
+  spawnMenuShapes();
 }
 
 //makes the shapes
@@ -237,13 +326,7 @@ function playMode() {
   }
   events.update();
 }
-/*
-function nextRound(){
-  clearInteractors();
-  spawnInteractors();
-}
-*/
- //update nextRound to have blackscreen transition
+
 function nextRound(){
   blackout = true; //turn flashlight off
 
@@ -258,15 +341,18 @@ function nextRound(){
 function startGame() {
   Timer = StartTime;        // reset round length
   startMillis = millis();   // bookmark the start time ONCE
+  totalPausedTime = 0;
   TimeOver = false;
   gameOver = false;
   gameState = "game";
   score = 0;
+  //added
   blackout = true;
+
   clearInteractors();
   setTimeout(() => {
     blackout = false;
-  }, 1000);
+  }, 500);
   spawnInteractors();
   playMode();
 }
@@ -283,6 +369,9 @@ function draw() {
     drawModes();
   } else if (gameState === "over") {
     drawOverMenu();
+  } else if (gameState === "pause") {
+    drawGame();        // shows the frozen game
+    drawPauseMenu();   // overlay pause menu
   }
 
   updateScoreIndicators();
@@ -293,8 +382,12 @@ function drawGame() {
   fill(0);
 
   // compute time left based on the single startMillis
-  let elapsed = int((millis() - startMillis) / 1000);
+  // added totalPaused time so that it only counts time spent NOT pause
+  if (gameState !== "pause") {
+  let elapsed = int((millis() - startMillis - totalPausedTime) / 1000);
   times = Timer - elapsed;
+  }
+
 
   // clamp
   if (times <= 0) {
@@ -305,7 +398,7 @@ function drawGame() {
   }
 
   // play mode only while not gameOver
-  if (!gameOver) {
+  if (!gameOver && gameState !== "pause") {
     playMode();
   }
 
@@ -354,4 +447,18 @@ function updateScoreIndicators() {
       circleBursts.splice(i, 1);
     }
   }
+}
+
+function drawPauseMenu() {
+  fill(0, 180);
+  rect(0, 0, width, height);
+
+  // text
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(48);
+  text("Paused", width / 2, height / 2 - 100);
+  //drawing the buttons 
+  drawButton(pauseButton);
+  drawButton(backToMenuButton);
 }
