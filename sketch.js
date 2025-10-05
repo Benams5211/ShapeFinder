@@ -262,7 +262,7 @@ function playMenuSFX(){
 //helper function for playing hard bgm
 function playHardBGM(){
   if (window.AudioManager && typeof AudioManager.play === 'function') {
-    AudioManager.play('bgmHard', { vol: 1.0 }); // Play "bgmHard" from the Audio Manager:
+    AudioManager.play('bgmHard', { vol: 0.5, loop:true }); // Play "bgmHard" from the Audio Manager:
   } else if (typeof bgmHard !== 'undefined' && bgmHard && typeof bgmHard.play === 'function') {
     bgmHard.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
   }
@@ -562,4 +562,5 @@ function drawPauseMenu() {
   //drawing the buttons 
   drawButton(pauseButton);
   drawButton(backToMenuButton);
+
 }
