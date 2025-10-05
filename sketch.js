@@ -351,6 +351,8 @@ function mousePressed() {
   
     } else if (gameState === "over") {
       if (mouseInside(againButton)) {
+        if (window.AudioManager && typeof AudioManager.play === 'function') {
+          AudioManager.stop('bgmHard');}
         startGame();
       } else if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60) {
         playMenuSFX();
@@ -564,3 +566,4 @@ function drawPauseMenu() {
   drawButton(backToMenuButton);
 
 }
+
