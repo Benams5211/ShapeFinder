@@ -262,7 +262,7 @@ function playMenuSFX(){
 //helper function for playing hard bgm
 function playHardBGM(){
   if (window.AudioManager && typeof AudioManager.play === 'function') {
-    AudioManager.play('bgmHard', { vol: 0.5, loop:true }); // Play "bgmHard" from the Audio Manager:
+    AudioManager.play('bgmHard', { vol: 0.35, loop:true }); // Play "bgmHard" from the Audio Manager:
   } else if (typeof bgmHard !== 'undefined' && bgmHard && typeof bgmHard.play === 'function') {
     bgmHard.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
   }
@@ -397,6 +397,8 @@ function mouseInside(btn) {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+
+  console.log("Version 5.1");//change this each master commit to see when changes happen
   
   //menu business
   startButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "START" };
@@ -566,4 +568,5 @@ function drawPauseMenu() {
   drawButton(backToMenuButton);
 
 }
+
 
