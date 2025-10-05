@@ -414,6 +414,8 @@ function updateAndRenderWarning() {
   // verticle offset
   const y = 40;
 
+  console.log("hit");
+
   textSize(32);
   textAlign(LEFT, CENTER);
   fill(255, 50, 50);

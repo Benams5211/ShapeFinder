@@ -9,16 +9,24 @@ let Timer = StartTime;      // countdown mirror
 let startMillis = 0;        // when the round started
 let TimeOver = false;       // flag used in drawGame
 let times = StartTime;      // display value
+
 let sfxCorrect = null;      // sound effect for correct shape click
 let sfxIncorrect = null;    // sound effect for incorrect shape click
+let sfxMenu = null;         // sound effect for menu selections
+let bgmHard = null;         // bgm
+
 let stars = [];             // shapes of +1 score indicator
 let circleBursts = [];      // shapes of -1 score indicator
-let difficulty = "medium";  // default
-const MENU_SHAPE_CAP=80;
+
+let difficulty = "medium";  // default difficulty
+const MENU_SHAPE_CAP=80;    
 
 // stuff for paused
 let pauseStartMillis = 0;
 let totalPausedTime = 0;
+
+//combo counter
+let combo = 0;
 
 //////////////////////////////////////////////////
 //Classes and stuff for menu
@@ -33,12 +41,57 @@ let startButton, modesButton, againButton;
 let menuBgImg;   // optional menu background
 let logoImg;     // optional title/logo image
 let buttonImg;   // optional button image
+let pixelFont;
 
 function preload() {
   // optionally load images here
   // menuBgImg = loadImage("menuBackground.png");
-  // logoImg = loadImage("gameLogo.png");
+   logoImg = loadImage("assets/gameLogo.png");
   // buttonImg = loadImage("buttonImage.png");
+  pixelFont = loadFont('assets/pixelFont.ttf');
+
+   // 
+  // Preload the Audio Manager:
+  // 
+  if (window.AudioManager && typeof AudioManager.preload === 'function') {
+    // List of Audio Files to be proloaded by the Audio Manager:
+    AudioManager.preload([
+      { name: 'sfxCorrect', path: 'assets/correct.mp3' },
+      { name: 'sfxIncorrect', path: 'assets/incorrect.mp3' },
+      { name: 'sfxMenu', path: 'assets/menuSelect.mp3' },
+      { name: 'bgmHard', path: 'assets/gameBGM.mp3' },
+    ]);
+
+    if (AudioManager.sounds['sfxCorrect']) sfxCorrect = AudioManager.sounds['sfxCorrect'].obj;
+    if (AudioManager.sounds['sfxIncorrect']) sfxIncorrect = AudioManager.sounds['sfxIncorrect'].obj;
+    if (AudioManager.sounds['sfxMenu']) sfxMenu = AudioManager.sounds['sfxMenu'].obj;
+    if (AudioManager.sounds['bgmHard']) bgmHard = AudioManager.sounds['bgmHard'].obj;
+  } else if (typeof loadSound === 'function') { // If the Audio Manager can't be loaded properly, then just load the sound effects like from previous iteration (with "loadSound()"):
+    try {
+      sfxCorrect = loadSound('assets/correct.mp3');
+    } catch (e) {
+      sfxCorrect = null;
+      console.warn('Failed to preload "correct.mp3"!', e);
+    }
+    try {
+      sfxIncorrect = loadSound('assets/incorrect.mp3');
+    } catch (e) {
+      sfxIncorrect = null;
+      console.warn('Failed to preload "incorrect.mp3"!', e);
+    }
+    try {
+      sfxMenu = loadSound('assets/menuSelect.mp3');
+    } catch (e) {
+      sfxMenu = null;
+      console.warn('Failed to preload "menuSelect.mp3!"' );
+    }
+    try {
+      bgmHard = loadSound('assets/gameBGM.mp3');
+    } catch (e) {
+      bgmHard = null;
+      console.warn('Failed to preload "gameBGM.mp3!"' );
+    }
+  }
 
   // Preload correct sound effect if p5.sound/audio file is available:
   if (typeof loadSound === 'function') {
@@ -53,6 +106,18 @@ function preload() {
     } catch (e) {
       sfxIncorrect = null;
       console.warn('Failed to preload "incorrect.mp3"!', e);
+    }
+    try { // Attempt to load "menuSelect.mp3":
+      sfxMenu = loadSound('assets/menuSelect.mp3');
+    } catch (e) {
+      sfxMenu = null;
+      console.warn('Failed to preload "menuSelect.mp3!"' );
+    }
+    try {
+      bgmHard = loadSound('assets/gameBGM.mp3');
+    } catch (e) {
+      bgmHard = null;
+      console.warn('Failed to preload "gameBGM.mp3!"' );
     }
   }
 }
@@ -76,7 +141,14 @@ function drawMenu() {
   // Title text or logo image
   if (logoImg) {
     imageMode(CENTER);
-    image(logoImg, width/2, height/2 - 120);
+    image(logoImg, width/2, height/2 - 200);
+    fill(255); // white
+    textAlign(CENTER, CENTER);
+    textSize(48);
+    textFont(pixelFont);
+    text("That Time I Got Reincarnated into a New World\n and Used my Level 100 Flashlight Skills to Find the Wanted Shape!", width/2, height/2 - 75);
+    imageMode(CORNER);
+    textFont('Arial');
   } else {
     fill(255); // white
     textAlign(CENTER, CENTER);
@@ -148,6 +220,7 @@ function keyPressed() {
   if (key === 'b') triggerBlackHoleEvent(3000);
   if (key === 'w') triggerWarning(5000);
   if (key === 'z') triggerZombieEvent(5000);
+  
   if (gameState === "game" && key === 'p') {
     gameState = "pause";
     pauseStartMillis = millis();
@@ -176,6 +249,25 @@ function drawOverMenu() {
   drawButton(againButton);
   drawBackButton();
 }
+
+//helper function for playing menu sfx
+function playMenuSFX(){
+  if (window.AudioManager && typeof AudioManager.play === 'function') {
+    AudioManager.play('sfxMenu', { vol: 1.0 }); // Play "sfxMenu" from the Audio Manager:
+  } else if (typeof sfxMenu !== 'undefined' && sfxMenu && typeof sfxMenu.play === 'function') {
+    sfxMenu.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
+  }
+}
+
+//helper function for playing hard bgm
+function playHardBGM(){
+  if (window.AudioManager && typeof AudioManager.play === 'function') {
+    AudioManager.play('bgmHard', { vol: 1.0 }); // Play "bgmHard" from the Audio Manager:
+  } else if (typeof bgmHard !== 'undefined' && bgmHard && typeof bgmHard.play === 'function') {
+    bgmHard.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
+  }
+}
+
 
 // passive renderer for menu (no clicks, no game logic)
 function playModeMenu() {
@@ -249,7 +341,10 @@ function mousePressed() {
   
     } else if (gameState === "game") {
       if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60) {
+        playMenuSFX();
         gameState = "menu";
+        if (window.AudioManager && typeof AudioManager.play === 'function') {
+          AudioManager.stop('bgmHard');}
       } else {
         handleInteractorClick();
       }
@@ -258,6 +353,7 @@ function mousePressed() {
       if (mouseInside(againButton)) {
         startGame();
       } else if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60) {
+        playMenuSFX();
         gameState = "menu";
       }
   
@@ -290,8 +386,11 @@ function mousePressed() {
 
 // helper, checks if mouse is inside a rectangle button
 function mouseInside(btn) {
-  return mouseX > btn.x && mouseX < btn.x + btn.w &&
-         mouseY > btn.y && mouseY < btn.y + btn.h;
+  if(mouseX > btn.x && mouseX < btn.x + btn.w && mouseY > btn.y && mouseY < btn.y + btn.h){
+    playMenuSFX();
+    return true;
+  }
+  else {return false;}
 }
 
 function setup() {
@@ -346,6 +445,10 @@ function startGame() {
   gameOver = false;
   gameState = "game";
   score = 0;
+  combo = 0;
+  if (window.AudioManager && typeof AudioManager.play === 'function') {
+    AudioManager.play('bgmHard', { vol: 0.5, loop: true });
+  }
 
   clearInteractors();
   setTimeout(() => {
@@ -417,7 +520,7 @@ function drawGame() {
   UILayer.textSize(24);
   UILayer.textAlign(RIGHT, CENTER);
   UILayer.fill('black');
-  UILayer.text("Score: " + score + " Time: " + times, UILayer.width - 20, UILayer.height /2);
+  UILayer.text("Score: " + score + " Combo: "+ combo + " Time: " + times, UILayer.width - 20, UILayer.height /2);
   image(UILayer, 0,0);
   wantedObj.render();
 
