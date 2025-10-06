@@ -141,6 +141,28 @@ class InteractiveObject {
   // the parent (super) onClick function in child classes when developing additional objects
   onClick() {
     if (this.deleteOnClick) this.deleteSelf();
+
+    try {
+      const isWin = (this instanceof WinRect) || (this instanceof WinCircle) || (this instanceof WinTri);
+      if (!isWin) { // If "isWin" was not one of the "Win" shapes:
+        if (window.AudioManager && typeof AudioManager.play === 'function') {
+          AudioManager.play('sfxIncorrect', { vol: 1.0 }); // Play "sfxIncorrect" from the Audio Manager:
+        } else if (typeof sfxIncorrect !== 'undefined' && sfxIncorrect && typeof sfxIncorrect.play === 'function') {
+          sfxIncorrect.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
+        }
+        circleBursts.push(new CircleBurstScoreIndicator(mouseX, mouseY));
+      }
+      else {
+        if (window.AudioManager && typeof AudioManager.play === 'function') {
+          AudioManager.play('sfxCorrect', { vol: 1.0 }); // Play "sfxCorrect" from the Audio Manager:
+        } else if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') {
+          sfxCorrect.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
+        }
+        stars.push(new StarScoreIndicator(mouseX, mouseY));
+      }
+    } catch (e) {
+      console.warn('Could not play "incorrect.mp3"!', e);
+    }
   }
 
   deleteSelf() {
@@ -285,19 +307,8 @@ class ScoreDownCircle extends ClickCircle {
     score--;
     Timer -= 5;
 
-    circleBursts.push(new CircleBurstScoreIndicator(mouseX, mouseY));
 
-    // Attempt to play "incorrect.mp3" if a non-"Win" shape was clicked:
-    try {
-      const isWin = (this instanceof WinRect) || (this instanceof WinCircle);
-      if (!isWin) { // If "isWin" was not one of the "Win" shapes:
-        if (typeof sfxIncorrect !== 'undefined' && sfxIncorrect && typeof sfxIncorrect.play === 'function') {
-          sfxIncorrect.play();
-        }
-      }
-    } catch (e) {
-      console.warn('Could not play "incorrect.mp3"!', e);
-    }
+    combo = 0;
   }
 }
 
@@ -307,19 +318,8 @@ class ScoreDownRect extends ClickRect {
     score--;
     Timer -= 5;
 
-    circleBursts.push(new CircleBurstScoreIndicator(mouseX, mouseY));
 
-    // Attempt to play "incorrect.mp3" if a non-"Win" shape was clicked:
-    try {
-      const isWin = (this instanceof WinRect) || (this instanceof WinCircle);
-      if (!isWin) { // If "isWin" was not one of the "Win" shapes:
-        if (typeof sfxIncorrect !== 'undefined' && sfxIncorrect && typeof sfxIncorrect.play === 'function') {
-          sfxIncorrect.play();
-        }
-      }
-    } catch (e) {
-      console.warn('Could not play "incorrect.mp3"!', e);
-    }
+    combo = 0;
   }
 }
 
@@ -329,78 +329,81 @@ class ScoreDownTri extends ClickTri {
     score--;
     Timer -= 5;
 
-    circleBursts.push(new CircleBurstScoreIndicator(mouseX, mouseY));
 
-    // Attempt to play "incorrect.mp3" if a non-"Win" shape was clicked:
-    try {
-      const isWin = (this instanceof WinRect) || (this instanceof WinCircle);
-      if (!isWin) { // If "isWin" was not one of the "Win" shapes:
-        if (typeof sfxIncorrect !== 'undefined' && sfxIncorrect && typeof sfxIncorrect.play === 'function') {
-          sfxIncorrect.play();
-        }
-      }
-    } catch (e) {
-      console.warn('Could not play "incorrect.mp3"!', e);
-    }
+    combo = 0;
   }
 }
 
 class WinRect extends ClickRect {
   onClick() {
     super.onClick();
-    score++;
+
+    if(combo < 10) score++;
+    else if(combo < 20) score += 2;
+    else if(combo < 30) score += 3;
+    else if(combo < 40) score += 4;
+    else if(combo < 50) score += 5;
+
     Timer += 3;
     nextRound();
 
-    stars.push(new StarScoreIndicator(mouseX, mouseY));
 
-    try {
-      if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') { // If the .mp3 file was loaded correctly:
-        sfxCorrect.play();
-      }
-    } catch (e) { // Else, throw warning:
-      console.warn('Could not play "correct.mp3"!', e);
-    }
+    combo++;
   }
 }
 
 class WinCircle extends ClickCircle {
   onClick() {
     super.onClick();
-    score++;
+
+    if(combo < 10) score++;
+    else if(combo < 20) score += 2;
+    else if(combo < 30) score += 3;
+    else if(combo < 40) score += 4;
+    else if(combo < 50) score += 5;
+
     Timer += 3;
     nextRound();
 
-    stars.push(new StarScoreIndicator(mouseX, mouseY));
 
-    try {
-      if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') { // If the .mp3 file was loaded correctly:
-        sfxCorrect.play();
-      }
-    } catch (e) { // Else, throw warning:
-      console.warn('Could not play "correct.mp3"!', e);
-    }
+    combo++;
   }
 }
 
 class WinTri extends ClickTri {
   onClick() {
     super.onClick();
-    score++;
+
+    if(combo < 10) score++;
+    else if(combo < 20) score += 2;
+    else if(combo < 30) score += 3;
+    else if(combo < 40) score += 4;
+    else if(combo < 50) score += 5;
+
     Timer += 3;
     nextRound();
 
-    stars.push(new StarScoreIndicator(mouseX, mouseY));
 
-    try {
-      if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') { // If the .mp3 file was loaded correctly:
-        sfxCorrect.play();
-      }
-    } catch (e) { // Else, throw warning:
-      console.warn('Could not play "correct.mp3"!', e);
-    }
+    combo++;
   }
 }
+
+//special circle 
+class WhiteCircle extends ClickCircle {
+  onClick(){
+    super.onClick();
+
+    if(combo > 9) score += 10;
+    else if(combo > 19) score += 15;
+    else if(combo > 29) score += 20;
+    else if(combo > 39) score += 25;
+    else if (combo > 49) score += 30;
+    else score+=5;
+
+    Timer += 10;
+  }
+}
+
 
 class BoatCircle extends ClickCircle {
   onClick() {
@@ -515,7 +518,28 @@ function spawnInteractors() {
   const winShapeType = random(['circle','rect','tri']);
   randomWinColor(); 
 
+  const movement = {
+      enabled: true,
+      lerpStrength: 0.1,
+      velocityLimit: 4,
+      switchRate: 60,
+    };
+
+    const mods = [
+      new FreezeModifier({ chance: 0.001, length: 60 }),
+      new JitterModifier({ rate: 0.1 }),
+      new TeleportModifier({ chance: 0.005 }),
+    ];
+
+  const opts = {
+      movement, modifiers: mods,
+      deleteOnClick: true,
+      randomColor: true,
+      stroke: { enabled: true, weight: 2, color: [0,0,0] },
+    };
+
   for (let i = 0; i < count; i++) {
+
     const movement = {
       enabled: true,
       lerpStrength: 0.1,
@@ -652,6 +676,7 @@ function spawnInteractors() {
     }
     interactors.push(obj);
   }
+        
 }
 
 //helpers

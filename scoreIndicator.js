@@ -51,7 +51,16 @@ class StarScoreIndicator extends ScoreIndicator {
     stroke(0, this.alpha * 0.6);
     strokeWeight(2);
     textSize(this.radius * 0.8);
-    text("+1", 0, 0);
+
+    let middle;
+
+    if(combo < 10) middle = "+1";
+    else if(combo < 20) middle = "+2";
+    else if(combo < 30) middle = "+3";
+    else if(combo < 40) middle = "+4";
+    else if(combo < 50) middle = "+5";
+
+    text(middle, 0, 0);
     pop();
   }
 
