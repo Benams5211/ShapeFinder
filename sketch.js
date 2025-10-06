@@ -19,7 +19,13 @@ let stars = [];             // shapes of +1 score indicator
 let circleBursts = [];      // shapes of -1 score indicator
 
 let difficulty = "medium";  // default difficulty
-const MENU_SHAPE_CAP=80;    
+const MENU_SHAPE_CAP=80; 
+
+let startBtnImg1, startBtnImg2;
+const startButtonScale = 1.8;
+let pauseButton, backToMenuButton;
+let optionsBtnImg1, optionsBtnImg2;
+const optionsButtonScale = 5.5;
 
 // stuff for paused
 let pauseStartMillis = 0;
@@ -46,9 +52,14 @@ let pixelFont;
 function preload() {
   // optionally load images here
   // menuBgImg = loadImage("menuBackground.png");
-   logoImg = loadImage("assets/gameLogo.png");
-  // buttonImg = loadImage("buttonImage.png");
-  pixelFont = loadFont('assets/pixelFont.ttf');
+  logoImg = loadImage("assets/gameLogo.png");
+  startBtnImg1 = loadImage("assets/startButton1.png");
+  startBtnImg2 = loadImage("assets/startButton2.png");
+  optionsBtnImg1 = loadImage("assets/optionsButton1.png");
+  optionsBtnImg2 = loadImage("assets/optionsButton2.png");
+
+  // Load font
+  pixelFont = loadFont("assets/pixelFont.ttf");
 
    // 
   // Preload the Audio Manager:
@@ -184,19 +195,25 @@ function spawnMenuShape() {
 
 // helper function to draw a button
 function drawButton(btn) {
-  if (buttonImg) {
-    // if images are active draw button image instead of rectangle
-    imageMode(CENTER);
-    image(buttonImg, btn.x + btn.w/2, btn.y + btn.h/2, btn.w, btn.h);
-    fill(255); // draw text over button
+  const hovering = mouseX > btn.x && mouseX < btn.x + btn.w &&
+                   mouseY > btn.y && mouseY < btn.y + btn.h;
+
+  if (btn.img) {
+    imageMode(CORNER);
+    noSmooth(); // ← prevent smoothing
+    if (hovering && btn.hoverImg) {
+      image(btn.hoverImg, btn.x, btn.y, btn.w, btn.h);
+    } else {
+      image(btn.img, btn.x, btn.y, btn.w, btn.h);
+    }
   } else {
-    fill(80, 140, 255); // blue button
-    rect(btn.x, btn.y, btn.w, btn.h, 12); // rounded rectangle
+    fill(hovering ? color(120,180,255) : color(80,140,255));
+    rect(btn.x, btn.y, btn.w, btn.h, 12);
     fill(255);
+    textSize(24);
+    textAlign(CENTER, CENTER);
+    text(btn.label, btn.x + btn.w/2, btn.y + btn.h/2);
   }
-  textSize(24);
-  textAlign(CENTER, CENTER);
-  text(btn.label, btn.x + btn.w/2, btn.y + btn.h/2);
 }
 
 // modes
@@ -405,11 +422,29 @@ function mouseInside(btn) {
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
-  console.log("Version 5.2");//change this each master commit to see when changes happen
+  console.log("Version 5.3");//change this each master commit to see when changes happen
   
+  startButton = {
+    x: width / 2 - startBtnImg1.width * startButtonScale / 2,
+    y: height / 2 - startBtnImg1.height * startButtonScale / 2 + 65,
+    img: startBtnImg1,
+    hoverImg: startBtnImg2,
+    w: startBtnImg1.width * startButtonScale,
+    h: startBtnImg1.height * startButtonScale
+  };
+
+  modesButton = {
+    x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2,
+    y: height / 2 + 120,
+    img: optionsBtnImg1,
+    hoverImg: optionsBtnImg2,
+    w: optionsBtnImg1.width * optionsButtonScale,
+    h: optionsBtnImg1.height * optionsButtonScale
+  };
+
   //menu business
-  startButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "START" };
-  modesButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "MODES" };
+  //startButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "START" };
+  //modesButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "MODES" };
   againButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "AGAIN" };
   pauseButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "RESUME" }; // i added this
   backToMenuButton = { x: width/2 - 100, y: height/2 + 80, w: 200, h: 60, label: "MENU" }; // i added this
@@ -454,6 +489,7 @@ function startGame() {
   totalPausedTime = 0;
   TimeOver = false;
   gameOver = false;
+  blackout = true;
   gameState = "game";
   score = 0;
   combo = 0;
@@ -576,5 +612,43 @@ function drawPauseMenu() {
 
 }
 
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
 
+  // Recalculate scaling for the start button
+  if (typeof startBtnImg1 !== "undefined" && startButton) {
+    const scale = 1.5; // your desired scaling factor
+    const scaledW = startBtnImg1.width * scale;
+    const scaledH = startBtnImg1.height * scale;
 
+    startButton.x = width / 2 - scaledW / 2;
+    startButton.y = height / 2;
+    startButton.w = scaledW;
+    startButton.h = scaledH;
+  }
+
+  // For all other buttons — check existence first
+  if (typeof optionsBtnImg1 !== "undefined" && modesButton) {
+    const scaledW = optionsBtnImg1.width * optionsButtonScale;
+    const scaledH = optionsBtnImg1.height * optionsButtonScale;
+    modesButton.x = width / 2 - scaledW / 2;
+    modesButton.y = height / 2 + 100;
+    modesButton.w = scaledW;
+    modesButton.h = scaledH;
+  }
+
+  if (againButton) {
+    againButton.x = width / 2 - 100;
+    againButton.y = height / 2 + 100;
+  }
+
+  if (pauseButton) {
+    pauseButton.x = width / 2 - 100;
+    pauseButton.y = height / 2;
+  }
+
+  if (backToMenuButton) {
+    backToMenuButton.x = width / 2 - 100;
+    backToMenuButton.y = height / 2 + 80;
+  }
+}
