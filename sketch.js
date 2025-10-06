@@ -34,6 +34,16 @@ let menuBgImg;   // optional menu background
 let logoImg;     // optional title/logo image
 let buttonImg;   // optional button image
 
+let localstorateScoreManager; // This manages score objects in localstorage
+
+/////////////////////////////////////////////////////
+//localstorage keys
+/////////////////////////////////////////////////////
+const localstorageScoreObjectsKey = "scoreObjects"
+const localstorageDateKey = "date"
+const localstorageIDKey = "id";
+const localstorageValueKey = "value";
+
 function preload() {
   // optionally load images here
   // menuBgImg = loadImage("menuBackground.png");
@@ -55,6 +65,8 @@ function preload() {
       console.warn('Failed to preload "incorrect.mp3"!', e);
     }
   }
+
+  localstorateScoreManager = new LocalStorageScoreManager();
 }
 
 function drawMenu() {
@@ -389,6 +401,11 @@ function drawGame() {
 
   // clamp
   if (times <= 0) {
+
+    // Hopefully this won't block the main thread since we won't have that much score objects.
+    // We will have to refactor this to have async/Promise if we notice a block in the future.
+    localstorateScoreManager.storeScore();
+
     times = 0;
     TimeOver = true;
     gameOver = true;
