@@ -4,7 +4,7 @@
 
 let gameOver = false;
 let score = 0;
-const StartTime = 60;       // length of a round in seconds (set what you want)
+const StartTime = 3;       // length of a round in seconds (set what you want)
 let Timer = StartTime;      // countdown mirror
 let startMillis = 0;        // when the round started
 let TimeOver = false;       // flag used in drawGame
@@ -28,6 +28,12 @@ let totalPausedTime = 0;
 //combo counter
 let combo = 0;
 
+// asd
+let Stats;
+let flashlight = true;
+
+
+
 //////////////////////////////////////////////////
 //Classes and stuff for menu
 //////////////////////////////////////////////////
@@ -35,7 +41,7 @@ let combo = 0;
 // tracks which part of the program we are in, right now its just  "menu", "game", or "modes"
 let gameState = "menu"; 
 // the two button definitions, x, y, width, height, and label
-let startButton, modesButton, againButton;
+let startButton, modesButton, againButton, statsButton;
 
 // image variables
 let menuBgImg;   // optional menu background
@@ -122,6 +128,23 @@ function preload() {
   }
 }
 
+function setupGameEvents() {
+  gameEvents.OnEvent("showGameOverScreen", () => {
+    gameState = "over";
+    gameOver = true;
+    flashlight = true;
+    gameEvents.Clear();
+  })
+  gameEvents.OnEvent("gameOver", (showFinisher) => {
+    //delay ending screen show
+    if (showFinisher) {
+        flashlight = false;
+        const finisher = new FinisherSequence();
+        finisher.playRandom();
+    }
+  })
+}
+
 function drawMenu() {
   // if menu background image exists, draw it, else default background
   if (menuBgImg) {
@@ -159,6 +182,7 @@ function drawMenu() {
   // Draw buttons
   drawButton(startButton);
   drawButton(modesButton);
+  drawButton(statsButton);
 }
 
 function spawnMenuShape() {
@@ -212,6 +236,57 @@ function drawModes() {
     drawButton({ x: width/2 - 100, y: height/2 + 50, w: 200, h: 60, label: "MEDIUM" });
     drawButton({ x: width/2 - 100, y: height/2 + 150, w: 200, h: 60, label: "HARD" });
   
+    drawBackButton();
+}
+
+function drawStats() {
+    background(60); 
+    fill(255);
+    textAlign(CENTER, TOP);
+    textSize(48);
+    text("Player Stats", width / 2, 20);
+
+    // --- Session Stats ---
+    textSize(32);
+    textAlign(LEFT, TOP);
+    fill(200);
+    text("Last Game", 50, 100);
+
+    if (!Stats) Stats = new StatTracker();
+
+    textSize(24);
+    fill(255);
+    let y = 140; // starting y
+    const lineHeight = 30;
+    const correct = Stats.lifetime.get("correctClicks");
+    const incorrect = Stats.lifetime.get("incorrectClicks")
+
+    text("Final Score: " + Stats.session.get("score"), 50, y); y += lineHeight;
+    text("Correct Clicks: " + Stats.session.get("correctClicks"), 50, y); y += lineHeight;
+    text("Incorrect Clicks: " + Stats.session.get("incorrectClicks"), 50, y); y += lineHeight;
+    text("Highest Combo: " + Stats.session.get("highestCombo"), 50, y); y += lineHeight;
+    text("Time Alive: " + nf(Stats.session.get("timeAlive"), 1, 2) + "s", 50, y); y += lineHeight;
+    text("Average Find Time: " + nf(Stats.session.get("averageFindTime") / 1000, 1, 2) + "s", 50, y); y += lineHeight;
+    text("Difficulty: " + Stats.session.get("difficulty"), 50, y); y += lineHeight;
+
+    // --- Lifetime Stats ---
+    textSize(32);
+    fill(200);
+    textAlign(LEFT, TOP);
+    text("Lifetime Stats", width / 2 + 50, 100);
+
+    textSize(24);
+    fill(255);
+    y = 140;
+    text("Total Games Played: " + Stats.lifetime.get("totalGames"), width / 2 + 50, y); y += lineHeight;
+    text("Total Correct Clicks: " + correct + " (" + (correct/(correct+incorrect) * 100).toFixed(2) + "%)", width / 2 + 50, y); y += lineHeight;
+    text("Total Incorrect Clicks: " + Stats.lifetime.get("incorrectClicks"), width / 2 + 50, y); y += lineHeight;
+    text("Total Alive Time: " + nf(Stats.lifetime.get("totalPlayTime"), 1, 2) + "s", width / 2 + 50, y); y += lineHeight;
+    text("Best Score: " + Stats.lifetime.get("bestScore"), width / 2 + 50, y); y += lineHeight;
+    text("Highest Combo: " + Stats.lifetime.get("highestCombo"), width / 2 + 50, y); y += lineHeight;
+    text("Average Find Time: " + nf(Stats.lifetime.get("averageFindTime"), 1, 2) + "s", width / 2 + 50, y); y += lineHeight;
+
+    // --- Back Button ---
     drawBackButton();
 }
 
@@ -345,12 +420,15 @@ function mousePressed() {
         startGame();
       } else if (mouseInside(modesButton)) {
         gameState = "modes";
+      } else if (mouseInside(statsButton)) {
+        gameState = "stats";
       }
   
     } else if (gameState === "game") {
       if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60) {
         playMenuSFX();
         gameState = "menu";
+        gameEvents.Fire("gameOver", false);
         stopHardBGM();
       } else {
         handleInteractorClick();
@@ -371,7 +449,6 @@ function mousePressed() {
           gameState = "menu";
           return;
         }
-      
         // difficulty buttons — set difficulty AND start game immediately
         if (mouseInside({ x: width/2 - 100, y: height/2 - 50, w: 200, h: 60 })) {
           difficulty = "easy";
@@ -383,12 +460,18 @@ function mousePressed() {
           difficulty = "hard";
           startGame();
         }
+    } else if (gameState === "stats") {
+        if (mouseInside({ x: 20, y: 20, w: 120, h: 40 })) {
+          gameState = "menu";
+          return;
+        }
   } else if (gameState === "pause") {
     if (mouseInside(pauseButton)) {
       gameState = "game"; // resume
     } else if (mouseInside(backToMenuButton)) {
       stopHardBGM();
       gameState = "menu"; // goes back to main menu
+      gameEvents.Fire("gameOver", false);
     }
   }
 }
@@ -410,6 +493,7 @@ function setup() {
   //menu business
   startButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "START" };
   modesButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "MODES" };
+  statsButton = { x: width/2 - 100, y: height/2 + 200, w: 200, h: 60, label: "STATS" };
   againButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "AGAIN" };
   pauseButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "RESUME" }; // i added this
   backToMenuButton = { x: width/2 - 100, y: height/2 + 80, w: 200, h: 60, label: "MENU" }; // i added this
@@ -449,6 +533,7 @@ function nextRound(){
 }
 
 function startGame() {
+  setupGameEvents();
   Timer = StartTime;        // reset round length
   startMillis = millis();   // bookmark the start time ONCE
   totalPausedTime = 0;
@@ -461,12 +546,16 @@ function startGame() {
     AudioManager.play('bgmHard', { vol: 0.5, loop: true });
   }
 
+  Stats = new StatTracker();
+
   clearInteractors();
   setTimeout(() => {
     blackout = false;
   }, 1000);
   spawnInteractors();
   playMode();
+
+  gameEvents.Fire("setDifficulty", difficulty);
 }
 
 //draw loop
@@ -479,6 +568,8 @@ function draw() {
     drawGame();
   } else if (gameState === "modes") {
     drawModes();
+  } else if (gameState === "stats") {
+    drawStats();
   } else if (gameState === "over") {
     drawOverMenu();
   } else if (gameState === "pause") {
@@ -491,22 +582,26 @@ function draw() {
 
 // GAME (placeholder)
 function drawGame() {
+  Stats.update();
   fill(0);
 
   // compute time left based on the single startMillis
   // added totalPaused time so that it only counts time spent NOT pause
   if (gameState !== "pause") {
-  let elapsed = int((millis() - startMillis - totalPausedTime) / 1000);
-  times = Timer - elapsed;
+    let elapsed = int((millis() - startMillis - totalPausedTime) / 1000);
+    times = Timer - elapsed;
   }
 
 
   // clamp
   if (times <= 0) {
     times = 0;
-    TimeOver = true;
-    gameOver = true;
-    gameState = "over";
+    if (!TimeOver) {
+      print("time ran out");
+      gameEvents.Fire("gameOver", true);
+      TimeOver = true;
+    }
+    //gameState = "over";
   }
 
   // play mode only while not gameOver
@@ -523,7 +618,8 @@ function drawGame() {
   const dx = fx - coverW / 2;
   const dy = fy - coverH / 2;
   //image(darkness, dx, dy);
-  drawFlashlightOverlay();
+  if (flashlight)
+    drawFlashlightOverlay();
 
   //drawing the top UI bar
   UILayer.clear();
