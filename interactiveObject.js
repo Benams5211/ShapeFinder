@@ -160,6 +160,7 @@ class InteractiveObject {
         }
         stars.push(new StarScoreIndicator(mouseX, mouseY));
       }
+      gameEvents.Fire("Clicked", isWin);
     } catch (e) {
       console.warn('Could not play "incorrect.mp3"!', e);
     }
@@ -304,33 +305,36 @@ class ClickTri extends InteractiveObject {
 class ScoreDownCircle extends ClickCircle {
   onClick() {
     super.onClick()
-    score--;
+    score = Math.max(0, score-1);
     Timer -= 5;
 
 
     combo = 0;
+    gameEvents.Fire("scoreChanged", score);
   }
 }
 
 class ScoreDownRect extends ClickRect {
   onClick() {
     super.onClick()
-    score--;
+    score = Math.max(0, score-1);
     Timer -= 5;
 
 
     combo = 0;
+    gameEvents.Fire("scoreChanged", score);
   }
 }
 
 class ScoreDownTri extends ClickTri {
   onClick() {
     super.onClick();
-    score--;
+    score = Math.max(0, score-1);
     Timer -= 5;
 
 
     combo = 0;
+    gameEvents.Fire("scoreChanged", score);
   }
 }
 
@@ -349,6 +353,8 @@ class WinRect extends ClickRect {
 
 
     combo++;
+    gameEvents.Fire("newCombo", combo);
+    gameEvents.Fire("scoreChanged", score);
   }
 }
 
@@ -367,6 +373,8 @@ class WinCircle extends ClickCircle {
 
 
     combo++;
+    gameEvents.Fire("newCombo", combo);
+    gameEvents.Fire("scoreChanged", score);
   }
 }
 
@@ -385,6 +393,8 @@ class WinTri extends ClickTri {
 
 
     combo++;
+    gameEvents.Fire("newCombo", combo);
+    gameEvents.Fire("scoreChanged", score);
   }
 }
 

@@ -85,7 +85,7 @@ const ZOMBIE_EVENT = 'screen.Zombie';
 // event list in case we want to make something do a random event empty rn
 const EVENT_LIST = [/* add add events that impact gameplay and are kinda standalone */];
 
-function triggerBlackHoleEvent(ms = 3000) {
+function triggerBlackHoleEvent(ms = 3000, finalSize = 350,) {
   const freezeForever = new FreezeModifier({ chance: 1, duration: 1 }); // freeze the hole
 
   // Save original states to restore later
@@ -120,7 +120,7 @@ function triggerBlackHoleEvent(ms = 3000) {
       // During the first 10% of the event, grow size 0->350
       if (progress < 0.1) {
         // grow r: 0 -> 175 over first 10%
-        bh.r = lerp(0, 175, progress / 0.1);
+        bh.r = lerp(0, finalSize/2, progress / 0.1);
       // During the next 40% of the event, force all shapes to follow the BlackHole
       // and build up the jitter rate
       } else if (progress < 0.5) {
@@ -140,7 +140,7 @@ function triggerBlackHoleEvent(ms = 3000) {
         jitter.rate = lerp(jitter.rate, 1, (progress - 0.1) / 0.4);
       // During the next 30% of the event, keep the black hole's size constant
       } else if (progress < 0.8) {
-        bh.r = 175;
+        bh.r = finalSize/2;
       } else {
         // Finally, last 20% of the event:
         // Hide all shapes except black hole
@@ -149,7 +149,7 @@ function triggerBlackHoleEvent(ms = 3000) {
           bh.modifierList.length = 0;
           isPulling = false;
         }
-        bh.r = lerp(175, 0, (progress - 0.8) / 0.2);
+        bh.r = lerp(finalSize / 2, 0, (progress - 0.8) / 0.2);
         // Hide other objs during shrink phase
         for (const o of interactors) {
           if (o !== bh) o.visible = false;
@@ -281,15 +281,13 @@ function triggerZombieEvent(ms=10000, zombieCount = 50) {
     }
   });
 }
-
-
 function spawnSplashEvent(atX = 0, atY = 0, ms = 500, itemCount = 100, col = color(0,0,0)) {
   let splashObjs = [];
 
-  events.start('SPLASH', ms, {
+  events.start(Math.random()*1000, ms, {
     onStart: () => {
       for (let i = 0; i < itemCount; i++) {
-        const movement = { enabled: true, lerpStrength: 0.1, velocityLimit: 30, switchRate: 1000 };
+        const movement = { enabled: true, lerpStrength: 0.1, velocityLimit: 50, switchRate: 1000 };
         const opts = {
           movement,
           modifiers: [new JitterModifier({ rate: 0.4 })],
