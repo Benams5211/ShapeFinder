@@ -180,15 +180,16 @@ function spawnMenuShape() {
     movement: { enabled: true, lerpStrength: 0.2, velocityLimit: 0.3, switchRate: 60 },
     modifiers: [],
     deleteOnClick: false,
-    randomColor: true
+    randomColor: true,
+    stroke: { enabled: true, weight: 2, color: [0,0,0] },
   };
   const choice = random(['circle', 'rect', 'tri']);
   if (choice === 'circle') {
-    interactors.push(new ClickCircle(x, y, r, randomColor(), opts));
+    interactors.push(new ClickCircle(x, y, r, randomColor(), {...opts}));
   } else if (choice === 'rect') {
-    interactors.push(new ClickRect(x, y, r*1.5, r*1.5, randomColor(), 8, opts));
+    interactors.push(new ClickRect(x, y, r*1.5, r*1.5, randomColor(), 8, {...opts}));
   } else {
-    interactors.push(new ClickTri(x, y, r*2, randomColor(), opts));
+    interactors.push(new ClickTri(x, y, r*2, randomColor(), {...opts}));
   }
 }
 
@@ -478,7 +479,12 @@ function nextRound(){
   //wait, spawn new shapes, turn flashlight back on
   setTimeout(() => {
     clearInteractors();
-    spawnInteractors();
+    if (score == 1){
+      SpawnBoss(5);
+    }
+    else{
+      spawnInteractors();
+    }
     blackout = false; //turn flashlight on
   }, 400); //1 sec, half second?
 }

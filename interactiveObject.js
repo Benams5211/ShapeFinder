@@ -143,7 +143,7 @@ class InteractiveObject {
     if (this.deleteOnClick) this.deleteSelf();
 
     try {
-      const isWin = (this instanceof WinRect) || (this instanceof WinCircle) || (this instanceof WinTri);
+      const isWin = (this instanceof WinRect) || (this instanceof WinCircle) || (this instanceof WinTri) || (this instanceof BossCircle);
       if (!isWin) { // If "isWin" was not one of the "Win" shapes:
         if (window.AudioManager && typeof AudioManager.play === 'function') {
           AudioManager.play('sfxIncorrect', { vol: 1.0 }); // Play "sfxIncorrect" from the Audio Manager:
@@ -301,10 +301,33 @@ class ClickTri extends InteractiveObject {
 // -----------------------------------------------------------------------------
 // specialized subclasses: same visuals as parent, custom click payloads
 // -----------------------------------------------------------------------------
+class BossCircle extends ClickCircle{
+  constructor(x, y, r, health, fillCol = [0,0,0], opts){
+    super(x, y, r);
+    this.r = r;
+    this.health=health;
+    this.fillCol = fillCol;
+    this.randomColor = false;
+    this.deleteOnClick = true;
+  }
+  onClick(){
+    --this.health;
+    this.fillCol=[200,20,20];
+    setTimeout(() => {
+      this.fillCol=[0,0,0];
+    }, 100);
+    if(this.health==0) {
+      super.onClick();
+      ++score;
+      nextRound();
+    }
+  }
+}
+
 class ScoreDownCircle extends ClickCircle {
   onClick() {
     super.onClick()
-    score--;
+    //score--;
     Timer -= 5;
 
 
@@ -315,7 +338,7 @@ class ScoreDownCircle extends ClickCircle {
 class ScoreDownRect extends ClickRect {
   onClick() {
     super.onClick()
-    score--;
+    //score--;
     Timer -= 5;
 
 
@@ -326,7 +349,7 @@ class ScoreDownRect extends ClickRect {
 class ScoreDownTri extends ClickTri {
   onClick() {
     super.onClick();
-    score--;
+    //score--;
     Timer -= 5;
 
 
@@ -494,11 +517,11 @@ function spawnInteractors() {
       stroke: o.stroke ? { ...o.stroke } : undefined,
     };
     if (o instanceof ClickCircle) {
-      return new ClickCircle(width/2-o.r/2, 60-o.r/2, o.r, o.fillCol, baseOpts);
+      return new ClickCircle(width/2-15, height-(height*0.95), 30, o.fillCol, baseOpts);
     } else if (o instanceof ClickRect) {
-      return new ClickRect(width/2-o.w/2, 60-o.h/2, o.w, o.h, o.fillCol, o.radius || 0, baseOpts);
+      return new ClickRect(width/2-25, height-(height*0.95), 50, 50, o.fillCol, o.radius || 0, baseOpts);
     } else if (o instanceof ClickTri) {
-      return new ClickTri(width/2-o.size/2, 60-o.size/2, o.size, o.fillCol, { ...baseOpts, angle:0 });
+      return new ClickTri(width/2-15, height-(height*0.94), 50, o.fillCol, { ...baseOpts, angle:0 });
     }
     return null;
   }
@@ -674,9 +697,53 @@ function spawnInteractors() {
         if (preview) wantedObj = preview;
       }
     }
+    
     interactors.push(obj);
   }
+ 
         
+}
+
+function SpawnBoss(health){
+  function makeStaticWantedFromBoss(o) {
+    const baseOpts = {
+      movement: { enabled: false },  // <- no movement
+      modifiers: [],                 // <- no jitter/teleport/follow
+      deleteOnClick: false,
+      randomColor: false,
+      stroke: o.stroke ? { ...o.stroke } : undefined,
+    };
+      return new ClickCircle(width/2-15, height-(height*0.95), 30, o.fillCol, baseOpts);
+    }
+
+  const movement = {
+      enabled: true,
+      lerpStrength: 0.1,
+      velocityLimit: 4,
+      switchRate: 60, 
+    };
+
+    const mods = [
+      new FreezeModifier({ chance: 0.001, length: 60 }),
+      new JitterModifier({ rate: 0.1 }),
+      new TeleportModifier({ chance: 0.005 }),
+    ];
+
+  const opts = {
+      movement, modifiers: {...mods},
+      deleteOnClick: true,
+      //randomColor: true,
+      //stroke: { enabled: true, weight: 2, color: [0,0,0] },
+    };
+    const r = 40;
+    const x = random(r, width  - r);
+    const y = random(r, height - r);
+    let bossObj;
+    bossObj= new BossCircle(x, y, r, health, [0,0,0], {...opts});
+    interactors.push(bossObj);
+
+    const preview = makeStaticWantedFromBoss(bossObj);
+     if (preview) wantedObj = preview;
 }
 
 //helpers
