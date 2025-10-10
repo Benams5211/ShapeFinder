@@ -11,6 +11,8 @@ The deployment branch for our project
 
 -boss hp and time given on defeat increases each time
 
+-boss size changes with difficulty
+
 -menu music added
 
 -difficulty selection menu updated
