@@ -54,11 +54,11 @@ class StarScoreIndicator extends ScoreIndicator {
 
     let middle;
 
-    if(combo < 10) middle = "+1";
-    else if(combo < 20) middle = "+2";
-    else if(combo < 30) middle = "+3";
-    else if(combo < 40) middle = "+4";
-    else if(combo < 50) middle = "+5";
+    if(combo < 10) middle = "+3 sec";
+    else if(combo < 20) middle = "+4 sec";
+    else if(combo < 30) middle = "+5 sec";
+    else if(combo < 40) middle = "+6 sec";
+    else if(combo < 50) middle = "+7 sec";
 
     text(middle, 0, 0);
     pop();
@@ -105,7 +105,40 @@ class CircleBurstScoreIndicator extends ScoreIndicator {
     stroke(0, this.alpha * 0.6);
     strokeWeight(2);
     textSize(this.radius * 0.8);
-    text("-1", 0, 0);
+    text("-5 sec", 0, 0);
+    pop();
+  }
+}
+
+// -----------------------------------------------------------------------------
+// indicating boss kill implementation
+// -----------------------------------------------------------------------------
+class BossKillIndicator extends ScoreIndicator {
+  show() {
+    push();
+    translate(this.x, this.y);
+
+    // circle burst
+    noStroke();
+    fill(50, 50, 255, this.alpha);   // blue fill
+    ellipse(0, 0, this.radius * 2);
+
+    stroke(255, this.alpha * 0.8);
+    strokeWeight(2);
+    noFill();
+    ellipse(0, 0, this.radius * 2);
+
+    pop();
+
+    // "-1" in the middle
+    push();
+    translate(this.x, this.y);
+    textAlign(CENTER, CENTER);
+    fill(255, this.alpha);
+    stroke(0, this.alpha * 0.6);
+    strokeWeight(2);
+    textSize(this.radius * 0.8);
+    text("Wow!", 0, 0);
     pop();
   }
 }

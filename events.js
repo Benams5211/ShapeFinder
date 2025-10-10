@@ -81,6 +81,7 @@ const WIN_EVENT = 'game.Win';
 const BLACKHOLE_EVENT = 'screen.BlackHole';
 const SPLASH_EVENT = 'screen.Splash';
 const ZOMBIE_EVENT = 'screen.Zombie';
+const CURTAINS_EVENT = 'screen.Curtains';
 
 // event list in case we want to make something do a random event empty rn
 const EVENT_LIST = [/* add add events that impact gameplay and are kinda standalone */];
@@ -310,6 +311,25 @@ function spawnSplashEvent(atX = 0, atY = 0, ms = 500, itemCount = 100, col = col
   });
 }
 
+function triggerCurtains(ms = 1500) {
+  events.start(CURTAINS_EVENT, ms, {
+    onStart: () => {
+      console.log("CURTAINS_EVENT started");
+    },
+    onEnd: () => {
+      console.log("CURTAIN_EVENT ended");
+    },
+    onUpdate: () => {
+      push();
+      stroke('black');
+      fill(255, 15, 15);
+      rectMode(CENTER);
+      rect(height/2, width/2, 100, 200)
+      pop();
+    }
+  })
+}
+
 function triggerWarning(ms = 2000) {
   events.start(WARNING_EVENT, ms, {
     onStart: () => {
@@ -413,8 +433,6 @@ function updateAndRenderWarning() {
   const speed = 400;
   // verticle offset
   const y = 40;
-
-  console.log("hit");
 
   textSize(32);
   textAlign(LEFT, CENTER);
