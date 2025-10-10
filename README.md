@@ -11,7 +11,7 @@ The deployment branch for our project
 
 -boss hp and time given on defeat increases each time
 
--zooming in to freeze the boss does NOT work
+-zooming in to freeze the boss does NOT work (that would be too easy)
 
 -boss size changes with difficulty
 
