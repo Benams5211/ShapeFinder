@@ -44,6 +44,9 @@ let buttonImg;   // optional button image
 let pixelFont;
 
 let localstorateScoreManager; // This manages score objects in localstorage
+let finalScorePopup;  // The pop-up window that shows the score details.
+
+let finalScorePopupShown = false; // Flag that maintain the score pop-up window visibility status.
 
 /////////////////////////////////////////////////////
 //localstorage keys
@@ -53,10 +56,12 @@ const localstorageDateKey = "date"
 const localstorageIDKey = "id";
 const localstorageValueKey = "value";
 
+const logoImagePath = "assets/gameLogo.png"
+
 function preload() {
   // optionally load images here
   // menuBgImg = loadImage("menuBackground.png");
-   logoImg = loadImage("assets/gameLogo.png");
+   logoImg = loadImage(logoImagePath);
   // buttonImg = loadImage("buttonImage.png");
   pixelFont = loadFont('assets/pixelFont.ttf');
 
@@ -132,6 +137,7 @@ function preload() {
   }
 
   localstorateScoreManager = new LocalStorageScoreManager();
+  finalScorePopup = new FinalScorePopup(localstorateScoreManager, logoImagePath);
 }
 
 function drawMenu() {
@@ -524,6 +530,11 @@ function drawGame() {
     TimeOver = true;
     gameOver = true;
     gameState = "over";
+
+    if (!finalScorePopupShown) {
+      finalScorePopupShown = true;
+      finalScorePopup.render(); // <- show the overlay window
+    }
   }
 
   // play mode only while not gameOver

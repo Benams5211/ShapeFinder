@@ -62,7 +62,7 @@ class LocalStorageScoreManager extends LocalStorageManager {
      * @returns 
      */
     getTopScores(limit = 3) {
-        let sortedExistingScores = this.getArrayObject(localstorageScoreObjectsKey).sort((a, b) => a[localstorageDateKey] - b[localstorageDateKey]);
+        let sortedExistingScores = this.getArrayObject(localstorageScoreObjectsKey).sort((a, b) => b[localstorageValueKey] - a[localstorageValueKey]);
         const topScores = sortedExistingScores.slice(0, limit);
         return topScores;
     }
