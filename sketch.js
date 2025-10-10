@@ -221,7 +221,7 @@ function drawMenu() {
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(48);
-    text("Shape Finder!\nVersion 0.4.2", width/2, height/2 - 120);
+    text("Shape Finder!\nVersion 6.0", width/2, height/2 - 120);
   }
 
   // Draw buttons
@@ -575,7 +575,7 @@ function setup() {
     playMenuBGM();
   });
 
-  console.log("Version 5.4");//change this each master commit to see when changes happen
+  console.log("Version 6.0");//change this each master commit to see when changes happen
   
   startButton = {
     x: width / 2 - startBtnImg1.width * startButtonScale / 2,
@@ -830,3 +830,4 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
+
