@@ -13,7 +13,7 @@ class EventManager {
     // resets it if it already existed
     if (!existed && typeof onStart === "function") onStart();
   }
-  
+
   // continuously called in draw()
   // checks to see if an events timer has run out
   // if it has it will call the events onEnd function if it has been declared
@@ -25,12 +25,12 @@ class EventManager {
     for (const name in this.active) {
       // if it finds an event it sets tempEvent equal too it to compair it
       const tempEvent = this.active[name];
-      const timeLeft  = Math.max(0, tempEvent.endAt - now);
-      
+      const timeLeft = Math.max(0, tempEvent.endAt - now);
+
       if (timeLeft > 0 && typeof tempEvent.onUpdate === "function") {
         tempEvent.onUpdate(timeLeft);
       }
-      
+
       // checks if the selected event's expiration time has come
       if (now >= tempEvent.endAt) {
         // call the events onEnd function
@@ -42,6 +42,17 @@ class EventManager {
     }
   }
 
+  renderFront() {
+    const now = millis();
+    for (const name in this.active) {
+      const evt = this.active[name];
+      const timeLeft = Math.max(0, evt.endAt - now);
+      if (typeof evt.onUpdate === "function") {
+        evt.onUpdate(timeLeft, true); // true = front render pass
+      }
+    }
+  }
+
   isActive(name) {
     return !!this.active[name];
   }
@@ -49,12 +60,12 @@ class EventManager {
   timeLeft(name) {
     // assigns tempEvent to event
     const tempEvent = this.active[name];
-     // if event doesnt exist exit
+    // if event doesnt exist exit
     if (!tempEvent) return 0;
     // return ms till event ends via taking the time that the event ends minus the current time
     return Math.max(0, tempEvent.endAt - millis());
   }
-  
+
   cancel(name, runOnEnd = false) {
     // assigns tempEvent to event
     const tempEvent = this.active[name];
@@ -183,13 +194,8 @@ function triggerZombieEvent(ms=10000, zombieCount = 50) {
   const ZOMBIE_COL = [0, 210, 0];
 
   function pickNewTargetFor(zombie) {
-    // Filter out:
-    // Already infected shapes
-    // The 'desired' shape to click (which is index 0 in shapes list)
-    let candidates = interactors.filter(s => 
-      s !== interactors[0] && 
-      !zombies.includes(s)
-    ); 
+    // Filter out: Already infected shapes and wanted objects
+    let candidates = interactors.filter(s => !zombies.includes(s) && !s.isWanted);
     // Pick the actual target from the list of candidates
     if (candidates.length > 0) {
       let newTarget = random(candidates);
@@ -312,22 +318,53 @@ function spawnSplashEvent(atX = 0, atY = 0, ms = 500, itemCount = 100, col = col
 }
 
 function triggerCurtains(ms = 1500) {
-  events.start(CURTAINS_EVENT, ms, {
-    onStart: () => {
-      console.log("CURTAINS_EVENT started");
-    },
-    onEnd: () => {
-      console.log("CURTAIN_EVENT ended");
-    },
-    onUpdate: () => {
+  const pauseDuration = 300;
+  const halfDuration = ms / 2;
+  const totalDuration = ms + pauseDuration;
+
+  let curtainProgress = 0;
+  let phase = "closing";
+  let pauseStartTime = null;
+
+  events.start(CURTAINS_EVENT, totalDuration, {
+    onStart: () => console.log("Curtains start"),
+
+    onUpdate: (timeLeft, isFrontPass) => {
+      const elapsed = totalDuration - timeLeft;
+
+      if (phase === "closing") {
+        const t = constrain(elapsed / halfDuration, 0, 1);
+        curtainProgress = t;
+        if (t >= 1) {
+          phase = "pause";
+          pauseStartTime = millis();
+        }
+      } else if (phase === "pause") {
+        if (millis() - pauseStartTime >= pauseDuration) {
+          phase = "opening";
+        }
+      } else if (phase === "opening") {
+        const t = constrain(
+          (elapsed - halfDuration - pauseDuration) / halfDuration,
+          0,
+          1
+        );
+        curtainProgress = 1 - t;
+      }
+
+      if (!isFrontPass) return;
+
+      const w = (width / 2) * curtainProgress;
       push();
-      stroke('black');
-      fill(255, 15, 15);
-      rectMode(CENTER);
-      rect(height/2, width/2, 100, 200)
+      noStroke();
+      fill(0, 0, 0);
+      rect(0, 0, w + 10, height); // left curtain
+      rect(width - w, 0, w + 10, height); // right curtain
       pop();
-    }
-  })
+    },
+
+    onEnd: () => console.log("Curtains end"),
+  });
 }
 
 function triggerWarning(ms = 2000) {

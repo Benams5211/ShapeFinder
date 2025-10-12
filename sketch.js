@@ -251,9 +251,19 @@ function spawnMenuShape() {
   const r = random(20, 40);
   const x = random(r, width - r);
   const y = random(r, height - r);
+  mods = [];
+  if (random() < 0.50) {
+    mods.push(new FigureSkateModifier({
+      director: formationDirector,
+      joinChance: 0.001,
+      strength: 0.20,
+        types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare'],
+      minGapFrames: 180,
+    }));
+  }
   const opts = {
     movement: { enabled: true, lerpStrength: 0.2, velocityLimit: 0.3, switchRate: 60 },
-    modifiers: [],
+    modifiers: mods,
     deleteOnClick: false,
     randomColor: true,
     outline: true,
@@ -475,9 +485,19 @@ function spawnMenuShapes() {
     const r = random(20, 40);
     const x = random(r, width - r);
     const y = random(r, height - r);
+    mods = [];
+    if (random() < 0.50) {
+      mods.push(new FigureSkateModifier({
+        director: formationDirector,
+        joinChance: 0.001,
+        strength: 0.20,
+        types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare'],
+        minGapFrames: 180,
+      }));
+    }
     const opts = {
       movement: { enabled: true, lerpStrength: 0.1, velocityLimit: 2, switchRate: 60 },
-      modifiers: [],
+      modifiers: mods,
       deleteOnClick: false,
       outline: true,
       randomColor: true,
@@ -525,7 +545,6 @@ function mousePressed() {
       } else if (mouseInside(modesButton)) {
         gameState = "modes";
       }
-  
     } else if (gameState === "game") {
       if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60) {
         playMenuSFX();
@@ -558,12 +577,15 @@ function mousePressed() {
         // difficulty buttons — set difficulty AND start game immediately
         if (mouseInside({ x: width/2 - 100, y: height/2 - 50, w: 200, h: 60 })) {
           difficulty = "easy";
+          triggerCurtains();
           startGame();
         } else if (mouseInside({ x: width/2 - 100, y: height/2 + 50, w: 200, h: 60 })) {
           difficulty = "medium";
+          triggerCurtains();
           startGame();
         } else if (mouseInside({ x: width/2 - 100, y: height/2 + 150, w: 200, h: 60 })) {
           difficulty = "hard";
+          triggerCurtains();
           startGame();
         }
   } else if (gameState === "pause") {
@@ -646,7 +668,7 @@ function playMode() {
 
 //add boss fights and round events here
 function nextRound(){
-  blackout = true; //turn flashlight off
+  triggerCurtains();
 
   //wait, spawn new shapes, turn flashlight back on
   setTimeout(() => {
@@ -662,8 +684,7 @@ function nextRound(){
       stopBossBGM();
       spawnInteractors();
     }
-    blackout = false; //turn flashlight on
-  }, 400); //1 sec, half second?
+  }, 750);
 }
 
 function startGame() {
@@ -671,8 +692,8 @@ function startGame() {
   startMillis = millis();   // bookmark the start time ONCE
   totalPausedTime = 0;
   TimeOver = false;
-  gameOver = false;
   blackout = true;
+  gameOver = false;
   gameState = "game";
   round = 1;
   combo = 0;
@@ -681,6 +702,8 @@ function startGame() {
   playHardBGM();
 
   clearInteractors();
+
+  triggerCurtains();
   setTimeout(() => {
     blackout = false;
   }, 1000);
@@ -758,6 +781,8 @@ function drawGame() {
   const dy = fy - coverH / 2;
   //image(darkness, dx, dy);
   drawFlashlightOverlay();
+
+  events.renderFront();
 
   //drawing the top UI bar
   UILayer.clear();
@@ -858,4 +883,3 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
-

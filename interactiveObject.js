@@ -24,6 +24,8 @@ class InteractiveObject {
     this.enabled = true;
     this.randomColor = !!opts.randomColor;
     this.outline = !!opts.outline;
+    this.isWanted = !!opts.wanted;
+    
     // click behavior
     this.deleteOnClick = !!opts.deleteOnClick;
     const s = opts.stroke ?? {};
@@ -580,7 +582,15 @@ function spawnInteractors() {
       new JitterModifier({ rate: 0.1 }),
       new TeleportModifier({ chance: 0.005 }),
     ];
-
+    if (random() < 0.50) {
+      mods.push(new FigureSkateModifier({
+        director: formationDirector,
+        joinChance: 0.005,
+        strength: 0.20,
+        types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare'],
+        minGapFrames: 180,
+      }));
+    }
     if (interactors.length > 0 && interactors.length < 8) {
       const toFollow = interactors[0];
       mods.push(new FollowShape({ otherShape: toFollow, followStrength: 0.3 }));
@@ -613,8 +623,7 @@ function spawnInteractors() {
         const rad = random(0, min(12, min(w, h) / 3));
         const x = random(w / 2, width  - w / 2);
         const y = random(h / 2, height - h / 2);
-        obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false});
-        // CHANGED: static clone for wanted panel
+        obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
@@ -623,12 +632,12 @@ function spawnInteractors() {
         const R  = s / Math.sqrt(3);
         const x  = random(R, width  - R);
         const y  = random(R, height - R);
-        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false });
+        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
       } else if (i === count-1 && winShapeType === 'circle'){//final shape, is the shape type
-        obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false});
+        obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
       }
@@ -650,7 +659,7 @@ function spawnInteractors() {
         const R  = s / Math.sqrt(3);
         const x  = random(R, width  - R);
         const y  = random(R, height - R);
-        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false });
+        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
@@ -658,12 +667,12 @@ function spawnInteractors() {
         const r = size;
         const x = random(r, width  - r);
         const y = random(r, height - r);
-        obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false});
+        obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
       } else if (i === count-1 && winShapeType === 'rect') { //final shape, is the shape type
-        obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false});
+        obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
       }
@@ -683,7 +692,7 @@ function spawnInteractors() {
         const r = size;
         const x = random(r, width  - r);
         const y = random(r, height - r);
-        obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false});
+        obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
@@ -693,12 +702,12 @@ function spawnInteractors() {
         const rad = random(0, min(12, min(w, h) / 3));
         const x = random(w / 2, width  - w / 2);
         const y = random(h / 2, height - h / 2);
-        obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false});
+        obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
       } else if (i === count-1 && winShapeType === 'tri') {//final shape, same win type
-        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false }); //angle can be random(TWO_PI)
+        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
       }
@@ -736,7 +745,15 @@ function spawnBossInteractors() {
       new JitterModifier({ rate: 0.1 }),
       new TeleportModifier({ chance: 0.005 }),
     ];
-
+    if (random() < 0.50) {
+      mods.push(new FigureSkateModifier({
+        director: formationDirector,
+        joinChance: 0.005,
+        strength: 0.20,
+        types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare'],
+        minGapFrames: 180,
+      }));
+    }
     if (interactors.length > 0 && interactors.length < 8) {
       const toFollow = interactors[0];
       mods.push(new FollowShape({ otherShape: toFollow, followStrength: 0.3 }));
@@ -965,10 +982,7 @@ function isUnderFlashlight(x, y, pad = 0) {
   const dy = y - fy;
   return (dx*dx)/(rx*rx) + (dy*dy)/(ry*ry) <= 1;
 }
-
 function clearInteractors() {
   interactors.length = 0;
   wantedObj == null;
-
 }
-
