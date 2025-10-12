@@ -190,7 +190,12 @@ function drawButton(btn) {
     image(buttonImg, btn.x + btn.w/2, btn.y + btn.h/2, btn.w, btn.h);
     fill(255); // draw text over button
   } else {
-    fill(80, 140, 255); // blue button
+    // Allows for the button colors to be changed for different modes (Ex. Lamp Mode has a yellow button):
+    if (btn.color && Array.isArray(btn.color)) {
+      fill(...btn.color); // Uses .color array values to fill the button / Spread Operator "..." separates the array into individual arguments.
+    } else {
+      fill(80, 140, 255); // Defaults to Blue button if one of the core game modes:
+    }
     rect(btn.x, btn.y, btn.w, btn.h, 12); // rounded rectangle
     fill(255);
   }
@@ -207,10 +212,11 @@ function drawModes() {
     textSize(40);
     text("Select Difficulty", width/2, height/2 - 150);
   
-    // difficulty buttons
-    drawButton({ x: width/2 - 100, y: height/2 - 50, w: 200, h: 60, label: "EASY" });
-    drawButton({ x: width/2 - 100, y: height/2 + 50, w: 200, h: 60, label: "MEDIUM" });
-    drawButton({ x: width/2 - 100, y: height/2 + 150, w: 200, h: 60, label: "HARD" });
+  // difficulty buttons
+  drawButton({ x: width/2 - 100, y: height/2 - 50, w: 200, h: 60, label: "EASY" });
+  drawButton({ x: width/2 - 100, y: height/2 + 50, w: 200, h: 60, label: "MEDIUM" });
+  drawButton({ x: width/2 - 100, y: height/2 + 150, w: 200, h: 60, label: "HARD" });
+  drawButton({ x: width/2 - 100, y: height/2 + 250, w: 200, h: 60, label: "LAMPS", color: [255,220,80] }); // Passes 'color' to make Yellow Button for "Lamps" Game Mode:
   
     drawBackButton();
 }
@@ -329,6 +335,13 @@ function drawBackButton() {
 
 // helper
 function handleInteractorClick() {
+  // For Lamps Mode: Does not allow mouse clicking if the shape is not currently within the lamp's glow radius.
+  if (typeof difficulty !== 'undefined' && difficulty === 'lamps') {
+    if (typeof isUnderLamps !== 'function' || !isUnderLamps(mouseX, mouseY)) {
+      return; // Ignore any clicks that are made outside of the lamp's glow radius:
+    }
+  }
+
   for (let i = interactors.length - 1; i >= 0; i--) {
     const it = interactors[i];
     if (it.enabled && it.contains(mouseX, mouseY)) {
@@ -381,6 +394,9 @@ function mousePressed() {
           startGame();
         } else if (mouseInside({ x: width/2 - 100, y: height/2 + 150, w: 200, h: 60 })) {
           difficulty = "hard";
+          startGame();
+        } else if (mouseInside({ x: width/2 - 100, y: height/2 + 250, w: 200, h: 60 })) { // Lamps Mode Button Logic:
+          difficulty = "lamps";
           startGame();
         }
   } else if (gameState === "pause") {
@@ -522,8 +538,14 @@ function drawGame() {
 
   const dx = fx - coverW / 2;
   const dy = fy - coverH / 2;
-  //image(darkness, dx, dy);
-  drawFlashlightOverlay();
+  // 
+  // Chooses between one of the Gamemodes that uses the mouse Flashlight (Easy/Medium/Hard) or the Lamps Gamemode to disable the Flashlight:
+  // 
+  if (typeof difficulty !== 'undefined' && difficulty === 'lamps' && typeof drawLampsOverlay === 'function') {
+    drawLampsOverlay();
+  } else {
+    drawFlashlightOverlay();
+  }
 
   //drawing the top UI bar
   UILayer.clear();

@@ -504,7 +504,7 @@ function spawnInteractors() {
   }
 
   let size, count;
-  if (difficulty === "easy") {
+  if (difficulty === "easy" || difficulty === "lamps") { // Same values used for Easy & Lamp modes:
     size = 50;        // bigger shapes
     count = 30;  // fewer objects
   } else if (difficulty === "medium") {

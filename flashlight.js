@@ -13,6 +13,77 @@ const darknessAlpha = 245;
 
 let blackout = false;
 
+// 
+// Lamp Settings:
+// 
+
+// Lamp Center Positions:
+const lampPositions = () => [
+  { x: width * 0.15, y: height * 0.5 },
+  { x: width * 0.5,  y: height * 0.75 },
+  { x: width * 0.85, y: height * 0.35 }
+];
+let lampRadius = 175; // Radius of the lamp's light glow.
+let lampBuffer = null; // Persistent graphics buffer to draw the darkness & lamp light circles.
+
+// Draws the glow of the lamp to cut through the darkness layer (Uses a persistent memory buffer to stop memory overflow).
+function drawLampsOverlay() {
+  if (!lampBuffer || lampBuffer.width !== width || lampBuffer.height !== height) {
+    lampBuffer = createGraphics(width, height); // Initializes lampBuffer to the size of the canvas.
+  }
+
+  const positions = lampPositions();
+
+  // Clear and fill darkness on the lamp buffer:
+  lampBuffer.clear();
+  lampBuffer.noStroke();
+  lampBuffer.fill(0, darknessAlpha);
+  lampBuffer.rect(0, 0, lampBuffer.width, lampBuffer.height);
+
+  // Erase soft circles for each lamp to cut through the darkness layer:
+  for (const p of positions) {
+    for (let i = 0; i < 8; i++) {
+      const t = i / 7; // Creates a small value to cut off of the lamp's radius with each iteration for concentric circle look of the light glow:
+      const r = lerp(lampRadius * 0.2, lampRadius, 1 - t); // Linear Interpolation = lerp(start, stop, amt) to find percentage value between 'start' & 'stop'
+                                                           //  of amount 'amt' for smoothing of values in effects.
+      const a = lerp(60, 240, 1 - t); // Lerps the alpha value with each iteration to update with each new concentric circle for falloff effect:
+      lampBuffer.erase(); // Switches graphics buffer to Erase Mode = Shapes now erase from the buffer instead of add onto it.
+      lampBuffer.fill(255, a);
+      lampBuffer.ellipse(p.x, p.y, r * 2); // Draws ellipse that cuts out a hole in the darkness buffer:
+      lampBuffer.noErase();
+    }
+  }
+
+  // Draw 'lampBuffer' over the main canvas:
+  image(lampBuffer, 0, 0);
+
+  // Draw visible lamp markers on top to create visible lamp "assets":
+  for (const p of positions) {
+    push();
+    fill(255);
+    stroke(200);
+    strokeWeight(2);
+    ellipse(p.x, p.y, 14);
+    pop();
+  }
+}
+
+// Makes shapes clickable only when they are within the glow radius of a lamp:
+function isUnderLamps(x, y, pad = 0) {
+  const positions = lampPositions();
+  for (const p of positions) {
+    const dx = x - p.x;
+    const dy = y - p.y;
+    const r = Math.max(1, lampRadius - pad); // Assures that the radius to check will be at least 1 pixel for checks:
+    if (dx*dx + dy*dy <= r*r) return true; // Square positions to determine if the shape is within the glow circle (Calculates Circle Membership):
+  }
+  return false; // Shape was not within the light circle, so return false to disallow clicking:
+}
+
+// 
+// 
+// 
+
 function mouseWheel(e) {
   const old = intensity;
   // delta is scroll wheel position
