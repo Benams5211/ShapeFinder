@@ -50,15 +50,15 @@ let logoImg;     // optional title/logo image
 let buttonImg;   // optional button image
 let pixelFont;
 
-let localstorateScoreManager; // This manages score objects in localstorage
-let finalScorePopup;  // The pop-up window that shows the score details.
+let localstorageRoundManager; // This manages round objects in localstorage
+let finalRoundPopup;  // The pop-up window that shows the round details.
 
-let finalScorePopupShown = false; // Flag that maintain the score pop-up window visibility status.
+let finalRoundPopupShown = false; // Flag that maintain the round pop-up window visibility status.
 
 /////////////////////////////////////////////////////
 //localstorage keys
 /////////////////////////////////////////////////////
-const localstorageScoreObjectsKey = "scoreObjects"
+const localstorageRoundObjectsKey = "roundObjects"
 const localstorageDateKey = "date"
 const localstorageIDKey = "id";
 const localstorageValueKey = "value";
@@ -204,8 +204,8 @@ function preload() {
     }
   }
 
-  localstorateScoreManager = new LocalStorageScoreManager();
-  finalScorePopup = new FinalScorePopup(localstorateScoreManager, logoImagePath);
+  localstorageRoundManager = new LocalStorageRoundManager();
+  finalRoundPopup = new FinalRoundPopup(localstorageRoundManager, logoImagePath);
 }
 
 function drawMenu() {
@@ -728,18 +728,18 @@ function drawGame() {
   // clamp
   if (times <= 0) {
 
-    // Hopefully this won't block the main thread since we won't have that much score objects.
+    // Hopefully this won't block the main thread since we won't have that much round objects.
     // We will have to refactor this to have async/Promise if we notice a block in the future.
-    localstorateScoreManager.storeScore();
+    localstorageRoundManager.storeRound();
 
     times = 0;
     TimeOver = true;
     gameOver = true;
     gameState = "over";
 
-    if (!finalScorePopupShown) {
-      finalScorePopupShown = true;
-      finalScorePopup.render(); // <- show the overlay window
+    if (!finalRoundPopupShown) {
+      finalRoundPopupShown = true;
+      finalRoundPopup.render(); // <- show the overlay window
     }
   }
 

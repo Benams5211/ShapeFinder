@@ -1,4 +1,4 @@
-.final-score-popup-window {
+.final-round-popup-window {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -15,13 +15,13 @@
   font-family: "Arial", sans-serif;
 }
 
-.final-score-popup-logo {
+.final-round-popup-logo {
   display: block;
   width: 100px;
   margin: 0 auto 20px;
 }
 
-.final-score-popup-list {
+.final-round-popup-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -29,7 +29,7 @@
   margin-top: 10px;
 }
 
-.final-score-popup-score-row {
+.final-round-popup-round-row {
   background: rgba(255,255,255,0.1);
   padding: 10px 15px;
   border-radius: 10px;
@@ -60,32 +60,32 @@
   background: rgba(255, 255, 255, 0.35);
 }
 
-.final-score-popup-title {
+.final-round-popup-title {
   color: rgb(255, 255, 255);
   font-size: 30px;
   font-weight: bold;
   margin-bottom: 25px;
 }
 
-.info-final-score {
+.info-final-round {
   color: rgb(255, 255, 255);
   font-size: 25px;
   font-weight: bold;
   margin-bottom: 25px;
 }
 
-.score-row-rank {
+.round-row-rank {
   color: rgb(255, 255, 255);
   font-size: 30px;
   font-weight: bold;
 }
 
-.score-row-date {
+.round-row-date {
   color: rgb(255, 255, 255);
   font-size: 20px;
 }
 
-.score-row-score {
+.round-row-round {
   color: rgb(255, 255, 255);
   font-size: 30px;
 }

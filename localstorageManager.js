@@ -32,38 +32,38 @@ class LocalStorageManager {
 }
 
 // -----------------------------------------------------------------------------
-// access and manage score in the localstorage implementation of clickable access and manage the localstorage content class
+// access and manage round in the localstorage implementation of manage the localstorage content class
 // -----------------------------------------------------------------------------
-class LocalStorageScoreManager extends LocalStorageManager {
+class LocalStorageRoundManager extends LocalStorageManager {
 
     /**
-     * Store the final score of the user in the localstorage.
+     * Store the final round of the user in the localstorage.
      */
-    storeScore() {
-        let sortedExistingScores = this.getArrayObject(localstorageScoreObjectsKey).sort((a, b) => a[localstorageIDKey] - b[localstorageIDKey]);
+    storeRound() {
+        let sortedExistingRounds = this.getArrayObject(localstorageRoundObjectsKey).sort((a, b) => a[localstorageIDKey] - b[localstorageIDKey]);
         let latestID = 0;
-        if (sortedExistingScores.length > 0) {
-            latestID = Number(sortedExistingScores[sortedExistingScores.length - 1].id);
+        if (sortedExistingRounds.length > 0) {
+            latestID = Number(sortedExistingRounds[sortedExistingRounds.length - 1].id);
         }
 
         const now = new Date().toISOString();
-        const scoreObject = { 
+        const roundObject = { 
             [localstorageIDKey]:        latestID + 1, 
             [localstorageDateKey]:      now,
-            [localstorageValueKey]:     combo 
+            [localstorageValueKey]:     round 
         };
-        sortedExistingScores.push(scoreObject);
-        this.setItem(localstorageScoreObjectsKey, sortedExistingScores);
+        sortedExistingRounds.push(roundObject);
+        this.setItem(localstorageRoundObjectsKey, sortedExistingRounds);
     }
 
     /**
-     * Returns the top scores.
-     * @param {the numner of top scores that returns} limit 
+     * Returns the top rounds.
+     * @param {the numner of top rounds that returns} limit 
      * @returns 
      */
-    getTopScores(limit = 3) {
-        let sortedExistingScores = this.getArrayObject(localstorageScoreObjectsKey).sort((a, b) => b[localstorageValueKey] - a[localstorageValueKey]);
-        const topScores = sortedExistingScores.slice(0, limit);
-        return topScores;
+    getTopRounds(limit = 3) {
+        let sortedExistingRounds = this.getArrayObject(localstorageRoundObjectsKey).sort((a, b) => b[localstorageValueKey] - a[localstorageValueKey]);
+        const topRounds = sortedExistingRounds.slice(0, limit);
+        return topRounds;
     }
 }
