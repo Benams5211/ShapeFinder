@@ -246,7 +246,7 @@ class FigureSkateModifier {
     director,
     joinChance = 0.0008,
     strength = 0.15,
-    types = ['circle', 'orbit', 'figure8', 'star', 'line', 'heart'],
+    types = [],
     minGapFrames = 240,
   } = {}) {
     this.director = director;
@@ -333,4 +333,5 @@ class FigureSkateModifier {
 
 
 // global formation director I made just for you :)
+
 const formationDirector = new FormationDirector();
