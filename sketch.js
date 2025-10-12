@@ -50,10 +50,25 @@ let logoImg;     // optional title/logo image
 let buttonImg;   // optional button image
 let pixelFont;
 
+let localstorateScoreManager; // This manages score objects in localstorage
+let finalScorePopup;  // The pop-up window that shows the score details.
+
+let finalScorePopupShown = false; // Flag that maintain the score pop-up window visibility status.
+
+/////////////////////////////////////////////////////
+//localstorage keys
+/////////////////////////////////////////////////////
+const localstorageScoreObjectsKey = "scoreObjects"
+const localstorageDateKey = "date"
+const localstorageIDKey = "id";
+const localstorageValueKey = "value";
+
+const logoImagePath = "assets/images/gameLogo.png"
+
 function preload() {
   // optionally load images here
   // menuBgImg = loadImage("menuBackground.png");
-  logoImg = loadImage("assets/images/gameLogo.png");
+  logoImg = loadImage(logoImagePath);
   startBtnImg1 = loadImage("assets/images/startButton1.png");
   startBtnImg2 = loadImage("assets/images/startButton2.png");
   optionsBtnImg1 = loadImage("assets/images/optionsButton1.png");
@@ -188,6 +203,9 @@ function preload() {
       console.warn('Failed to preload "mainMenu.mp3!"' );
     }
   }
+
+  localstorateScoreManager = new LocalStorageScoreManager();
+  finalScorePopup = new FinalScorePopup(localstorateScoreManager, logoImagePath);
 }
 
 function drawMenu() {
@@ -709,10 +727,20 @@ function drawGame() {
 
   // clamp
   if (times <= 0) {
+
+    // Hopefully this won't block the main thread since we won't have that much score objects.
+    // We will have to refactor this to have async/Promise if we notice a block in the future.
+    localstorateScoreManager.storeScore();
+
     times = 0;
     TimeOver = true;
     gameOver = true;
     gameState = "over";
+
+    if (!finalScorePopupShown) {
+      finalScorePopupShown = true;
+      finalScorePopup.render(); // <- show the overlay window
+    }
   }
 
   // play mode only while not gameOver
