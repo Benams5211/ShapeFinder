@@ -54,11 +54,11 @@ class StarScoreIndicator extends ScoreIndicator {
 
     let middle;
 
-    if(combo < 10) middle = "+3 sec";
-    else if(combo < 20) middle = "+4 sec";
-    else if(combo < 30) middle = "+5 sec";
-    else if(combo < 40) middle = "+6 sec";
-    else if(combo < 50) middle = "+7 sec";
+    if(combo < 10) middle = "+1 sec";
+    else if(combo < 20) middle = "+2 sec";
+    else if(combo < 30) middle = "+3 sec";
+    else if(combo < 40) middle = "+4 sec";
+    else if(combo < 50) middle = "+5 sec";
 
     text(middle, 0, 0);
     pop();
@@ -141,4 +141,5 @@ class BossKillIndicator extends ScoreIndicator {
     text("Wow!", 0, 0);
     pop();
   }
+
 }
