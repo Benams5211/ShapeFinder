@@ -73,6 +73,19 @@ function preload() {
   startBtnImg2 = loadImage("assets/images/startButton2.png");
   optionsBtnImg1 = loadImage("assets/images/optionsButton1.png");
   optionsBtnImg2 = loadImage("assets/images/optionsButton2.png");
+  pauseButton0 = loadImage("assets/images/pauseButton0.png");
+  pauseButton1 = loadImage("assets/images/pauseButton1.png");
+  resumeButton0 = loadImage("assets/images/resumeButton0.png");
+  resumeButton1 = loadImage("assets/images/resumeButton1.png");
+  menuButton0 = loadImage("assets/images/menuButton0.png");
+  menuButton1 = loadImage("assets/images/menuButton1.png");
+  easyButton0 = loadImage("assets/images/easyButton0.png");
+  easyButton1 = loadImage("assets/images/easyButton1.png");
+  mediumButton0 = loadImage("assets/images/mediumButton0.png");
+  mediumButton1 = loadImage("assets/images/mediumButton1.png");
+  hardButton0 = loadImage("assets/images/hardButton0.png");
+  hardButton1 = loadImage("assets/images/hardButton1.png");
+
 
   // Load font
   pixelFont = loadFont("assets/fonts/pixelFont.ttf");
@@ -305,28 +318,31 @@ function drawButton(btn) {
 
 // modes
 function drawModes() {
-    background(200);
-    // draw drifting shapes in background
+  background(200);
   playModeMenu();
 
-  // overlay darkness
-    fill(0, 180);
-    noStroke();
-    rect(0, 0, width, height);
-    textAlign(CENTER, CENTER);
-    textSize(40);
-    fill(255,255,255);
-    textFont(pixelFont);
-    text("Select Difficulty", width/2, height/2 - 150);
-    textFont('Arial');
-  
-    // difficulty buttons
-    drawButton({ x: width/2 - 100, y: height/2 - 50, w: 200, h: 60, label: "EASY" });
-    drawButton({ x: width/2 - 100, y: height/2 + 50, w: 200, h: 60, label: "MEDIUM" });
-    drawButton({ x: width/2 - 100, y: height/2 + 150, w: 200, h: 60, label: "HARD" });
-  
-    drawBackButton();
+  fill(0, 180);
+  noStroke();
+  rect(0, 0, width, height);
+
+  textAlign(CENTER, CENTER);
+  textSize(40);
+  fill(255);
+  textFont(pixelFont);
+  text("Select Difficulty", width/2, height/2 - 150);
+  textFont('Arial');
+
+  drawButton(easyButton);
+  drawButton(mediumButton);
+  drawButton(hardButton);
+
+  // place backToMenuButton in top-left for modes
+  backToMenuButton.x = 20;
+  backToMenuButton.y = 20;
+
+  drawButton(backToMenuButton);
 }
+
 
 function keyPressed() {
   if (key === 'a') triggerBoatLines(15000);
@@ -538,66 +554,77 @@ function handleInteractorClick() {
 
 //mouse input
 function mousePressed() {
-    if (gameState === "menu") {
-      if (mouseInside(startButton)) {
-        triggerCurtains();
-        startGame();
-      } else if (mouseInside(modesButton)) {
-        gameState = "modes";
-      }
-    } else if (gameState === "game") {
-      if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60) {
-        playMenuSFX();
-        gameState = "menu";
-        playMenuBGM();
-        stopHardBGM();
-      } else {
-        handleInteractorClick();
-      }
-  
-    } else if (gameState === "over") {
-      if (mouseInside(againButton)) {
-        stopHardBGM();
-        stopBossBGM();
-        startGame();
-      } else if (mouseX > 20 && mouseX < 140 && mouseY > 20 && mouseY < 60) {
-        playMenuSFX();
-        gameState = "menu";
-        playMenuBGM();
+  if (gameState === "menu") {
+    if (mouseInside(startButton)) {
+      triggerCurtains();
+      startGame();
+    } else if (mouseInside(modesButton)) {
+      gameState = "modes";
+    }
 
-      }
-  
-    } else if (gameState === "modes") {
-        // back button
-        if (mouseInside({ x: 20, y: 20, w: 120, h: 40 })) {
-          gameState = "menu";
-          return;
-        }
-      
-        // difficulty buttons — set difficulty AND start game immediately
-        if (mouseInside({ x: width/2 - 100, y: height/2 - 50, w: 200, h: 60 })) {
-          difficulty = "easy";
-          triggerCurtains();
-          startGame();
-        } else if (mouseInside({ x: width/2 - 100, y: height/2 + 50, w: 200, h: 60 })) {
-          difficulty = "medium";
-          triggerCurtains();
-          startGame();
-        } else if (mouseInside({ x: width/2 - 100, y: height/2 + 150, w: 200, h: 60 })) {
-          difficulty = "hard";
-          triggerCurtains();
-          startGame();
-        }
-  } else if (gameState === "pause") {
+  } else if (gameState === "game") {
+    // top-left pause button
     if (mouseInside(pauseButton)) {
-      gameState = "game"; // resume
+      playMenuSFX();
+      gameState = "pause";
+      pauseStartMillis = millis();
+    } else {
+      handleInteractorClick();
+    }
+
+  } else if (gameState === "pause") {
+    // Resume button
+    if (mouseInside(resumeButton)) {
+      playMenuSFX();
+      gameState = "game";
+      totalPausedTime += millis() - pauseStartMillis;
+
+    // Menu button
     } else if (mouseInside(backToMenuButton)) {
+      playMenuSFX();
       stopHardBGM();
-      gameState = "menu"; // goes back to main menu
+      playMenuBGM();
+      gameState = "menu";
+    }
+
+  } else if (gameState === "modes") {
+    // Difficulty buttons
+    if (mouseInside(easyButton)) {
+      playMenuSFX();
+      difficulty = "easy";
+      triggerCurtains();
+      startGame();
+    } else if (mouseInside(mediumButton)) {
+      playMenuSFX();
+      difficulty = "medium";
+      triggerCurtains();
+      startGame();
+    } else if (mouseInside(hardButton)) {
+      playMenuSFX();
+      difficulty = "hard";
+      triggerCurtains();
+      startGame();
+    }
+
+    // Back button to main menu (if you want, optional)
+    if (mouseInside({ x: 20, y: 20, w: 120, h: 40 })) {
+      playMenuSFX();
+      gameState = "menu";
+    }
+
+  } else if (gameState === "over") {
+    if (mouseInside(againButton)) {
+      stopHardBGM();
+      stopBossBGM();
+      startGame();
+    } else if (mouseInside(backToMenuButton)) {
+      playMenuSFX();
+      gameState = "menu";
       playMenuBGM();
     }
   }
 }
+
 
 // helper, checks if mouse is inside a rectangle button
 function mouseInside(btn) {
@@ -635,12 +662,62 @@ function setup() {
     h: optionsBtnImg1.height * optionsButtonScale
   };
 
-  //menu business
-  //startButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "START" };
-  //modesButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "MODES" };
-  againButton = { x: width/2 - 100, y: height/2 + 100, w: 200, h: 60, label: "AGAIN" };
-  pauseButton = { x: width/2 - 100, y: height/2, w: 200, h: 60, label: "RESUME" }; // i added this
-  backToMenuButton = { x: width/2 - 100, y: height/2 + 80, w: 200, h: 60, label: "MENU" }; // i added this
+  const buttonScale = 1.8; // adjust as needed
+
+  pauseButton = {
+    x: 20,
+    y: 20,
+    w: pauseButton0.width * buttonScale,
+    h: pauseButton0.height * buttonScale,
+    img: pauseButton0,
+    hoverImg: pauseButton1
+  };
+  
+  resumeButton = {
+    x: width/2 - resumeButton0.width*buttonScale/2,
+    y: height/2,
+    w: resumeButton0.width * buttonScale,
+    h: resumeButton0.height * buttonScale,
+    img: resumeButton0,
+    hoverImg: resumeButton1
+  };
+  
+  backToMenuButton = {
+    x: 20, // small margin from left
+    y: 20, // small margin from top
+    w: menuButton0.width * buttonScale,
+    h: menuButton0.height * buttonScale,
+    img: menuButton0,
+    hoverImg: menuButton1
+};
+  
+  easyButton = {
+    x: width/2 - easyButton0.width*buttonScale/2,
+    y: height/2 - 50,
+    w: easyButton0.width*buttonScale,
+    h: easyButton0.height*buttonScale,
+    img: easyButton0,
+    hoverImg: easyButton1
+  };
+  
+  mediumButton = {
+    x: width/2 - mediumButton0.width*buttonScale/2,
+    y: height/2 + 50,
+    w: mediumButton0.width*buttonScale,
+    h: mediumButton0.height*buttonScale,
+    img: mediumButton0,
+    hoverImg: mediumButton1
+  };
+  
+  hardButton = {
+    x: width/2 - hardButton0.width*buttonScale/2,
+    y: height/2 + 150,
+    w: hardButton0.width*buttonScale,
+    h: hardButton0.height*buttonScale,
+    img: hardButton0,
+    hoverImg: hardButton1
+  };
+  
 
 
   //gameplay ui business
@@ -795,7 +872,8 @@ function drawGame() {
   wantedObj.render();
 
   // back button
-  drawBackButton();
+  //drawBackButton();
+  drawButton(pauseButton);
 
 }
 
@@ -832,16 +910,22 @@ function drawPauseMenu() {
   fill(0, 180);
   rect(0, 0, width, height);
 
-  // text
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(48);
   text("Paused", width / 2, height / 2 - 100);
-  //drawing the buttons 
-  drawButton(pauseButton);
-  drawButton(backToMenuButton);
 
+  // center backToMenuButton dynamically
+  const buttonScale = 1.8;
+  backToMenuButton.w = menuButton0.width * buttonScale;
+  backToMenuButton.h = menuButton0.height * buttonScale;
+  backToMenuButton.x = width / 2 - backToMenuButton.w / 2;
+  backToMenuButton.y = height / 2 + 80;
+
+  drawButton(resumeButton);
+  drawButton(backToMenuButton);
 }
+
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
@@ -883,7 +967,3 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
-
-
-
-
