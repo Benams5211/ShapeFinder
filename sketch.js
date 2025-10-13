@@ -232,7 +232,7 @@ function drawMenu() {
     textAlign(CENTER, CENTER);
     textSize(48);
     textFont(pixelFont);
-    text("THAT TIME I GOT REINCARNATED INTO A NEW WORLD AND USED MY LEVEL 100 FLASHLIGHT SKILLS TO FIND THE WANTED SHAPE!", width/2, height/2 - 75);
+    text("THAT TIME I GOT REINCARNATED INTO A NEW WORLD\n AND USED MY LEVEL 100 FLASHLIGHT SKILLS TO FIND THE WANTED SHAPE!", width/2, height/2 - 75);
     imageMode(CORNER);
     textFont('Arial');
   } else {
@@ -883,4 +883,5 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
+
 
