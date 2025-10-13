@@ -337,7 +337,7 @@ class BossCircle extends ClickCircle {
   constructor(h, x, y, r, fillCol, opts = {}) {
     super(x,y,r, fillCol, opts);
     this.health = opts.health ?? 5;
-    this.timeAdd = h*2;
+    this.timeAdd = h/2;
   }
   onClick(){
     --this.health;
@@ -387,11 +387,11 @@ class WinRect extends ClickRect {
   onClick() {
     super.onClick();
 
-    if(combo < 10) Timer += 3;
-    else if(combo < 20) Timer += 4;
-    else if(combo < 30) Timer += 5;
-    else if(combo < 40) Timer += 6;
-    else if(combo < 50) Timer += 7;
+    if(combo < 10) Timer += 1;
+    else if(combo < 20) Timer += 2;
+    else if(combo < 30) Timer += 3;
+    else if(combo < 40) Timer += 4;
+    else if(combo < 50) Timer += 5;
 
     round++;
     nextRound();
@@ -405,11 +405,11 @@ class WinCircle extends ClickCircle {
   onClick() {
     super.onClick();
 
-    if(combo < 10) Timer += 3;
-    else if(combo < 20) Timer += 4;
-    else if(combo < 30) Timer += 5;
-    else if(combo < 40) Timer += 6;
-    else if(combo < 50) Timer += 7;
+    if(combo < 10) Timer += 1;
+    else if(combo < 20) Timer += 2;
+    else if(combo < 30) Timer += 3;
+    else if(combo < 40) Timer += 4;
+    else if(combo < 50) Timer += 5;
 
     round++;
     nextRound();
@@ -423,11 +423,11 @@ class WinTri extends ClickTri {
   onClick() {
     super.onClick();
 
-    if(combo < 10) Timer += 3;
-    else if(combo < 20) Timer += 4;
-    else if(combo < 30) Timer += 5;
-    else if(combo < 40) Timer += 6;
-    else if(combo < 50) Timer += 7;
+    if(combo < 10) Timer += 1;
+    else if(combo < 20) Timer += 2;
+    else if(combo < 30) Timer += 3;
+    else if(combo < 40) Timer += 4;
+    else if(combo < 50) Timer += 5;
 
     round++;
     nextRound();
@@ -986,3 +986,4 @@ function clearInteractors() {
   interactors.length = 0;
   wantedObj == null;
 }
+
