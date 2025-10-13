@@ -230,7 +230,7 @@ function drawMenu() {
     image(logoImg, width/2, height/2 - 200);
     fill(255); // white
     textAlign(CENTER, CENTER);
-    textSize(48);
+    textSize(width/35);
     textFont(pixelFont);
     text("THAT TIME I GOT REINCARNATED INTO A NEW WORLD\nAND USED MY LEVEL 100 FLASHLIGHT SKILLS TO FIND THE WANTED SHAPE!", width/2, height/2 - 75);
     imageMode(CORNER);
@@ -883,6 +883,7 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
+
 
 
 
