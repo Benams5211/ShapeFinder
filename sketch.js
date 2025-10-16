@@ -55,6 +55,8 @@ let finalRoundPopup;  // The pop-up window that shows the round details.
 
 let finalRoundPopupShown = false; // Flag that maintain the round pop-up window visibility status.
 
+let topRoundsBeforeUpdate = []; // Keep the records without the latest one to compare againt those records.
+
 /////////////////////////////////////////////////////
 //localstorage keys
 /////////////////////////////////////////////////////
@@ -370,14 +372,6 @@ function drawOverMenu() {
   // redraw UI bar so it’s visible on top
   image(UILayer, 0, 0);
 
-  // draw "time's over" + final round
-  fill(255);
-  textAlign(CENTER, CENTER);
-  textSize(50);  
-  text("Final Round: " + round, windowWidth / 2, windowHeight / 2); 
-  text("Time's Over!", windowWidth / 2, windowHeight / 2.5);
-
-  drawButton(againButton);
   drawBackButton();
 }
 
@@ -830,6 +824,7 @@ function drawGame() {
 
     // Hopefully this won't block the main thread since we won't have that much round objects.
     // We will have to refactor this to have async/Promise if we notice a block in the future.
+    topRoundsBeforeUpdate = localstorageRoundManager.getTopRounds();
     localstorageRoundManager.storeRound();
 
     times = 0;
