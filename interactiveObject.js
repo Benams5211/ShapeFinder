@@ -91,7 +91,7 @@ class InteractiveObject {
   
   updatePos() {
     const isBoss =  (this instanceof BossCircle);
-    if (intensity == 1 && gameState == 'game' && !isBoss) {
+    if (intensity == 1 && gameState == 'game' && !isBoss && flashlightFreeze) {
     const dx = this.x - mouseX;
     const dy = this.y - mouseY;
     // require the whole shape to be "under" the cursor-ish area
@@ -112,6 +112,10 @@ class InteractiveObject {
     // Ignore movement on this frame if Shape's state is 'frozen'
     if (this.state.frozen) return;
     
+
+      if(slowMo){m.velocityLimit=1.5;}
+      else {m.velocityLimit=4;}
+      
     // Pick a new target velocity every switchRate frames
     if (frameCount % m.switchRate === 0) {
       // Keep new target velocity within range of provided velocityLimit
@@ -582,7 +586,7 @@ function spawnInteractors() {
       new JitterModifier({ rate: 0.1 }),
       new TeleportModifier({ chance: 0.005 }),
     ];
-    if (random() < 0.50) {
+    if (random() < 0.50 && !slowMoEnabled) {
       mods.push(new FigureSkateModifier({
         director: formationDirector,
         joinChance: 0.005,
@@ -745,7 +749,7 @@ function spawnBossInteractors() {
       new JitterModifier({ rate: 0.1 }),
       new TeleportModifier({ chance: 0.005 }),
     ];
-    if (random() < 0.50) {
+    if (random() < 0.50 && !slowMoEnabled) {
       mods.push(new FigureSkateModifier({
         director: formationDirector,
         joinChance: 0.005,

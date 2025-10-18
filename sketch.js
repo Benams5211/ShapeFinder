@@ -32,8 +32,17 @@ const optionsButtonScale = 5.5;
 let pauseStartMillis = 0;
 let totalPausedTime = 0;
 
+//checkbox business
+let flashlightFreeze = true;
+let slowMoEnabled = false;
+let checkboxLight;
+let checkboxSlow;
+
 //combo counter
 let combo = 0;
+
+//for slow motion (obviously)
+let slowMo = false;
 
 //////////////////////////////////////////////////
 //Classes and stuff for menu
@@ -54,6 +63,8 @@ let localstorageRoundManager; // This manages round objects in localstorage
 let finalRoundPopup;  // The pop-up window that shows the round details.
 
 let finalRoundPopupShown = false; // Flag that maintain the round pop-up window visibility status.
+
+let topRoundsBeforeUpdate = []; // Keep the records without the latest one to compare againt those records.
 
 /////////////////////////////////////////////////////
 //localstorage keys
@@ -247,12 +258,11 @@ function drawMenu() {
     textFont(pixelFont);
     text("THAT TIME I GOT REINCARNATED INTO A NEW WORLD\nAND USED MY LEVEL 100 FLASHLIGHT SKILLS TO FIND THE WANTED SHAPE!", width/2, height/2 - 75);
     imageMode(CORNER);
-    textFont('Arial');
   } else {
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(48);
-    text("Shape Finder!\nVersion 6.0", width/2, height/2 - 120);
+    text("Shape Finder!\nVersion 7.0", width/2, height/2 - 120);
   }
 
   // Draw buttons
@@ -330,11 +340,34 @@ function drawModes() {
   fill(255);
   textFont(pixelFont);
   text("Select Difficulty", width/2, height/2 - 150);
-  textFont('Arial');
 
   drawButton(easyButton);
   drawButton(mediumButton);
   drawButton(hardButton);
+
+  text("Select Modifiers", width/4, height/2 - 150);
+  text("Flashlight Freeze", width/4-width/32, height/2+height/-(height*0.0282));
+  text("Slow-Mo Enabled", width/4-width/32, height/2+height/(height*0.0169));
+
+  if (!checkboxLight) {
+    checkboxLight = createCheckbox("", flashlightFreeze);
+    checkboxLight.position(width / 4 + width/10, height / 4 + height / 5);
+    checkboxLight.style("transform", "scale(5)");
+  }
+
+  if (!checkboxSlow) {
+    checkboxSlow = createCheckbox("", slowMoEnabled);
+    checkboxSlow.position(width / 4 + width/10, height / 4 + height / 3);
+    checkboxSlow.style("transform", "scale(5)");
+  }
+
+  if (checkboxSlow.checked()) {slowMoEnabled = true; } else {slowMoEnabled = false;}
+
+  if (checkboxLight.checked()) {flashlightFreeze = true;} else {flashlightFreeze = false;}
+
+
+  text("Select Color Scheme", width/4+width/2, height/2 - 150);
+
 
   // place backToMenuButton in top-left for modes
   backToMenuButton.x = 20;
@@ -349,6 +382,12 @@ function keyPressed() {
   if (key === 'b') triggerBlackHoleEvent(3000);
   if (key === 'w') triggerWarning(5000);
   if (key === 'z') triggerZombieEvent(5000);
+
+  if (keyCode === SHIFT) {
+    if(slowMoEnabled){
+    slowMo = true;
+    }
+  }
   
   if (gameState === "game" && key === 'p') {
     gameState = "pause";
@@ -361,6 +400,12 @@ function keyPressed() {
   }
 }
 
+function keyReleased() {
+  if (keyCode === SHIFT) {
+    slowMo = false;
+  }
+}
+
 function drawOverMenu() {
   // darken everything below the UI bar
   fill(0, 200); 
@@ -370,14 +415,6 @@ function drawOverMenu() {
   // redraw UI bar so it’s visible on top
   image(UILayer, 0, 0);
 
-  // draw "time's over" + final round
-  fill(255);
-  textAlign(CENTER, CENTER);
-  textSize(50);  
-  text("Final Round: " + round, windowWidth / 2, windowHeight / 2); 
-  text("Time's Over!", windowWidth / 2, windowHeight / 2.5);
-
-  drawButton(againButton);
   drawBackButton();
 }
 
@@ -642,7 +679,7 @@ function setup() {
     playMenuBGM();
   });
 
-  console.log("Version 6.0");//change this each master commit to see when changes happen
+  console.log("Version 7.0");//change this each master commit to see when changes happen
   
   startButton = {
     x: width / 2 - startBtnImg1.width * startButtonScale / 2,
@@ -666,7 +703,7 @@ function setup() {
 
   pauseButton = {
     x: 20,
-    y: 20,
+    y: height*0.011299435,
     w: pauseButton0.width * buttonScale,
     h: pauseButton0.height * buttonScale,
     img: pauseButton0,
@@ -692,28 +729,28 @@ function setup() {
 };
   
   easyButton = {
-    x: width/2 - easyButton0.width*buttonScale/2,
-    y: height/2 - 50,
-    w: easyButton0.width*buttonScale,
-    h: easyButton0.height*buttonScale,
+    x: width/2 - easyButton0.width*buttonScale,
+    y: height/2-height/10,
+    w: easyButton0.width*buttonScale*2,
+    h: easyButton0.height*buttonScale*2,
     img: easyButton0,
     hoverImg: easyButton1
   };
   
   mediumButton = {
-    x: width/2 - mediumButton0.width*buttonScale/2,
-    y: height/2 + 50,
-    w: mediumButton0.width*buttonScale,
-    h: mediumButton0.height*buttonScale,
+    x: width/2 - mediumButton0.width*buttonScale,
+    y: height/2 + height/18,
+    w: mediumButton0.width*buttonScale*2,
+    h: mediumButton0.height*buttonScale*2,
     img: mediumButton0,
     hoverImg: mediumButton1
   };
   
   hardButton = {
-    x: width/2 - hardButton0.width*buttonScale/2,
-    y: height/2 + 150,
-    w: hardButton0.width*buttonScale,
-    h: hardButton0.height*buttonScale,
+    x: width/2 - hardButton0.width*buttonScale,
+    y: height/2 + (height*0.2118644068),
+    w: hardButton0.width*buttonScale*2,
+    h: hardButton0.height*buttonScale*2,
     img: hardButton0,
     hoverImg: hardButton1
   };
@@ -808,7 +845,15 @@ function draw() {
     drawPauseMenu();   // overlay pause menu
   }
 
-  console.log(isHardBGMPlaying);
+  if(gameState != "modes" && checkboxLight){
+      checkboxLight.remove(); // completely deletes it from the DOM
+      checkboxLight = null;   // clear reference
+  }
+
+  if(gameState != "modes" && checkboxSlow){
+      checkboxSlow.remove(); // completely deletes it from the DOM
+      checkboxSlow = null;   // clear reference
+  }
 
   updateScoreIndicators();
 }
@@ -830,6 +875,7 @@ function drawGame() {
 
     // Hopefully this won't block the main thread since we won't have that much round objects.
     // We will have to refactor this to have async/Promise if we notice a block in the future.
+    topRoundsBeforeUpdate = localstorageRoundManager.getTopRounds();
     localstorageRoundManager.storeRound();
 
     times = 0;
@@ -867,6 +913,7 @@ function drawGame() {
   UILayer.textSize(24);
   UILayer.textAlign(RIGHT, CENTER);
   UILayer.fill('black');
+  UILayer.textFont(pixelFont);
   UILayer.text("Round: " + round + " Combo: "+ combo + " Time: " + times, UILayer.width - 20, UILayer.height /2);
   image(UILayer, 0,0);
   wantedObj.render();

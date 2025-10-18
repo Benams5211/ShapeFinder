@@ -3,7 +3,7 @@ class FormationDirector {
     this.active = false;
     this.type = 'circle';
     this.center = { x: 0, y: 0 }; // center of the formation can be anywhere
-    this.radius = 180;
+    this.radius = 100;
     this.frames = 0;
     this.holdFrames = 240;       // how long to hold formation
     this.easeIn = 30;            // frames to ramp into formation
@@ -109,7 +109,9 @@ class FormationDirector {
       }
 
       case 'orbit': {
-        const angle = baseAngle + 0.01 * frame; // tweak magic number to adjust speed
+        let angle = baseAngle + 0.01 * frame; // tweak magic number to adjust speed
+        if(slowMo){angle = baseAngle + 0.002 * frame;}
+        else {angle = baseAngle + 0.01 * frame;}
         targetX = centerX + radius * Math.cos(angle);
         targetY = centerY + radius * Math.sin(angle);
         break;
@@ -118,7 +120,9 @@ class FormationDirector {
       case 'figure8': {
         // https://en.wikipedia.org/wiki/Lemniscate_of_Gerono
         // parameteric lemniscate of gerono equation we used to bash rocks together now we do this
-        const phase = baseAngle + 0.02 * frame; // tweak magic number to adjust speed
+        let phase = baseAngle + 0.02 * frame; // tweak magic number to adjust speed
+        if(slowMo){phase = baseAngle + 0.004 * frame;}
+        else {phase = baseAngle + 0.02 * frame;}
         targetX = centerX + radius * Math.cos(phase);
         targetY = centerY + (radius * 0.6) * Math.sin(2 * phase) / 1.2;
         break;
@@ -169,7 +173,9 @@ class FormationDirector {
       }
 
       case 'orbitTriangle': {
-        const rotationSpeed = 0.01 * frame;
+        let rotationSpeed = 0.01 * frame;
+        if(slowMo){rotationSpeed=0.0025 * frame;}
+        else {rotationSpeed=0.01 *frame;}
         const vertices = [];
         const numPoints = 3;
         for (let k = 0; k < numPoints; k++) {
@@ -191,7 +197,9 @@ class FormationDirector {
       }
 
       case 'orbitSquare': {
-        const rotationSpeed = 0.01 * frame;
+        let rotationSpeed = 0.01 * frame;
+        if(slowMo){rotationSpeed=0.0025 * frame;}
+        else {rotationSpeed=0.01 *frame;}
         const vertices = [];
         const numPoints = 4;
         for (let k = 0; k < numPoints; k++) {
@@ -229,7 +237,9 @@ class FormationDirector {
         // sine wave parameters
         const amplitude = radius * 0.3;     // vertical size of wave
         const wavelength = (rightX - leftX) / 2; // distance between wave peaks
-        const speed = 0.05;                 // horizontal scrolling speed
+        let speed = 0.05;                 // horizontal scrolling speed
+        if(slowMo){speed=0.02;}
+        else {speed=0.05;}
 
         // each shape’s y-position follows a sine pattern along x
         const phase = (targetX / wavelength) * TWO_PI + frame * speed;
