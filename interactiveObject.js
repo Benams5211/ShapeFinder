@@ -16,13 +16,16 @@ class InteractiveObject {
    *      switchRate: num of frames
    *    }
    *  - modifiers: [Modifier,...]
-   */
+   **/
   constructor(x, y, opts = {}) {
     this.x = x; 
     this.y = y;
     this.visible = true;
     this.enabled = true;
     this.randomColor = !!opts.randomColor;
+    this.outline = !!opts.outline;
+    this.isWanted = !!opts.wanted;
+    
     // click behavior
     this.deleteOnClick = !!opts.deleteOnClick;
     const s = opts.stroke ?? {};
@@ -87,7 +90,8 @@ class InteractiveObject {
   }
   
   updatePos() {
-    if (intensity === 1) {
+    const isBoss =  (this instanceof BossCircle);
+    if (intensity == 1 && gameState == 'game' && !isBoss) {
     const dx = this.x - mouseX;
     const dy = this.y - mouseY;
     // require the whole shape to be "under" the cursor-ish area
@@ -131,8 +135,12 @@ class InteractiveObject {
 
     if (this.x < r)           { this.x = r;                 this.vx *= -1; }   // clamp inside + bounce
     if (this.x > width  - r)  { this.x = width  - r;        this.vx *= -1; }
-    if (this.y < UIHeight + r) {this.y = UIHeight + r;       this.vy *= -1;}
-    if (this.y > height - r)  { this.y = height - r;        this.vy *= -1; }
+    if (gameState != "menu"){
+      if (this.y < UIHeight + r) {this.y = UIHeight + r;       this.vy *= -1;}
+    } else {
+      if (this.y < r) {this.y = r;                            this.vy *= -1;}
+    }
+    if (this.y > height - r)  { this.y = height - r;           this.vy *= -1;}
   }
 
   
@@ -144,7 +152,12 @@ class InteractiveObject {
 
     try {
       const isWin = (this instanceof WinRect) || (this instanceof WinCircle) || (this instanceof WinTri);
-      if (!isWin) { // If "isWin" was not one of the "Win" shapes:
+      const isBoss =  (this instanceof BossCircle);
+      if(isBoss) {
+        playBossKill();
+        bossKills.push(new BossKillIndicator(mouseX, mouseY));
+      }
+      else if (!isWin) { // If "isWin" was not one of the "Win" shapes:
         if (window.AudioManager && typeof AudioManager.play === 'function') {
           AudioManager.play('sfxIncorrect', { vol: 1.0 }); // Play "sfxIncorrect" from the Audio Manager:
         } else if (typeof sfxIncorrect !== 'undefined' && sfxIncorrect && typeof sfxIncorrect.play === 'function') {
@@ -152,7 +165,7 @@ class InteractiveObject {
         }
         circleBursts.push(new CircleBurstScoreIndicator(mouseX, mouseY));
       }
-      else {
+      else { //win
         if (window.AudioManager && typeof AudioManager.play === 'function') {
           AudioManager.play('sfxCorrect', { vol: 1.0 }); // Play "sfxCorrect" from the Audio Manager:
         } else if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') {
@@ -181,7 +194,8 @@ class ClickRect extends InteractiveObject {
     this.w = w; 
     this.h = h;
     this.radius = radius;
-    this.randomColor = opts.randomColor ?? false
+    this.randomColor = opts.randomColor ?? false;
+    this.outline = opts.outline ?? false;
     if (this.randomColor) {
       this.fillCol = randomColor();
     } else {
@@ -207,6 +221,11 @@ class ClickRect extends InteractiveObject {
 
     fill(...this.fillCol);
     rect(this.x, this.y, this.w, this.h, this.radius);
+    if(this.outline){
+      stroke('black');
+      strokeWeight(2);
+      rect(this.x, this.y, this.w, this.h, this.radius);
+    }
     pop();
   }
 }
@@ -219,7 +238,8 @@ class ClickCircle extends InteractiveObject {
     // super keyword calls parent so this is just calling the parent constructor
     super(x, y, opts);
     this.r = r;
-    this.randomColor = opts.randomColor ?? false
+    this.randomColor = opts.randomColor ?? false;
+    this.outline = opts.outline ?? false;
     if (this.randomColor) {
       this.fillCol = randomColor();
     } else {
@@ -243,6 +263,12 @@ class ClickCircle extends InteractiveObject {
     }
     fill(...this.fillCol);
     circle(this.x, this.y, this.r*2);
+    if(this.outline){
+      stroke('black');
+      strokeWeight(2);
+      circle(this.x, this.y, this.r*2);
+    }
+
     pop();
   }
 }
@@ -251,7 +277,8 @@ class ClickTri extends InteractiveObject {
   constructor(x, y, size, fillCol = [255, 210, 90], opts = {}) {
     super(x, y, opts);
     this.size = size;
-    this.randomColor = opts.randomColor ?? false
+    this.randomColor = opts.randomColor ?? false;
+    this.outline = opts.outline ?? false;
 
     // fill color (same pattern as rect/circle)
     this.fillCol = this.randomColor ? randomColor() : (fillCol ?? [255, 210, 90]);
@@ -294,6 +321,11 @@ class ClickTri extends InteractiveObject {
 
     fill(...this.fillCol);
     triangle(A[0], A[1], B[0], B[1], C[0], C[1]);
+    if(this.outline){
+      stroke('black');
+      strokeWeight(2);
+      triangle(A[0], A[1], B[0], B[1], C[0], C[1]);
+    }
     pop();
   }
 }
@@ -301,12 +333,32 @@ class ClickTri extends InteractiveObject {
 // -----------------------------------------------------------------------------
 // specialized subclasses: same visuals as parent, custom click payloads
 // -----------------------------------------------------------------------------
+class BossCircle extends ClickCircle {
+  constructor(h, x, y, r, fillCol, opts = {}) {
+    super(x,y,r, fillCol, opts);
+    this.health = opts.health ?? 5;
+    this.timeAdd = h;
+  }
+  onClick(){
+    --this.health;
+    playBossHit();
+    this.fillCol=[200,20,20];
+    setTimeout(() => {
+    this.fillCol=[0,0,0];
+    }, 100);
+    if(this.health==0) {
+      super.onClick();
+      ++round;
+      Timer += this.timeAdd;
+      nextRound();
+    }
+  }
+}
+
 class ScoreDownCircle extends ClickCircle {
   onClick() {
     super.onClick()
-    score--;
     Timer -= 5;
-
 
     combo = 0;
   }
@@ -315,9 +367,7 @@ class ScoreDownCircle extends ClickCircle {
 class ScoreDownRect extends ClickRect {
   onClick() {
     super.onClick()
-    score--;
     Timer -= 5;
-
 
     combo = 0;
   }
@@ -326,7 +376,6 @@ class ScoreDownRect extends ClickRect {
 class ScoreDownTri extends ClickTri {
   onClick() {
     super.onClick();
-    score--;
     Timer -= 5;
 
 
@@ -338,13 +387,13 @@ class WinRect extends ClickRect {
   onClick() {
     super.onClick();
 
-    if(combo < 10) score++;
-    else if(combo < 20) score += 2;
-    else if(combo < 30) score += 3;
-    else if(combo < 40) score += 4;
-    else if(combo < 50) score += 5;
+    if(combo < 10) Timer += 3;
+    else if(combo < 20) Timer += 4;
+    else if(combo < 30) Timer += 5;
+    else if(combo < 40) Timer += 6;
+    else if(combo < 50) Timer += 7;
 
-    Timer += 3;
+    round++;
     nextRound();
 
 
@@ -356,13 +405,13 @@ class WinCircle extends ClickCircle {
   onClick() {
     super.onClick();
 
-    if(combo < 10) score++;
-    else if(combo < 20) score += 2;
-    else if(combo < 30) score += 3;
-    else if(combo < 40) score += 4;
-    else if(combo < 50) score += 5;
+    if(combo < 10) Timer += 3;
+    else if(combo < 20) Timer += 4;
+    else if(combo < 30) Timer += 5;
+    else if(combo < 40) Timer += 6;
+    else if(combo < 50) Timer += 7;
 
-    Timer += 3;
+    round++;
     nextRound();
 
 
@@ -374,13 +423,13 @@ class WinTri extends ClickTri {
   onClick() {
     super.onClick();
 
-    if(combo < 10) score++;
-    else if(combo < 20) score += 2;
-    else if(combo < 30) score += 3;
-    else if(combo < 40) score += 4;
-    else if(combo < 50) score += 5;
+    if(combo < 10) Timer += 3;
+    else if(combo < 20) Timer += 4;
+    else if(combo < 30) Timer += 5;
+    else if(combo < 40) Timer += 6;
+    else if(combo < 50) Timer += 7;
 
-    Timer += 3;
+    round++;
     nextRound();
 
 
@@ -389,20 +438,20 @@ class WinTri extends ClickTri {
 }
 
 //special circle 
-class WhiteCircle extends ClickCircle {
-  onClick(){
-    super.onClick();
+// class WhiteCircle extends ClickCircle {
+//   onClick(){
+//     super.onClick();
 
-    if(combo > 9) score += 10;
-    else if(combo > 19) score += 15;
-    else if(combo > 29) score += 20;
-    else if(combo > 39) score += 25;
-    else if (combo > 49) score += 30;
-    else score+=5;
+//     if(combo > 9) score += 10;
+//     else if(combo > 19) score += 15;
+//     else if(combo > 29) score += 20;
+//     else if(combo > 39) score += 25;
+//     else if (combo > 49) score += 30;
+//     else score+=5;
 
-    Timer += 10;
-  }
-}
+//     Timer += 10;
+//   }
+// }
 
 
 class BoatCircle extends ClickCircle {
@@ -484,6 +533,8 @@ class TeleportModifier {
 }
 
 function spawnInteractors() {
+  // Ensure lamps reset to default positions whenever a new set of interactors is spawned:
+  if (typeof initLamps === 'function') initLamps();
   // rare nested function utility
   function makeStaticWantedFrom(o) {
     const baseOpts = {
@@ -491,14 +542,15 @@ function spawnInteractors() {
       modifiers: [],                 // <- no jitter/teleport/follow
       deleteOnClick: false,
       randomColor: false,
+      outline: true,
       stroke: o.stroke ? { ...o.stroke } : undefined,
     };
     if (o instanceof ClickCircle) {
-      return new ClickCircle(width/2-o.r/2, 60-o.r/2, o.r, o.fillCol, baseOpts);
+      return new ClickCircle(width/2-15, height-(height*0.95), 30, o.fillCol, baseOpts);
     } else if (o instanceof ClickRect) {
-      return new ClickRect(width/2-o.w/2, 60-o.h/2, o.w, o.h, o.fillCol, o.radius || 0, baseOpts);
+      return new ClickRect(width/2-25, height-(height*0.95), 50, 50, o.fillCol, o.radius || 0, baseOpts);
     } else if (o instanceof ClickTri) {
-      return new ClickTri(width/2-o.size/2, 60-o.size/2, o.size, o.fillCol, { ...baseOpts, angle:0 });
+      return new ClickTri(width/2-15, height-(height*0.94), 50, o.fillCol, { ...baseOpts, angle:0 });
     }
     return null;
   }
@@ -518,26 +570,6 @@ function spawnInteractors() {
   const winShapeType = random(['circle','rect','tri']);
   randomWinColor(); 
 
-  const movement = {
-      enabled: true,
-      lerpStrength: 0.1,
-      velocityLimit: 4,
-      switchRate: 60,
-    };
-
-    const mods = [
-      new FreezeModifier({ chance: 0.001, length: 60 }),
-      new JitterModifier({ rate: 0.1 }),
-      new TeleportModifier({ chance: 0.005 }),
-    ];
-
-  const opts = {
-      movement, modifiers: mods,
-      deleteOnClick: true,
-      randomColor: true,
-      stroke: { enabled: true, weight: 2, color: [0,0,0] },
-    };
-
   for (let i = 0; i < count; i++) {
 
     const movement = {
@@ -552,7 +584,15 @@ function spawnInteractors() {
       new JitterModifier({ rate: 0.1 }),
       new TeleportModifier({ chance: 0.005 }),
     ];
-
+    if (random() < 0.50) {
+      mods.push(new FigureSkateModifier({
+        director: formationDirector,
+        joinChance: 0.005,
+        strength: 0.20,
+        types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare'],
+        minGapFrames: 180,
+      }));
+    }
     if (interactors.length > 0 && interactors.length < 8) {
       const toFollow = interactors[0];
       mods.push(new FollowShape({ otherShape: toFollow, followStrength: 0.3 }));
@@ -563,7 +603,8 @@ function spawnInteractors() {
       movement, modifiers: mods,
       deleteOnClick: true,
       randomColor: true,
-      stroke: { enabled: true, weight: 2, color: [0,0,0] },
+      outline: true,
+      stroke: { enabled: true, weight: 9, color: [255,255,255] },
     };
 
     let obj;
@@ -584,8 +625,7 @@ function spawnInteractors() {
         const rad = random(0, min(12, min(w, h) / 3));
         const x = random(w / 2, width  - w / 2);
         const y = random(h / 2, height - h / 2);
-        obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false});
-        // CHANGED: static clone for wanted panel
+        obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
@@ -594,12 +634,12 @@ function spawnInteractors() {
         const R  = s / Math.sqrt(3);
         const x  = random(R, width  - R);
         const y  = random(R, height - R);
-        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false });
+        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
       } else if (i === count-1 && winShapeType === 'circle'){//final shape, is the shape type
-        obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false});
+        obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
       }
@@ -621,7 +661,7 @@ function spawnInteractors() {
         const R  = s / Math.sqrt(3);
         const x  = random(R, width  - R);
         const y  = random(R, height - R);
-        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false });
+        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
@@ -629,12 +669,12 @@ function spawnInteractors() {
         const r = size;
         const x = random(r, width  - r);
         const y = random(r, height - r);
-        obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false});
+        obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
       } else if (i === count-1 && winShapeType === 'rect') { //final shape, is the shape type
-        obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false});
+        obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
       }
@@ -654,7 +694,7 @@ function spawnInteractors() {
         const r = size;
         const x = random(r, width  - r);
         const y = random(r, height - r);
-        obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false});
+        obj = new WinCircle(x, y, r, setWinColor(),  {...opts, randomColor: false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
@@ -664,19 +704,153 @@ function spawnInteractors() {
         const rad = random(0, min(12, min(w, h) / 3));
         const x = random(w / 2, width  - w / 2);
         const y = random(h / 2, height - h / 2);
-        obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false});
+        obj = new WinRect(x, y, w, h, setWinColor(), rad, {...opts, randomColor: false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
 
       } else if (i === count-1 && winShapeType === 'tri') {//final shape, same win type
-        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false }); //angle can be random(TWO_PI)
+        obj = new WinTri(x, y, s, setWinColor(), { ...opts, angle: 0, randomColor : false, wanted: true,});
         const preview = makeStaticWantedFrom(obj);
         if (preview) wantedObj = preview;
       }
     }
+    
     interactors.push(obj);
   }
+ 
         
+}
+
+function spawnBossInteractors() {
+  let size, count;
+  if (difficulty === "easy") {
+    size = 45;        // bigger shapes
+    count = 20;  // fewer objects
+  } else if (difficulty === "medium") {
+    size = 35;        // medium size & amount
+    count = 50;  
+  } else if (difficulty === "hard") {
+    size = 20;        // smaller shapes
+    count = 75; // more objects
+  }
+  for (let i = 0; i < count; i++) {
+
+    const movement = {
+      enabled: true,
+      lerpStrength: 0.1,
+      velocityLimit: 4,
+      switchRate: 60,
+    };
+
+    const mods = [
+      new FreezeModifier({ chance: 0.001, length: 60 }),
+      new JitterModifier({ rate: 0.1 }),
+      new TeleportModifier({ chance: 0.005 }),
+    ];
+    if (random() < 0.50) {
+      mods.push(new FigureSkateModifier({
+        director: formationDirector,
+        joinChance: 0.005,
+        strength: 0.20,
+        types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare'],
+        minGapFrames: 180,
+      }));
+    }
+    if (interactors.length > 0 && interactors.length < 8) {
+      const toFollow = interactors[0];
+      mods.push(new FollowShape({ otherShape: toFollow, followStrength: 0.3 }));
+    }
+
+    const choice = random(['circle','rect','tri']);
+    const opts = {
+      movement, modifiers: mods,
+      deleteOnClick: true,
+      randomColor: true,
+      outline: true,
+      stroke: { enabled: true, weight: 9, color: [255,255,255] },
+    };
+
+    let obj;
+    
+    if (choice === 'circle') {
+      const r = size;
+      const x = random(r, width  - r);
+      const y = random(r, height - r);
+      obj = new ScoreDownCircle(x, y, r, randomColor(),  {...opts, randomColor: false});
+    } 
+    
+    else if (choice === 'rect') {
+      const w = size*1.6;
+      const h = size*1.6;
+      const rad = random(0, min(12, min(w, h) / 3));
+      const x = random(w / 2, width  - w / 2);
+      const y = random(h / 2, height - h / 2);
+      obj = new ScoreDownRect(x, y, w, h,  randomColor(), rad,  {...opts, randomColor: false});
+
+    } else if (choice === 'tri'){
+      const s  = size*1.8;
+      const R  = s / Math.sqrt(3);
+      const x  = random(R, width  - R);
+      const y  = random(R, height - R);
+      obj = new ScoreDownTri(x, y, s, randomColor(), { ...opts, angle: 0, randomColor : false  });
+    }
+    
+    interactors.push(obj);
+  }
+ 
+        
+}
+
+
+function SpawnBoss(h){
+ // stopHardBGM();
+  //playBossBGM();
+  function makeStaticWantedFromBoss(o) {
+    const baseOpts = {
+      movement: { enabled: false },  // <- no movement
+      modifiers: [],                 // <- no jitter/teleport/follow
+      deleteOnClick: false,
+      randomColor: false,
+      stroke: o.stroke ? { ...o.stroke } : undefined,
+    };
+      return new ClickCircle(width/2-15, height-(height*0.95), 30, o.fillCol, baseOpts);
+    }
+
+  const movement = {
+      enabled: true,
+      lerpStrength: 0.05,
+      velocityLimit: 15,
+      switchRate: 15, 
+    };
+
+    const mods = [
+      new FreezeModifier({ chance: 0.001, length: 60 }),
+      new JitterModifier({ rate: 0.1 }),
+      new TeleportModifier({ chance: 0.005 }),
+    ];
+
+  const opts = {
+      movement, modifiers: {...mods},
+      deleteOnClick: true,
+      health: h,
+      stroke: { enabled: true, weight: 9, color: [255,255,255] },
+    };
+
+    if (difficulty === "easy") {
+    r = 65;        // bigger shapes
+  } else if (difficulty === "medium") {
+    r = 55;        // medium size & amount
+  } else if (difficulty === "hard") {
+    r = 35;        // smaller shapes
+  }
+    const x = random(r, width  - r);
+    const y = random(r, height - r);
+    let bossObj;
+    bossObj= new BossCircle(h, x, y, r, [0,0,0], {...opts});
+    interactors.push(bossObj);
+
+    const preview = makeStaticWantedFromBoss(bossObj);
+     if (preview) wantedObj = preview;
 }
 
 //helpers
@@ -810,10 +984,9 @@ function isUnderFlashlight(x, y, pad = 0) {
   const dy = y - fy;
   return (dx*dx)/(rx*rx) + (dy*dy)/(ry*ry) <= 1;
 }
-
 function clearInteractors() {
   interactors.length = 0;
   wantedObj == null;
-
 }
+
 

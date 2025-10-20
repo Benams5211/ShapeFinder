@@ -17,14 +17,101 @@ let blackout = false;
 // Lamp Settings:
 // 
 
-// Lamp Center Positions:
-const lampPositions = () => [
-  { x: width * 0.15, y: height * 0.5 },
-  { x: width * 0.5,  y: height * 0.75 },
-  { x: width * 0.85, y: height * 0.35 }
-];
-let lampRadius = 175; // Radius of the lamp's light glow.
+// Lamp Movement & Positions:
+const lampCount = 3; // Number of Lamps
+let lampObjs = []; // { x, y, vx, vy }
+let lampRadius = 250; // Radius of each lamp's light glow
+let lampSpeed = 150; // Pixels per second for movement
+// Default lamp Radius & Speed (for resetting when the game is over):
+const lampRadiusDefault = lampRadius;
+const lampSpeedDefault = lampSpeed;
+// Clamps for how much the Radius & Speed can be changed:
+const lampRadiusMin = 200;
+const lampSpeedMax = 500;
 let lampBuffer = null; // Persistent graphics buffer to draw the darkness & lamp light circles.
+
+// Initialize lamp objects with positions and random velocities.
+function initLamps() {
+  lampObjs = [];
+
+  const defaultPositions = [
+    { x: width * 0.15, y: height * 0.5 },
+    { x: width * 0.5,  y: height * 0.75 },
+    { x: width * 0.85, y: height * 0.35 }
+  ];
+
+  // Create each new lamp entry with initialized positions & speeds:
+  for (let i = 0; i < lampCount; i++) {
+    const p = defaultPositions[i] || { x: random(width * 0.2, width * 0.8), y: random(height * 0.25, height * 0.75) };
+    const angle = random(TWO_PI);
+    const speed = lampSpeed * (0.8 + random() * 0.4); // Creates slight variations in lamp movement speeds.
+    lampObjs.push({ x: p.x, y: p.y, vx: cos(angle) * speed, vy: sin(angle) * speed });
+  }
+}
+
+// Update lamp positions (dt converted to milliseconds using p5's 'deltaTime'):
+function updateLamps(dt) {
+  if (!lampObjs || lampObjs.length === 0) return;
+  const s = dt / 1000; // Convert miliseconds to seconds:
+
+  // Define movement bounds for how far the lamps can move on the screen:
+  const margin = Math.max(40, lampRadius * 0.2);
+  const topMargin = 60; // Avoid overlapping top UI elements.
+  const minX = margin;
+  const maxX = width - margin;
+  const minY = topMargin + margin;
+  const maxY = height - margin;
+
+  for (const l of lampObjs) {
+    l.x += l.vx * s;
+    l.y += l.vy * s;
+
+    // Creates a "bounce" off of edges so lights continue moving after reaching a border:
+    if (l.x < minX) { // Calculations for lamp "x":
+      l.x = minX;
+      l.vx = Math.abs(l.vx) * (0.85 + random() * 0.3);
+    } else if (l.x > maxX) {
+      l.x = maxX;
+      l.vx = -Math.abs(l.vx) * (0.85 + random() * 0.3);
+    }
+
+    if (l.y < minY) { // Calculations for lamp "y":
+      l.y = minY;
+      l.vy = Math.abs(l.vy) * (0.85 + random() * 0.3);
+    } else if (l.y > maxY) {
+      l.y = maxY;
+      l.vy = -Math.abs(l.vy) * (0.85 + random() * 0.3);
+    }
+
+    // Adds a small Jitter to make the motion look less perfect:
+    if (random() < 0.01) {
+      const jitter = random(-20, 20);
+      l.vx += jitter * 0.02;
+      l.vy += jitter * 0.02;
+      
+      const sp = Math.sqrt(l.vx * l.vx + l.vy * l.vy);
+      const minS = lampSpeed * 0.6;
+      const maxS = lampSpeed * 1.4;
+      if (sp > maxS) {
+        l.vx *= maxS / sp;
+        l.vy *= maxS / sp;
+      } else if (sp < minS) {
+        l.vx *= minS / Math.max(0.0001, sp);
+        l.vy *= minS / Math.max(0.0001, sp);
+      }
+    }
+  }
+}
+
+// Helper function to get lamp positions for Rendering & Hit Tests:
+function getLampPositions() {
+  if (lampObjs && lampObjs.length > 0) return lampObjs.map(l => ({ x: l.x, y: l.y }));
+  return [ // Fallback to default positions in case 'initLamps()' was not called before attempting to get lamp positions:
+    { x: width * 0.15, y: height * 0.5 },
+    { x: width * 0.5,  y: height * 0.75 },
+    { x: width * 0.85, y: height * 0.35 }
+  ];
+}
 
 // Draws the glow of the lamp to cut through the darkness layer (Uses a persistent memory buffer to stop memory overflow).
 function drawLampsOverlay() {
@@ -32,7 +119,9 @@ function drawLampsOverlay() {
     lampBuffer = createGraphics(width, height); // Initializes lampBuffer to the size of the canvas.
   }
 
-  const positions = lampPositions();
+  // Update lamp positions using p5's built-in "deltaTime" to create constant movement.
+  updateLamps(deltaTime);
+  const positions = getLampPositions();
 
   // Clear and fill darkness on the lamp buffer:
   lampBuffer.clear();
@@ -70,7 +159,7 @@ function drawLampsOverlay() {
 
 // Makes shapes clickable only when they are within the glow radius of a lamp:
 function isUnderLamps(x, y, pad = 0) {
-  const positions = lampPositions();
+  const positions = getLampPositions(); // Call helper to get current positions of each lamp:
   for (const p of positions) {
     const dx = x - p.x;
     const dy = y - p.y;
@@ -111,6 +200,8 @@ function rebuildLayer() {
   // graphic buffer
   darkness = createGraphics(coverW, coverH);
   buildDarknessLayer();
+  // Initialize moving lamps whenever the layer is rebuilt.
+  initLamps();
 }
 
 
@@ -197,4 +288,16 @@ function drawFlashlightOverlay () {
   else{
     image(darkness, dx, dy);
   }
+}
+
+// Reset lamp difficulty values for Radius & Speed back to default at the end of a game.
+function resetLampDifficulty() {
+  lampRadius = lampRadiusDefault;
+  lampSpeed = lampSpeedDefault;
+}
+
+// Scale lamp difficulty (Shrink radius & Increase speed every next round).
+function scaleLampDifficulty() {
+  lampRadius = Math.max(lampRadiusMin, lampRadius - 10);
+  lampSpeed = Math.min(lampSpeedMax, lampSpeed + 30);
 }
