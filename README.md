@@ -1,4 +1,20 @@
-For Fall 2025 Software Engineering 
+The deployment branch for our project
 
-# Shaping Bad: That Time I Got Reincarnated into a New World and Used my Level 100 Flashlight Skills to Find the Wanted Shape! 
-Find the given shape before time runs out. Then, do it again.
+# Additions for 10/9/25
+-game is now round based, not score based
+
+-losing shapes ONLY subtract time now
+
+-win shapes add some time and increase round
+
+-boss fight every 10 rounds
+
+-boss hp and time given on defeat increases each time
+
+-zooming in to freeze the boss does NOT work (that would be too easy)
+
+-boss size changes with difficulty
+
+-menu music added
+
+-difficulty selection menu updated
