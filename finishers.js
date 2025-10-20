@@ -5,17 +5,17 @@ class FinisherSequence {
 
     async playRandom() {
         const types = ["SPLASH", "TEST"];
-        //const chosen = random(types);
-        const chosen = "TEST";
+        const chosen = random(types);
+        //const chosen = "SPLASH";
         switch (chosen) {   
             case "SPLASH":
-                let tot_delay = 0
+                let tot_delay = 0;
                 for (const it of interactors) {
                     setTimeout(() => {
                         spawnSplashEvent(it.x, it.y, 500, 50, it.fillCol)
                         it.deleteSelf();
                     }, tot_delay)
-                    tot_delay += (this.duration / interactors.length);
+                    tot_delay += 10;
                 }
                 break;
             case "TEST":
@@ -34,12 +34,21 @@ class FinisherSequence {
                 const angel = new Angel();
                 await angel.spawn();
         }
-        // After animation finishes, show the end screen
-        events.start("SHOW_END_SCREEN", this.duration + 500, {
-            onEnd: () => {
+        setTimeout(() => {
                 combinedObjectList.length = 0;
                 gameEvents.Fire("showGameOverScreen");
-            }
-        });
+        }, 1000)
+
+
+        //This event is NOT firing, so i (ben hehe) temporarily replaced it with the above code
+
+        // After animation finishes, show the end screen
+        // events.start("SHOW_END_SCREEN", this.duration + 500, {
+        //     onEnd: () => {
+        //         console.log("2");
+        //         combinedObjectList.length = 0;
+        //         gameEvents.Fire("showGameOverScreen");
+        //     }
+        // });
     } 
 }
