@@ -26,6 +26,8 @@ let startBtnImg1, startBtnImg2;
 const startButtonScale = 1.8;
 let pauseButton, backToMenuButton;
 let optionsBtnImg1, optionsBtnImg2;
+let builderButton0, builderButton1;
+let statsButton0, statsButton1;
 const optionsButtonScale = 5.5;
 
 // stuff for paused
@@ -105,6 +107,10 @@ function preload() {
   mediumButton1 = loadImage("assets/images/mediumButton1.png");
   hardButton0 = loadImage("assets/images/hardButton0.png");
   hardButton1 = loadImage("assets/images/hardButton1.png");
+  builderButton0 = loadImage("assets/images/builderButton0.png");
+  builderButton1 = loadImage("assets/images/builderButton1.png");
+  statsButton0 = loadImage("assets/images/statsButton0.png");
+  statsButton1 = loadImage("assets/images/statsButton1.png");
 
 
   // Load font
@@ -260,12 +266,12 @@ function drawMenu() {
   // Title text or logo image
   if (logoImg) {
     imageMode(CENTER);
-    image(logoImg, width/2, height/2 - 200);
+    image(logoImg, width/2, height/2 - 350);
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(width/35);
     textFont(pixelFont);
-    text("THAT TIME I GOT REINCARNATED INTO A NEW WORLD\nAND USED MY LEVEL 100 FLASHLIGHT SKILLS TO FIND THE WANTED SHAPE!", width/2, height/2 - 75);
+    text("THAT TIME I GOT REINCARNATED INTO A NEW WORLD\nAND USED MY LEVEL 100 FLASHLIGHT SKILLS TO FIND THE WANTED SHAPE!", width/2, height/2 - 215);
     imageMode(CORNER);
   } else {
     fill(255); // white
@@ -350,11 +356,31 @@ function drawModes() {
   textSize(40);
   fill(255);
   textFont(pixelFont);
-  text("Select Difficulty", width/2, height/2 - 150);
+  text("Select Difficulty", width/2, height/2 - 300);
+
+  // Move difficulty buttons higher and align vertically
+  easyButton.y = height / 2 - 220;
+  mediumButton.y = height / 2 - 100;
+  hardButton.y = height / 2 + 20;
+
+  const buttonScale = 1.4; // smaller scale for start
+  startGameButton.w = startBtnImg1.width * buttonScale +50;
+  startGameButton.h = startBtnImg1.height * buttonScale +50;
+  startGameButton.x = width / 2 - startGameButton.w / 2;
+  startGameButton.y = height / 2 + 160;
 
   drawButton(easyButton);
   drawButton(mediumButton);
   drawButton(hardButton);
+
+  // Selected difficulty text
+  textSize(28);
+  fill(255);
+  const titleY = height / 2 - 300;
+  text(`Current: ${difficulty.toUpperCase()}`, width / 2, titleY + 60);
+
+  // Draw the Start button (reuse main menu art)
+  drawButton(startGameButton);
 
   text("Select Modifiers", width/4, height/2 - 150);
   text("Flashlight Freeze", width/4-width/32, height/2+height/-(height*0.0282));
@@ -657,6 +683,19 @@ function handleInteractorClick() {
   }
 }
 
+function updateDifficultyVisuals(selected) {
+  // Reset all to base images
+  easyButton.img = easyButton0;
+  mediumButton.img = mediumButton0;
+  hardButton.img = hardButton0;
+
+  // Set the selected one to its “active” image
+  if (selected === "easy") easyButton.img = easyButton1;
+  if (selected === "medium") mediumButton.img = mediumButton1;
+  if (selected === "hard") hardButton.img = hardButton1;
+}
+
+
 //mouse input
 function mousePressed() {
   if (gameState === "menu") {
@@ -702,16 +741,20 @@ function mousePressed() {
     if (mouseInside(easyButton)) {
       playMenuSFX();
       difficulty = "easy";
-      triggerCurtains();
-      startGame();
+      updateDifficultyVisuals("easy");
     } else if (mouseInside(mediumButton)) {
       playMenuSFX();
       difficulty = "medium";
-      triggerCurtains();
-      startGame();
+      updateDifficultyVisuals("medium");
     } else if (mouseInside(hardButton)) {
       playMenuSFX();
       difficulty = "hard";
+      updateDifficultyVisuals("hard");
+    }
+
+    // Start button now actually begins the game
+    if (mouseInside(startGameButton)) {
+      playMenuSFX();
       triggerCurtains();
       startGame();
     }
@@ -778,7 +821,7 @@ function setup() {
   
   startButton = {
     x: width / 2 - startBtnImg1.width * startButtonScale / 2,
-    y: height / 2 - startBtnImg1.height * startButtonScale / 2 + 65,
+    y: height / 2 - startBtnImg1.height * startButtonScale / 2 - 75,
     img: startBtnImg1,
     hoverImg: startBtnImg2,
     w: startBtnImg1.width * startButtonScale,
@@ -787,15 +830,32 @@ function setup() {
 
   modesButton = {
     x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2,
-    y: height / 2 + 120,
+    y: height / 2 - 30,
     img: optionsBtnImg1,
     hoverImg: optionsBtnImg2,
     w: optionsBtnImg1.width * optionsButtonScale,
     h: optionsBtnImg1.height * optionsButtonScale
   };
 
-  builderButton = { x: width/2 - 100, y: height/2 + 300, w: 200, h: 60, label: "BUILDER" };
-  statsButton = { x: width/2 - 100, y: height/2 + 400, w: 200, h: 60, label: "STATS" };
+  builderButton = { 
+    x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2, 
+    y: height/2 + 100, 
+    img: builderButton0, 
+    hoverImg: builderButton1, 
+    w: builderButton0.width * optionsButtonScale, 
+    h: builderButton0.height * optionsButtonScale, 
+
+  };
+
+  statsButton = { 
+    x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2,
+    y: height/2 + 250, 
+    img: statsButton0, 
+    hoverImg: statsButton1, 
+    w: builderButton0.width * optionsButtonScale, 
+    h: builderButton0.height * optionsButtonScale, 
+
+   };
   backButton = { x: 30, y: 10, w: 200, h: 60, label: "BACK" };
 
   const buttonScale = 1.8; // adjust as needed
@@ -852,6 +912,16 @@ function setup() {
     h: hardButton0.height*buttonScale*2,
     img: hardButton0,
     hoverImg: hardButton1
+  };
+
+  // Add start button for modes menu (reuse main start image)
+   startGameButton = {
+    x: width / 2 - startBtnImg1.width * startButtonScale / 2,
+    y: height / 2 + (height * 0.4), // below difficulty buttons
+    w: startBtnImg1.width * startButtonScale,
+    h: startBtnImg1.height * startButtonScale,
+    img: startBtnImg1,
+    hoverImg: startBtnImg2
   };
   
 
