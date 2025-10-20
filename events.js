@@ -146,6 +146,8 @@ function setupGameEvents() {
     // debounce (simple fix for double calls for now, not sure what's happening)
     if (gameOverTriggered) return;
     gameOverTriggered = true;
+    interactors.length = 0;
+    combinedObjectList.length = 0;
     if (showFinisher) {
       blackout = false;
       const finisher = new FinisherSequence();
