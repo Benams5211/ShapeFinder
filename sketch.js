@@ -28,6 +28,10 @@ let pauseButton, backToMenuButton;
 let optionsBtnImg1, optionsBtnImg2;
 const optionsButtonScale = 5.5;
 
+//colorblind buttons
+let defaultColorBtn, protanopiaBtn, deuteranopiaBtn, tritanopiaBtn;
+
+
 // stuff for paused
 let pauseStartMillis = 0;
 let totalPausedTime = 0;
@@ -367,6 +371,10 @@ function drawModes() {
 
 
   text("Select Color Scheme", width/4+width/2, height/2 - 150);
+  drawButton(defaultColorBtn);
+  drawButton(protanopiaBtn);
+  drawButton(deuteranopiaBtn);
+  drawButton(tritanopiaBtn);
 
 
   // place backToMenuButton in top-left for modes
@@ -416,6 +424,20 @@ function drawOverMenu() {
   image(UILayer, 0, 0);
 
   drawBackButton();
+}
+
+/////////////////////////////
+// color scheme 
+/////////////////////////////
+function setColorScheme(scheme) {
+  currentPaletteMode = scheme;
+  console.log("Color scheme set to:", scheme);
+
+  if (gameState === "modes") {
+    clearInteractors();
+    spawnMenuShapes(); // your new function
+  }
+
 }
 
 
@@ -643,6 +665,22 @@ function mousePressed() {
       startGame();
     }
 
+    //colorscheme buttons
+  if (mouseInside(defaultColorBtn)) {
+    playMenuSFX();
+    setColorScheme("default");
+  } else if (mouseInside(protanopiaBtn)) {
+    playMenuSFX();
+    setColorScheme("protanopia");
+  } else if (mouseInside(deuteranopiaBtn)) {
+    playMenuSFX();
+    setColorScheme("deuteranopia");
+  } else if (mouseInside(tritanopiaBtn)) {
+    playMenuSFX();
+    setColorScheme("tritanopia");
+  }
+
+
     // Back button to main menu (if you want, optional)
     if (mouseInside({ x: 20, y: 20, w: 120, h: 40 })) {
       playMenuSFX();
@@ -753,6 +791,44 @@ function setup() {
     h: hardButton0.height*buttonScale*2,
     img: hardButton0,
     hoverImg: hardButton1
+  };
+
+
+
+
+  // button set up for color scheme  
+  const btnWidth = 150;
+  const btnHeight = 50;
+  const baseX = width / 4 + width / 2;
+  const baseY = height / 2 - 100;
+
+  defaultColorBtn = {
+    x: baseX,
+    y: baseY + 50,
+    w: btnWidth,
+    h: btnHeight,
+    label: "Default"
+  };
+  protanopiaBtn = {
+    x: baseX,
+    y: baseY + 50 + 60,
+    w: btnWidth,
+    h: btnHeight,
+    label: "Protanopia"
+  };
+  deuteranopiaBtn = {
+    x: baseX,
+    y: baseY + 50 + 120,
+    w: btnWidth,
+    h: btnHeight,
+    label: "Deuteranopia"
+  };
+  tritanopiaBtn = {
+    x: baseX,
+    y: baseY + 50 + 180,
+    w: btnWidth,
+    h: btnHeight,
+    label: "Tritanopia"
   };
   
 

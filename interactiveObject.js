@@ -870,15 +870,44 @@ function randomWinColor(){
   }
 }
 
-const palette = {
-  r: [255, 107, 107],   // red
-  y: [255, 241, 118],   // yellow
-  g: [129, 236, 128],   // green
-  b: [116, 185, 255],   // blue
+const colorPalettes = {
+  default: {
+    r: [255, 107, 107],   // red
+    y: [255, 241, 118],   // yellow
+    g: [129, 236, 128],   // green
+    b: [116, 185, 255],   // blue
+  },
+  protanopia: {
+    r: [0, 128, 255],     // blue
+    y: [255, 255, 102],   // yellow
+    g: [0, 255, 255],     // cyan
+    b: [128, 0, 128],     // purple
+  },
+  deuteranopia: {
+    r: [255, 165, 0],     // orange
+    y: [255, 255, 102],   // yellow
+    g: [0, 128, 255],     // blue
+    b: [128, 0, 128],     // purple
+  },
+  tritanopia: {
+    r: [255, 105, 180],   // pink
+    y: [144, 238, 144],   // green
+    g: [255, 165, 0],     // orange
+    b: [128, 0, 128],     // purple
+  }
 };
+// makes default
+let currentPaletteMode = 'default';
+
+function getCurrentPalette() {
+  return colorPalettes[currentPaletteMode];
+}
+
+
 
 function randomColor() {
   // return any color from palette
+  const palette = getCurrentPalette();
   const keys = Object.keys(palette);
   const choice = random(keys); // p5.js random(array) picks one
   return palette[choice];
@@ -895,6 +924,7 @@ function randomNoWinColor() {
 }
 
 function noRed(){
+  const palette = getCurrentPalette();
   let colorSelect = floor(random(3));
   switch (colorSelect) {
     case 0:
@@ -909,6 +939,7 @@ function noRed(){
 }
 
 function noYellow(){
+  const palette = getCurrentPalette();
   let colorSelect = floor(random(3));
   switch (colorSelect) {
     case 0:
@@ -921,6 +952,7 @@ function noYellow(){
 }
 
 function noBlue(){
+  const palette = getCurrentPalette();
   let colorSelect = floor(random(3));
   switch (colorSelect) {
     case 0:
@@ -933,6 +965,7 @@ function noBlue(){
 }
 
 function noGreen(){
+  const palette = getCurrentPalette();
   let colorSelect = floor(random(3));
   switch (colorSelect) {
     case 0:
@@ -945,6 +978,7 @@ function noGreen(){
 }
 
 function setWinColor() {
+  const palette = getCurrentPalette(); 
   return palette[winColorChar];
 }
 
