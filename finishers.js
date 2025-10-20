@@ -43,12 +43,12 @@ class FinisherSequence {
         //This event is NOT firing, so i (ben hehe) temporarily replaced it with the above code
 
         // After animation finishes, show the end screen
-        // events.start("SHOW_END_SCREEN", this.duration + 500, {
-        //     onEnd: () => {
-        //         console.log("2");
-        //         combinedObjectList.length = 0;
-        //         gameEvents.Fire("showGameOverScreen");
-        //     }
-        // });
+        events.start("SHOW_END_SCREEN", this.duration + 500, {
+            onEnd: () => {
+                console.log("2");
+                combinedObjectList.length = 0;
+                gameEvents.Fire("showGameOverScreen");
+            }
+        });
     } 
 }
