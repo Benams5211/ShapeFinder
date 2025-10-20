@@ -44,14 +44,23 @@ let combo = 0;
 //for slow motion (obviously)
 let slowMo = false;
 
+
+let Stats;
+let gameOverTriggered = false;
+let shownGameOverScreen = false;
+//Builder
+let consoleInput;
+let consoleMessages = [];
+let fileInput;
+
 //////////////////////////////////////////////////
 //Classes and stuff for menu
 //////////////////////////////////////////////////
 
-// tracks which part of the program we are in, right now its just  "menu", "game", or "modes"
+// tracks which part of the program we are in, right now its just  "menu", "game", or "modes", "stats", "builder"
 let gameState = "menu"; 
 // the two button definitions, x, y, width, height, and label
-let startButton, modesButton, againButton;
+let startButton, modesButton, againButton, builderButton, statsButton, backButton;
 
 // image variables
 let menuBgImg;   // optional menu background
@@ -268,6 +277,8 @@ function drawMenu() {
   // Draw buttons
   drawButton(startButton);
   drawButton(modesButton);
+  drawButton(builderButton);
+  drawButton(statsButton);
 }
 
 function spawnMenuShape() {
@@ -377,11 +388,68 @@ function drawModes() {
 }
 
 
+function drawStats() {
+    background(60); 
+    fill(255);
+    textAlign(CENTER, TOP);
+    textSize(48);
+    text("Player Stats", width / 2, 20);
+
+    // --- Session Stats ---
+    textSize(32);
+    textAlign(LEFT, TOP);
+    fill(200);
+    text("Last Game", 50, 100);
+
+    if (!Stats) Stats = new StatTracker();
+
+    textSize(24);
+    fill(255);
+    let y = 140; // starting y
+    const lineHeight = 30;
+    const correct = Stats.lifetime.get("correctClicks");
+    const incorrect = Stats.lifetime.get("incorrectClicks")
+
+    text("Final Round: " + Stats.session.get("round"), 50, y); y += lineHeight;
+    text("Correct Clicks: " + Stats.session.get("correctClicks"), 50, y); y += lineHeight;
+    text("Incorrect Clicks: " + Stats.session.get("incorrectClicks"), 50, y); y += lineHeight;
+    text("Highest Combo: " + Stats.session.get("highestCombo"), 50, y); y += lineHeight;
+    text("Time Alive: " + nf(Stats.session.get("timeAlive"), 1, 2) + "s", 50, y); y += lineHeight;
+    text("Average Find Time: " + nf(Stats.session.get("averageFindTime") / 1000, 1, 2) + "s", 50, y); y += lineHeight;
+    text("Difficulty: " + Stats.session.get("difficulty"), 50, y); y += lineHeight;
+
+    // --- Lifetime Stats ---
+    textSize(32);
+    fill(200);
+    textAlign(LEFT, TOP);
+    text("Lifetime Stats", width / 2 + 50, 100);
+
+    textSize(24);
+    fill(255);
+    y = 140;
+    text("Total Games Played: " + Stats.lifetime.get("totalGames"), width / 2 + 50, y); y += lineHeight;
+    text("Total Correct Clicks: " + correct + " (" + (correct/(correct+incorrect) * 100).toFixed(2) + "%)", width / 2 + 50, y); y += lineHeight;
+    text("Total Incorrect Clicks: " + Stats.lifetime.get("incorrectClicks"), width / 2 + 50, y); y += lineHeight;
+    text("Total Alive Time: " + nf(Stats.lifetime.get("totalPlayTime"), 1, 2) + "s", width / 2 + 50, y); y += lineHeight;
+    text("Best Round: " + Stats.lifetime.get("bestRound"), width / 2 + 50, y); y += lineHeight;
+    text("Highest Combo: " + Stats.lifetime.get("highestCombo"), width / 2 + 50, y); y += lineHeight;
+    text("Average Find Time: " + nf(Stats.lifetime.get("averageFindTime"), 1, 2) + "s", width / 2 + 50, y); y += lineHeight;
+
+    // --- Back Button ---
+    drawButton(backButton);
+}
+
 function keyPressed() {
   if (key === 'a') triggerBoatLines(15000);
   if (key === 'b') triggerBlackHoleEvent(3000);
   if (key === 'w') triggerWarning(5000);
   if (key === 'z') triggerZombieEvent(5000);
+
+  if (keyCode === ENTER && consoleInput.elt === document.activeElement) {
+    const cmd = consoleInput.value().trim();
+    consoleInput.value('');
+    handleConsoleCommand(cmd);
+  }
 
   if (keyCode === SHIFT) {
     if(slowMoEnabled){
@@ -597,6 +665,10 @@ function mousePressed() {
       startGame();
     } else if (mouseInside(modesButton)) {
       gameState = "modes";
+    } else if (mouseInside(builderButton)) {
+      gameState = "builder";
+    } else if (mouseInside(statsButton)) {
+      gameState = "stats";
     }
 
   } else if (gameState === "game") {
@@ -622,6 +694,7 @@ function mousePressed() {
       stopHardBGM();
       playMenuBGM();
       gameState = "menu";
+      //gameEvents.Fire("gameOver", false);
     }
 
   } else if (gameState === "modes") {
@@ -657,14 +730,32 @@ function mousePressed() {
     } else if (mouseInside(backToMenuButton)) {
       playMenuSFX();
       gameState = "menu";
+      gameEvents.Fire("gameOver", false);
       playMenuBGM();
+    }
+  } else if (gameState === "builder") {
+    if (mouseInside(backButton)) {
+      consoleInput.hide();
+      gameState = "menu";
+      return;
+    }
+    handleBuilderClick();
+  } else if (gameState === "stats") {
+    if (mouseInside(backButton)) {
+      gameState = "menu";
     }
   }
 }
 
+function mouseReleased() {
+  if (gameState === "builder") {
+    gameEvents.Fire("dragEnd")
+  }
+}
 
 // helper, checks if mouse is inside a rectangle button
 function mouseInside(btn) {
+  if (!btn) return false;
   if(mouseX > btn.x && mouseX < btn.x + btn.w && mouseY > btn.y && mouseY < btn.y + btn.h){
     playMenuSFX();
     return true;
@@ -673,11 +764,15 @@ function mouseInside(btn) {
 }
 
 function setup() {
+  setupBuilder();
   createCanvas(windowWidth, windowHeight);
 
   userStartAudio().then(() => {
     playMenuBGM();
   });
+
+  fileInput = createFileInput(handleInputFile);
+  fileInput.hide();
 
   console.log("Version 7.0");//change this each master commit to see when changes happen
   
@@ -698,6 +793,10 @@ function setup() {
     w: optionsBtnImg1.width * optionsButtonScale,
     h: optionsBtnImg1.height * optionsButtonScale
   };
+
+  builderButton = { x: width/2 - 100, y: height/2 + 300, w: 200, h: 60, label: "BUILDER" };
+  statsButton = { x: width/2 - 100, y: height/2 + 400, w: 200, h: 60, label: "STATS" };
+  backButton = { x: 30, y: 10, w: 200, h: 60, label: "BACK" };
 
   const buttonScale = 1.8; // adjust as needed
 
@@ -772,6 +871,9 @@ function setup() {
 //makes the shapes
 function playMode() {
   background(50);
+  for (const obj of combinedObjectList) {
+    obj.update()
+  }
   for (const it of interactors) {
     it.update();  // runs movement + modifiers
     it.render();  // draws the object
@@ -802,15 +904,20 @@ function nextRound(){
 }
 
 function startGame() {
+  setupGameEvents();
   Timer = StartTime;        // reset round length
   startMillis = millis();   // bookmark the start time ONCE
   totalPausedTime = 0;
   TimeOver = false;
+  gameOverTriggered = false;
+  shownGameOverScreen = false;
   blackout = true;
   gameOver = false;
   gameState = "game";
   round = 1;
   combo = 0;
+
+  Stats = new StatTracker();
 
   stopBossBGM();
   playHardBGM();
@@ -823,6 +930,8 @@ function startGame() {
   }, 1000);
   spawnInteractors();
   playMode();
+
+  gameEvents.Fire("setDifficulty", difficulty);
 }
 
 //draw loop
@@ -843,6 +952,10 @@ function draw() {
   } else if (gameState === "pause") {
     drawGame();        // shows the frozen game
     drawPauseMenu();   // overlay pause menu
+  } else if (gameState === "builder") {
+    drawBuilder();
+  } else if (gameState === "stats") {
+    drawStats();
   }
 
   if(gameState != "modes" && checkboxLight){
@@ -876,17 +989,21 @@ function drawGame() {
     // Hopefully this won't block the main thread since we won't have that much round objects.
     // We will have to refactor this to have async/Promise if we notice a block in the future.
     topRoundsBeforeUpdate = localstorageRoundManager.getTopRounds();
-    localstorageRoundManager.storeRound();
 
     times = 0;
-    TimeOver = true;
-    gameOver = true;
-    gameState = "over";
 
-    if (!finalRoundPopupShown) {
-      finalRoundPopupShown = true;
-      finalRoundPopup.render(); // <- show the overlay window
+    if (!TimeOver) {
+      TimeOver = true;
+      localstorageRoundManager.storeRound();
+      // Sequence:
+      // Fire gameOver. Handled in events.js, "gameOver" event plays a finisher
+      // FinisherSequence class fires "showGameOverScreen" event (also in events.js)
+      // sets gameState to "over", gameOver to true, re-enables the flashlight, renders the finalRoundPopup
+      gameEvents.Fire("gameOver", true); // 'true' or 'false' determines whether to show a finisher sequence
     }
+
+    // gameOver = true; <- Moved this to 
+    // gameState = "over";
   }
 
   // play mode only while not gameOver
