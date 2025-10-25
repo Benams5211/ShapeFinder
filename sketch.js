@@ -1100,8 +1100,20 @@ function drawGame() {
   UILayer.background(255,255,255);
   UILayer.textSize(24);
   UILayer.textAlign(RIGHT, CENTER);
-  UILayer.fill('black');
   UILayer.textFont(pixelFont);
+
+  let blinkAlpha = 255;
+
+    // Check if time is in the last 10 seconds
+  if (times < 10 && times > 0) {
+    // Blink every half a second
+    let blinkSpeed = 500; // milliseconds
+    blinkAlpha = (millis() % (blinkSpeed * 2) < blinkSpeed) ? 255 : 50; 
+  }
+
+  // Apply blinking color
+  UILayer.fill(0, 0, 0, blinkAlpha);
+
   UILayer.text("Round: " + round + " Combo: "+ combo + " Time: " + times, UILayer.width - 20, UILayer.height /2);
   image(UILayer, 0,0);
   wantedObj.render();
