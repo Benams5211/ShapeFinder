@@ -1,14 +1,14 @@
 class FinisherSequence {
     constructor() {
-        this.duration = 15000; // total ms for finisher animation
+        this.duration = 1500; // total ms for finisher animation
     }
 
     async playRandom() {
-        const types = ["SPLASH", "TEST"];
+        //const types = ["SPLASH", "TEST"];
         //const chosen = random(types);
-        const chosen = "SPLASH";
-        switch (chosen) {   
-            case "SPLASH":
+        //const chosen = "SPLASH";
+       // switch (chosen) {   
+           // case "SPLASH":
                 let tot_delay = 0;
                 for (const it of interactors) {
                     setTimeout(() => {
@@ -17,22 +17,22 @@ class FinisherSequence {
                     }, tot_delay)
                     tot_delay += 10;
                 }
-                break;
-            case "TEST":
+               // break;
+            //case "TEST":
                 // For some reason this doesn't work unless setTimeout() is used (IDK, this is only a test)
-                for (const it of interactors) {
-                    setTimeout(() => {
-                        it.deleteSelf();
-                    }, 0)
-                }
-                const alien1 = new Alien();
-                const alien2 = new Alien();
-                await alien1.spawn();    
-                await alien2.spawn();      
-                const cloud = new Cloud();
-                await cloud.spawn();
-                const angel = new Angel();
-                await angel.spawn();
+               // for (const it of interactors) {
+                //    setTimeout(() => {
+                 //       it.deleteSelf();
+                 //   }, 0)
+               // }
+              //  const alien1 = new Alien();
+              //  const alien2 = new Alien();
+               // await alien1.spawn();    
+              //  await alien2.spawn();      
+              //  const cloud = new Cloud();
+              //  await cloud.spawn();
+              //  const angel = new Angel();
+             //   await angel.spawn();
         }
         //setTimeout(() => {
         //        combinedObjectList.length = 0;
@@ -43,7 +43,7 @@ class FinisherSequence {
         //This event is NOT firing, so i (ben hehe) temporarily replaced it with the above code
 
         // After animation finishes, show the end screen
-        events.start("SHOW_END_SCREEN", this.duration + 500, {
+        events.start("SHOW_END_SCREEN", this.duration, {
             onEnd: () => {
                 combinedObjectList.length = 0;
                 gameEvents.Fire("showGameOverScreen");
