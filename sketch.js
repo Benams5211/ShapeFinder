@@ -28,6 +28,7 @@ let pauseButton, backToMenuButton;
 let optionsBtnImg1, optionsBtnImg2;
 let builderButton0, builderButton1;
 let statsButton0, statsButton1;
+let playerStatsLogo;
 const optionsButtonScale = 5.5;
 
 // stuff for paused
@@ -91,6 +92,7 @@ function preload() {
   // optionally load images here
   // menuBgImg = loadImage("menuBackground.png");
   logoImg = loadImage(logoImagePath);
+  playerStatsLogo = loadImage("assets/images/playerStatsLogo.png");
   startBtnImg1 = loadImage("assets/images/startButton1.png");
   startBtnImg2 = loadImage("assets/images/startButton2.png");
   optionsBtnImg1 = loadImage("assets/images/optionsButton1.png");
@@ -283,8 +285,8 @@ function drawMenu() {
   // Draw buttons
   drawButton(startButton);
   drawButton(modesButton);
-  drawButton(builderButton);
-  drawButton(statsButton);
+  drawButton(statsButton);  
+  drawButton(builderButton)
 }
 
 function spawnMenuShape() {
@@ -413,57 +415,115 @@ function drawModes() {
   drawButton(backToMenuButton);
 }
 
-
 function drawStats() {
-    background(60); 
-    fill(255);
-    textAlign(CENTER, TOP);
-    textSize(48);
-    text("Player Stats", width / 2, 20);
+  // Background
+  playModeMenu();  
+  fill(0, 220);
+  noStroke();
+  rect(0, 0, width, height);
 
-    // --- Session Stats ---
-    textSize(32);
-    textAlign(LEFT, TOP);
-    fill(200);
-    text("Last Game", 50, 100);
+  if (playerStatsLogo) {
+    imageMode(CENTER);
+    const logoWidth = 600; // adjust width as needed
+    const logoHeight = (playerStatsLogo.height / playerStatsLogo.width) * logoWidth;
+    const logoOffsetX = -35; // move logo 30 pixels left
+    image(playerStatsLogo, width / 2 + logoOffsetX, 20 + logoHeight / 2 +50, logoWidth, logoHeight);
+  } else {
+      // fallback text if image fails
+      textFont(pixelFont);
+      textSize(48);
+      fill(255);
+      textAlign(CENTER, TOP);
+      text("Player Stats", width / 2, 20);
+  }
 
-    if (!Stats) Stats = new StatTracker();
+  if (!Stats) Stats = new StatTracker();
 
-    textSize(24);
-    fill(255);
-    let y = 140; // starting y
-    const lineHeight = 30;
-    const correct = Stats.lifetime.get("correctClicks");
-    const incorrect = Stats.lifetime.get("incorrectClicks")
+  // --- Layout ---
+  const blockWidth = 800;          
+  const blockHeight = 400;         
+  const startX = (width - blockWidth) / 2 + 40;  // shift slightly right
+  const startY = (height - blockHeight) / 2 + 30; 
+  const sectionWidth = blockWidth / 2;
 
-    text("Final Round: " + Stats.session.get("round"), 50, y); y += lineHeight;
-    text("Correct Clicks: " + Stats.session.get("correctClicks"), 50, y); y += lineHeight;
-    text("Incorrect Clicks: " + Stats.session.get("incorrectClicks"), 50, y); y += lineHeight;
-    text("Highest Combo: " + Stats.session.get("highestCombo"), 50, y); y += lineHeight;
-    text("Time Alive: " + nf(Stats.session.get("timeAlive"), 1, 2) + "s", 50, y); y += lineHeight;
-    text("Average Find Time: " + nf(Stats.session.get("averageFindTime") / 1000, 1, 2) + "s", 50, y); y += lineHeight;
-    text("Difficulty: " + Stats.session.get("difficulty"), 50, y); y += lineHeight;
+  const leftX = startX;           
+  const rightX = startX + sectionWidth;  
 
-    // --- Lifetime Stats ---
-    textSize(32);
-    fill(200);
-    textAlign(LEFT, TOP);
-    text("Lifetime Stats", width / 2 + 50, 100);
+  const lineHeight = 40;
 
-    textSize(24);
-    fill(255);
-    y = 140;
-    text("Total Games Played: " + Stats.lifetime.get("totalGames"), width / 2 + 50, y); y += lineHeight;
-    text("Total Correct Clicks: " + correct + " (" + (correct/(correct+incorrect) * 100).toFixed(2) + "%)", width / 2 + 50, y); y += lineHeight;
-    text("Total Incorrect Clicks: " + Stats.lifetime.get("incorrectClicks"), width / 2 + 50, y); y += lineHeight;
-    text("Total Alive Time: " + nf(Stats.lifetime.get("totalPlayTime"), 1, 2) + "s", width / 2 + 50, y); y += lineHeight;
-    text("Best Round: " + Stats.lifetime.get("bestRound"), width / 2 + 50, y); y += lineHeight;
-    text("Highest Combo: " + Stats.lifetime.get("highestCombo"), width / 2 + 50, y); y += lineHeight;
-    text("Average Find Time: " + nf(Stats.lifetime.get("averageFindTime"), 1, 2) + "s", width / 2 + 50, y); y += lineHeight;
+  // --- LEFT COLUMN: Last Game ---
+  textAlign(LEFT, TOP);
+  textSize(36); // bigger section title
+  fill(200);
+  text("Last Game", leftX, startY);
 
-    // --- Back Button ---
-    drawButton(backButton);
+  textSize(24);
+  fill(255);
+
+  // compute widest label
+  const leftLabels = [
+      "Final Round",
+      "Correct Clicks",
+      "Incorrect Clicks",
+      "Highest Combo",
+      "Time Alive",
+      "Average Find Time",
+      "Difficulty"
+  ];
+  let leftLabelWidth = 0;
+  for (let lbl of leftLabels) {
+      leftLabelWidth = max(leftLabelWidth, textWidth(lbl + ": "));
+  }
+
+  // draw left stats
+  let y = startY + 50;
+  text(`Final Round:`, leftX, y); text(`${Stats.session.get("round")}`, leftX + leftLabelWidth, y); y += lineHeight;
+  text(`Correct Clicks:`, leftX, y); text(`${Stats.session.get("correctClicks")}`, leftX + leftLabelWidth, y); y += lineHeight;
+  text(`Incorrect Clicks:`, leftX, y); text(`${Stats.session.get("incorrectClicks")}`, leftX + leftLabelWidth, y); y += lineHeight;
+  text(`Highest Combo:`, leftX, y); text(`${Stats.session.get("highestCombo")}`, leftX + leftLabelWidth, y); y += lineHeight;
+  text(`Time Alive:`, leftX, y); text(`${nf(Stats.session.get("timeAlive"),1,2)}s`, leftX + leftLabelWidth, y); y += lineHeight;
+  text(`Average Find Time:`, leftX, y); text(`${nf(Stats.session.get("averageFindTime")/1000,1,2)}s`, leftX + leftLabelWidth, y); y += lineHeight;
+  text(`Difficulty:`, leftX, y); text(`${Stats.session.get("difficulty")}`, leftX + leftLabelWidth, y);
+
+  // --- RIGHT COLUMN: Lifetime Stats ---
+  textAlign(LEFT, TOP);
+  textSize(36);
+  fill(200);
+  text("Lifetime Stats", rightX, startY);
+
+  textSize(24);
+  fill(255);
+
+  const rightLabels = [
+      "Total Games Played",
+      "Total Correct Clicks",
+      "Total Incorrect Clicks",
+      "Total Alive Time",
+      "Best Round",
+      "Highest Combo",
+      "Average Find Time"
+  ];
+  let rightLabelWidth = 0;
+  for (let lbl of rightLabels) {
+      rightLabelWidth = max(rightLabelWidth, textWidth(lbl + ": "));
+  }
+
+  y = startY + 50;
+  const correct = Stats.lifetime.get("correctClicks");
+  const incorrect = Stats.lifetime.get("incorrectClicks");
+
+  text("Total Games Played:", rightX, y); text(`${Stats.lifetime.get("totalGames")}`, rightX + rightLabelWidth, y); y += lineHeight;
+  text("Total Correct Clicks:", rightX, y); text(`${correct} (${(correct/(correct+incorrect)*100).toFixed(2)}%)`, rightX + rightLabelWidth, y); y += lineHeight;
+  text("Total Incorrect Clicks:", rightX, y); text(`${Stats.lifetime.get("incorrectClicks")}`, rightX + rightLabelWidth, y); y += lineHeight;
+  text("Total Alive Time:", rightX, y); text(`${nf(Stats.lifetime.get("totalPlayTime"),1,2)}s`, rightX + rightLabelWidth, y); y += lineHeight;
+  text("Best Round:", rightX, y); text(`${Stats.lifetime.get("bestRound")}`, rightX + rightLabelWidth, y); y += lineHeight;
+  text("Highest Combo:", rightX, y); text(`${Stats.lifetime.get("highestCombo")}`, rightX + rightLabelWidth, y); y += lineHeight;
+  text("Average Find Time:", rightX, y); text(`${nf(Stats.lifetime.get("averageFindTime"),1,2)}s`, rightX + rightLabelWidth, y);
+
+  // Back button
+  drawButton(backToMenuButton);
 }
+
 
 function keyPressed() {
   if (key === 'a') triggerBoatLines(15000);
@@ -784,7 +844,8 @@ function mousePressed() {
     }
     handleBuilderClick();
   } else if (gameState === "stats") {
-    if (mouseInside(backButton)) {
+    if (mouseInside(backToMenuButton)) {
+      playMenuSFX();
       gameState = "menu";
     }
   }
@@ -830,32 +891,31 @@ function setup() {
 
   modesButton = {
     x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2,
-    y: height / 2 - 30,
+    y: height / 2 - 25,
     img: optionsBtnImg1,
     hoverImg: optionsBtnImg2,
     w: optionsBtnImg1.width * optionsButtonScale,
     h: optionsBtnImg1.height * optionsButtonScale
   };
 
-  builderButton = { 
-    x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2, 
-    y: height/2 + 100, 
-    img: builderButton0, 
-    hoverImg: builderButton1, 
-    w: builderButton0.width * optionsButtonScale, 
-    h: builderButton0.height * optionsButtonScale, 
-
-  };
-
   statsButton = { 
-    x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2,
-    y: height/2 + 250, 
+    x: width / 2 - statsButton0.width * optionsButtonScale / 2,
+    y: height / 2 + 110,  
     img: statsButton0, 
     hoverImg: statsButton1, 
-    w: builderButton0.width * optionsButtonScale, 
-    h: builderButton0.height * optionsButtonScale, 
+    w: statsButton0.width * optionsButtonScale, 
+    h: statsButton0.height * optionsButtonScale
+};
 
-   };
+
+builderButton = { 
+  x: 20, 
+  y: height - builderButton0.height * 1.5 - 20, // margin from bottom
+  img: builderButton0, 
+  hoverImg: builderButton1, 
+  w: builderButton0.width * 1.5, 
+  h: builderButton0.height * 1.5
+};
   backButton = { x: 30, y: 10, w: 200, h: 60, label: "BACK" };
 
   const buttonScale = 1.8; // adjust as needed
