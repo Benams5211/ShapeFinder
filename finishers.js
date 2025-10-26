@@ -6,7 +6,7 @@ class FinisherSequence {
     async playRandom() {
         const types = ["SPLASH", "TEST"];
         //const chosen = random(types);
-        const chosen = "TEST";
+        const chosen = "SPLASH";
         switch (chosen) {   
             case "SPLASH":
                 let tot_delay = 0;
