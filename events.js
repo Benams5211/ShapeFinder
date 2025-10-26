@@ -1,3 +1,45 @@
+
+// The idea is to have an event-driven system for the player-stats (or anything else)
+// for which we can define 'events' to listen to, separate from the
+// EventManager
+
+class EventListener {
+    constructor() {
+        this.listeners = {}; // { eventName : [callbacks]}
+    }
+    // Use this to setup an event listener
+    // eventName -> name to use in the Fire() event
+    // callback -> function to call when event is Fired using Fire()
+    OnEvent(eventName, callback) {
+        if (!this.listeners[eventName]) this.listeners[eventName] = [];
+        this.listeners[eventName].push(callback); // eventName : [callbacks]
+        return () => this.Disconnect(eventName, callback); // return the function used to cancel the event
+    }
+
+    // Returned in OnEvent(), used to cancel or "unlisten" to the event
+    Disconnect(eventName, callback) {
+        const list = this.listeners[eventName];
+        if (!list) return;
+        const index = list.indexOf(callback);
+        if (index !== -1) list.splice(index, 1);
+    }
+
+    // Cycle through the list of callbacks attached to a single event name,
+    // and call them all with the given args
+    Fire(eventName, ...args) {
+        const list = this.listeners[eventName];
+        if (!list) return;
+        for (const callback of list) callback(...args);
+    }
+
+    // Clear all events (cleanup)
+    Clear(eventName)  {
+        if (eventName) delete this.listeners[eventName];
+        else this.listeners = {};
+    }
+}
+
+
 class EventManager {
   constructor() {
     this.active = {};
@@ -80,7 +122,39 @@ class EventManager {
 
 // global dictionary of events
 const events = new EventManager();
+const gameEvents = new EventListener();
 
+// -----------------------------------------------------------------------------
+// Important game events
+// -----------------------------------------------------------------------------
+
+function setupGameEvents() {
+  // Fires in FinisherSequence after the time is played through
+  gameEvents.OnEvent("showGameOverScreen", () => {
+    // debounce (simple fix for double calls for now, not sure what's happening)
+    if (shownGameOverScreen) return;
+    shownGameOverScreen = true;
+    gameState = "over";
+    gameOver = true;
+
+    finalRoundPopupShown = true;
+    finalRoundPopup.render();
+    gameEvents.Clear();
+  })
+  gameEvents.OnEvent("gameOver", (showFinisher) => {
+    //delay ending screen show
+    // debounce (simple fix for double calls for now, not sure what's happening)
+    if (gameOverTriggered) return;
+    gameOverTriggered = true;
+    interactors.length = 0;
+    combinedObjectList.length = 0;
+    if (showFinisher) {
+      blackout = false;
+      const finisher = new FinisherSequence();
+      finisher.playRandom();
+    }
+  })
+}
 
 // -----------------------------------------------------------------------------
 // event constants
@@ -293,10 +367,10 @@ function triggerZombieEvent(ms=10000, zombieCount = 50) {
 function spawnSplashEvent(atX = 0, atY = 0, ms = 500, itemCount = 100, col = color(0,0,0)) {
   let splashObjs = [];
 
-  events.start('SPLASH', ms, {
+  events.start(Math.random()*1000, ms, {
     onStart: () => {
       for (let i = 0; i < itemCount; i++) {
-        const movement = { enabled: true, lerpStrength: 0.1, velocityLimit: 30, switchRate: 1000 };
+        const movement = { enabled: true, lerpStrength: 0.1, velocityLimit: 50, switchRate: 1000 };
         const opts = {
           movement,
           modifiers: [new JitterModifier({ rate: 0.4 })],

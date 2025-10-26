@@ -285,7 +285,7 @@ function drawFlashlightOverlay () {
     rect(0, 0, width, height);
     pop();
   }
-  else{
+  else if (!TimeOver && !blackout) {
     image(darkness, dx, dy);
   }
 }

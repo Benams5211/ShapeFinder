@@ -16,6 +16,7 @@ class InteractiveObject {
    *      switchRate: num of frames
    *    }
    *  - modifiers: [Modifier,...]
+   *  - events: [EventName (string),...]
    **/
   constructor(x, y, opts = {}) {
     this.x = x; 
@@ -36,6 +37,8 @@ class InteractiveObject {
       color: s.randomColor ? randomColor(winColorChar) : (s.color ?? [0, 0, 0]),
       randomColor: !!s.randomColor,
     };
+
+    this.events = Array.isArray(opts.events) ? opts.events : [];
 
     // Track current state of object, like 'frozen.' More can be easily implemented in the future
     this.state = {};
@@ -91,7 +94,7 @@ class InteractiveObject {
   
   updatePos() {
     const isBoss =  (this instanceof BossCircle);
-    if (intensity == 1 && gameState == 'game' && !isBoss) {
+    if (intensity == 1 && gameState == 'game' && !isBoss && flashlightFreeze) {
     const dx = this.x - mouseX;
     const dy = this.y - mouseY;
     // require the whole shape to be "under" the cursor-ish area
@@ -112,6 +115,10 @@ class InteractiveObject {
     // Ignore movement on this frame if Shape's state is 'frozen'
     if (this.state.frozen) return;
     
+
+      if(slowMo){m.velocityLimit=1.5;}
+      else {m.velocityLimit=4;}
+      
     // Pick a new target velocity every switchRate frames
     if (frameCount % m.switchRate === 0) {
       // Keep new target velocity within range of provided velocityLimit
@@ -150,6 +157,11 @@ class InteractiveObject {
   onClick() {
     if (this.deleteOnClick) this.deleteSelf();
 
+    // On click, fire the attached event connections
+    for (let e of this.events)
+      gameEvents.Fire(e, this);
+    if (gameState === "builder") return;
+
     try {
       const isWin = (this instanceof WinRect) || (this instanceof WinCircle) || (this instanceof WinTri);
       const isBoss =  (this instanceof BossCircle);
@@ -173,6 +185,7 @@ class InteractiveObject {
         }
         stars.push(new StarScoreIndicator(mouseX, mouseY));
       }
+      gameEvents.Fire("Clicked", isWin);
     } catch (e) {
       console.warn('Could not play "incorrect.mp3"!', e);
     }
@@ -228,6 +241,48 @@ class ClickRect extends InteractiveObject {
     }
     pop();
   }
+  // Used for saving & loading shape configurations in the builder
+  serialize() {
+    return {
+      type: 'rect',
+      x: this.x,
+      y: this.y,
+      w: this.w,
+      h: this.h,
+      radius: this.radius,
+      fillCol: this.fillCol,
+      angle: this.angle,
+      opts: {
+        randomColor: this.randomColor,
+        deleteOnClick: this.deleteOnClick,
+        stroke: { ...this.stroke },
+        movement: this.movement ? { ...this.movement } : { enabled: false },
+        modifiers: Array.isArray(this.modifierList)
+          ? this.modifierList.map(m => (m?.serialize ? m.serialize() : m))
+          : [],
+        events: Array.isArray(this.events) ? [...this.events] : ["dragStart", "select"],
+        angle: this.angle
+      }
+    };
+  }
+  clone() {
+    const copy = new ClickRect(this.x, this.y, this.w, this.h, [...this.fillCol], this.radius, {
+      randomColor: this.randomColor,
+      deleteOnClick: this.deleteOnClick,
+      events: Array.isArray(this.events) ? [...this.events] : [],
+      movement: { ...this.movement },
+      stroke: { ...this.stroke },
+      modifiers: this.modifierList.map(m => (m && typeof m.clone === 'function') ? m.clone() : { ...m }),
+      angle: this.angle
+    });
+    copy.vx = this.vx; copy.vy = this.vy;
+    copy.targetVx = this.targetVx; copy.targetVy = this.targetVy;
+    copy.visible = this.visible;
+    copy.enabled = this.enabled;
+    copy.state = { ...this.state };
+
+    return copy;
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -245,6 +300,7 @@ class ClickCircle extends InteractiveObject {
     } else {
       this.fillCol = fillCol ?? [90, 210, 130];
     }
+    this.angle = (opts && typeof opts.angle === 'number') ? opts.angle : 0;
   }
   contains(mx, my) {
     const dx = mx - this.x, dy = my - this.y;
@@ -255,6 +311,10 @@ class ClickCircle extends InteractiveObject {
   render() {
     if (!this.visible) return;
     push();
+
+    translate(this.x, this.y);
+    rotate(this.angle);
+
     if (this.stroke?.enabled) {
       stroke(...this.stroke.color);
       strokeWeight(this.stroke.weight);
@@ -262,14 +322,55 @@ class ClickCircle extends InteractiveObject {
       noStroke();
     }
     fill(...this.fillCol);
-    circle(this.x, this.y, this.r*2);
+    circle(0, 0, this.r*2);
     if(this.outline){
       stroke('black');
       strokeWeight(2);
-      circle(this.x, this.y, this.r*2);
+      circle(0, 0, this.r*2);
     }
 
     pop();
+  }
+  serialize() {
+    return {
+      type: 'circle',
+      x: this.x,
+      y: this.y,
+      r: this.r,
+      fillCol: this.fillCol,
+      angle: this.angle,
+      opts: {
+        randomColor: this.randomColor,
+        deleteOnClick: this.deleteOnClick,
+        stroke: { ...this.stroke },
+        movement: this.movement ? { ...this.movement } : { enabled: false },
+        modifiers: Array.isArray(this.modifierList)
+          ? this.modifierList.map(m => (m?.serialize ? m.serialize() : m))
+          : [],
+        events: Array.isArray(this.events) ? [...this.events] : ["dragStart", "select"],
+        angle: this.angle
+      }
+    };
+  }
+
+  clone() {
+    const copy = new ClickCircle(this.x, this.y, this.r, [...this.fillCol], {
+      randomColor: this.randomColor,
+      deleteOnClick: this.deleteOnClick,
+      events: Array.isArray(this.events) ? [...this.events] : [],
+      movement: { ...this.movement },
+      stroke: { ...this.stroke },
+      modifiers: this.modifierList.map(m => (m && typeof m.clone === 'function') ? m.clone() : { ...m }),
+      angle: this.angle,
+    });
+
+    copy.vx = this.vx; copy.vy = this.vy;
+    copy.targetVx = this.targetVx; copy.targetVy = this.targetVy;
+    copy.visible = this.visible;
+    copy.enabled = this.enabled;
+    copy.state = { ...this.state };
+
+    return copy;
   }
 }
 
@@ -291,7 +392,7 @@ class ClickTri extends InteractiveObject {
   getBoundsRadius() { return this.radius; }
 
   vertices() {
-    const R = this.radius;
+    const R = this.size / Math.sqrt(3);
     const a = this.angle; // radians
 
     const base = [Math.PI/2, Math.PI/2 + 2*Math.PI/3, Math.PI/2 + 4*Math.PI/3];
@@ -327,6 +428,51 @@ class ClickTri extends InteractiveObject {
       triangle(A[0], A[1], B[0], B[1], C[0], C[1]);
     }
     pop();
+  }
+
+  serialize() {
+    return {
+      type: 'triangle',
+      x: this.x,
+      y: this.y,
+      size: this.size,
+      fillCol: this.fillCol,
+      angle: this.angle,
+
+      opts: {
+        randomColor: this.randomColor,
+        deleteOnClick: this.deleteOnClick,
+        movement: this.movement ? {
+          enabled: this.movement.enabled,
+          lerpStrength: this.movement.lerpStrength,
+          velocityLimit: this.movement.velocityLimit,
+          switchRate: this.movement.switchRate
+        } : undefined,
+        modifiers: Array.isArray(this.modifierList)
+          ? this.modifierList.map(m => (m?.serialize ? m.serialize() : m))
+          : [],
+        events: Array.isArray(this.events) ? [...this.events] : ["dragStart", "select"],
+        angle: this.angle
+      }
+    };
+  }
+  clone() {
+    const copy = new ClickTri(this.x, this.y, this.size, [...this.fillCol], {
+      randomColor: this.randomColor,
+      deleteOnClick: this.deleteOnClick,
+      events: Array.isArray(this.events) ? [...this.events] : [],
+      movement: { ...this.movement },
+      stroke: { ...this.stroke },
+      modifiers: this.modifierList.map(m => (m && typeof m.clone === 'function') ? m.clone() : { ...m }),
+      angle: this.angle,
+    });
+    copy.vx = this.vx; copy.vy = this.vy;
+    copy.targetVx = this.targetVx; copy.targetVy = this.targetVy;
+    copy.visible = this.visible;
+    copy.enabled = this.enabled;
+    copy.state = { ...this.state };
+
+    return copy;
   }
 }
 
@@ -398,6 +544,8 @@ class WinRect extends ClickRect {
 
 
     combo++;
+    gameEvents.Fire("newCombo", combo);
+    gameEvents.Fire("roundChanged", round);
   }
 }
 
@@ -416,6 +564,8 @@ class WinCircle extends ClickCircle {
 
 
     combo++;
+    gameEvents.Fire("newCombo", combo);
+    gameEvents.Fire("roundChanged", round);
   }
 }
 
@@ -434,6 +584,8 @@ class WinTri extends ClickTri {
 
 
     combo++;
+    gameEvents.Fire("newCombo", combo);
+    gameEvents.Fire("roundChanged", round);
   }
 }
 
@@ -584,7 +736,7 @@ function spawnInteractors() {
       new JitterModifier({ rate: 0.1 }),
       new TeleportModifier({ chance: 0.005 }),
     ];
-    if (random() < 0.50) {
+    if (random() < 0.50 && !slowMoEnabled) {
       mods.push(new FigureSkateModifier({
         director: formationDirector,
         joinChance: 0.005,
@@ -747,7 +899,7 @@ function spawnBossInteractors() {
       new JitterModifier({ rate: 0.1 }),
       new TeleportModifier({ chance: 0.005 }),
     ];
-    if (random() < 0.50) {
+    if (random() < 0.50 && !slowMoEnabled) {
       mods.push(new FigureSkateModifier({
         director: formationDirector,
         joinChance: 0.005,

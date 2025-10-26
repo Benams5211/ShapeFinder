@@ -26,23 +26,43 @@ let startBtnImg1, startBtnImg2;
 const startButtonScale = 1.8;
 let pauseButton, backToMenuButton;
 let optionsBtnImg1, optionsBtnImg2;
+let builderButton0, builderButton1;
+let statsButton0, statsButton1;
 const optionsButtonScale = 5.5;
 
 // stuff for paused
 let pauseStartMillis = 0;
 let totalPausedTime = 0;
 
+//checkbox business
+let flashlightFreeze = true;
+let slowMoEnabled = false;
+let checkboxLight;
+let checkboxSlow;
+
 //combo counter
 let combo = 0;
+
+//for slow motion (obviously)
+let slowMo = false;
+
+
+let Stats;
+let gameOverTriggered = false;
+let shownGameOverScreen = false;
+//Builder
+let consoleInput;
+let consoleMessages = [];
+let fileInput;
 
 //////////////////////////////////////////////////
 //Classes and stuff for menu
 //////////////////////////////////////////////////
 
-// tracks which part of the program we are in, right now its just  "menu", "game", or "modes"
+// tracks which part of the program we are in, right now its just  "menu", "game", or "modes", "stats", "builder"
 let gameState = "menu"; 
 // the two button definitions, x, y, width, height, and label
-let startButton, modesButton, againButton;
+let startButton, modesButton, againButton, builderButton, statsButton, backButton;
 
 // image variables
 let menuBgImg;   // optional menu background
@@ -54,6 +74,8 @@ let localstorageRoundManager; // This manages round objects in localstorage
 let finalRoundPopup;  // The pop-up window that shows the round details.
 
 let finalRoundPopupShown = false; // Flag that maintain the round pop-up window visibility status.
+
+let topRoundsBeforeUpdate = []; // Keep the records without the latest one to compare againt those records.
 
 /////////////////////////////////////////////////////
 //localstorage keys
@@ -85,6 +107,10 @@ function preload() {
   mediumButton1 = loadImage("assets/images/mediumButton1.png");
   hardButton0 = loadImage("assets/images/hardButton0.png");
   hardButton1 = loadImage("assets/images/hardButton1.png");
+  builderButton0 = loadImage("assets/images/builderButton0.png");
+  builderButton1 = loadImage("assets/images/builderButton1.png");
+  statsButton0 = loadImage("assets/images/statsButton0.png");
+  statsButton1 = loadImage("assets/images/statsButton1.png");
 
 
   // Load font
@@ -240,24 +266,25 @@ function drawMenu() {
   // Title text or logo image
   if (logoImg) {
     imageMode(CENTER);
-    image(logoImg, width/2, height/2 - 200);
+    image(logoImg, width/2, height/2 - 350);
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(width/35);
     textFont(pixelFont);
-    text("THAT TIME I GOT REINCARNATED INTO A NEW WORLD\nAND USED MY LEVEL 100 FLASHLIGHT SKILLS TO FIND THE WANTED SHAPE!", width/2, height/2 - 75);
+    text("THAT TIME I GOT REINCARNATED INTO A NEW WORLD\nAND USED MY LEVEL 100 FLASHLIGHT SKILLS TO FIND THE WANTED SHAPE!", width/2, height/2 - 215);
     imageMode(CORNER);
-    textFont('Arial');
   } else {
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(48);
-    text("Shape Finder!\nVersion 6.0", width/2, height/2 - 120);
+    text("Shape Finder!\nVersion 7.0", width/2, height/2 - 120);
   }
 
   // Draw buttons
   drawButton(startButton);
   drawButton(modesButton);
+  drawButton(builderButton);
+  drawButton(statsButton);
 }
 
 function spawnMenuShape() {
@@ -329,13 +356,55 @@ function drawModes() {
   textSize(40);
   fill(255);
   textFont(pixelFont);
-  text("Select Difficulty", width/2, height/2 - 150);
-  textFont('Arial');
+  text("Select Difficulty", width/2, height/2 - 300);
+
+  // Move difficulty buttons higher and align vertically
+  easyButton.y = height / 2 - 220;
+  mediumButton.y = height / 2 - 100;
+  hardButton.y = height / 2 + 20;
+
+  const buttonScale = 1.4; // smaller scale for start
+  startGameButton.w = startBtnImg1.width * buttonScale +50;
+  startGameButton.h = startBtnImg1.height * buttonScale +50;
+  startGameButton.x = width / 2 - startGameButton.w / 2;
+  startGameButton.y = height / 2 + 160;
 
   drawButton(easyButton);
   drawButton(mediumButton);
   drawButton(hardButton);
-  drawButton({ x: width/2 - 100, y: height/2 + 250, w: 200, h: 60, label: "LAMPS", color: [255,220,80] }); // Passes 'color' to make Yellow Button for "Lamps" Game Mode:
+
+  // Selected difficulty text
+  textSize(28);
+  fill(255);
+  const titleY = height / 2 - 300;
+  text(`Current: ${difficulty.toUpperCase()}`, width / 2, titleY + 60);
+
+  // Draw the Start button (reuse main menu art)
+  drawButton(startGameButton);
+
+  text("Select Modifiers", width/4, height/2 - 150);
+  text("Flashlight Freeze", width/4-width/32, height/2+height/-(height*0.0282));
+  text("Slow-Mo Enabled", width/4-width/32, height/2+height/(height*0.0169));
+
+  if (!checkboxLight) {
+    checkboxLight = createCheckbox("", flashlightFreeze);
+    checkboxLight.position(width / 4 + width/10, height / 4 + height / 5);
+    checkboxLight.style("transform", "scale(5)");
+  }
+
+  if (!checkboxSlow) {
+    checkboxSlow = createCheckbox("", slowMoEnabled);
+    checkboxSlow.position(width / 4 + width/10, height / 4 + height / 3);
+    checkboxSlow.style("transform", "scale(5)");
+  }
+
+  if (checkboxSlow.checked()) {slowMoEnabled = true; } else {slowMoEnabled = false;}
+
+  if (checkboxLight.checked()) {flashlightFreeze = true;} else {flashlightFreeze = false;}
+
+
+  text("Select Color Scheme", width/4+width/2, height/2 - 150);
+
 
   // place backToMenuButton in top-left for modes
   backToMenuButton.x = 20;
@@ -345,11 +414,75 @@ function drawModes() {
 }
 
 
+function drawStats() {
+    background(60); 
+    fill(255);
+    textAlign(CENTER, TOP);
+    textSize(48);
+    text("Player Stats", width / 2, 20);
+
+    // --- Session Stats ---
+    textSize(32);
+    textAlign(LEFT, TOP);
+    fill(200);
+    text("Last Game", 50, 100);
+
+    if (!Stats) Stats = new StatTracker();
+
+    textSize(24);
+    fill(255);
+    let y = 140; // starting y
+    const lineHeight = 30;
+    const correct = Stats.lifetime.get("correctClicks");
+    const incorrect = Stats.lifetime.get("incorrectClicks")
+
+    text("Final Round: " + Stats.session.get("round"), 50, y); y += lineHeight;
+    text("Correct Clicks: " + Stats.session.get("correctClicks"), 50, y); y += lineHeight;
+    text("Incorrect Clicks: " + Stats.session.get("incorrectClicks"), 50, y); y += lineHeight;
+    text("Highest Combo: " + Stats.session.get("highestCombo"), 50, y); y += lineHeight;
+    text("Time Alive: " + nf(Stats.session.get("timeAlive"), 1, 2) + "s", 50, y); y += lineHeight;
+    text("Average Find Time: " + nf(Stats.session.get("averageFindTime") / 1000, 1, 2) + "s", 50, y); y += lineHeight;
+    text("Difficulty: " + Stats.session.get("difficulty"), 50, y); y += lineHeight;
+
+    // --- Lifetime Stats ---
+    textSize(32);
+    fill(200);
+    textAlign(LEFT, TOP);
+    text("Lifetime Stats", width / 2 + 50, 100);
+
+    textSize(24);
+    fill(255);
+    y = 140;
+    text("Total Games Played: " + Stats.lifetime.get("totalGames"), width / 2 + 50, y); y += lineHeight;
+    text("Total Correct Clicks: " + correct + " (" + (correct/(correct+incorrect) * 100).toFixed(2) + "%)", width / 2 + 50, y); y += lineHeight;
+    text("Total Incorrect Clicks: " + Stats.lifetime.get("incorrectClicks"), width / 2 + 50, y); y += lineHeight;
+    text("Total Alive Time: " + nf(Stats.lifetime.get("totalPlayTime"), 1, 2) + "s", width / 2 + 50, y); y += lineHeight;
+    text("Best Round: " + Stats.lifetime.get("bestRound"), width / 2 + 50, y); y += lineHeight;
+    text("Highest Combo: " + Stats.lifetime.get("highestCombo"), width / 2 + 50, y); y += lineHeight;
+    text("Average Find Time: " + nf(Stats.lifetime.get("averageFindTime"), 1, 2) + "s", width / 2 + 50, y); y += lineHeight;
+
+    // --- Back Button ---
+    drawButton(backButton);
+}
+
+
 function keyPressed() {
   if (key === 'a') triggerBoatLines(15000);
   if (key === 'b') triggerBlackHoleEvent(3000);
   if (key === 'w') triggerWarning(5000);
   if (key === 'z') triggerZombieEvent(5000);
+
+  if (keyCode === ENTER && consoleInput.elt === document.activeElement) {
+    const cmd = consoleInput.value().trim();
+    consoleInput.value('');
+    handleConsoleCommand(cmd);
+  }
+
+  if (keyCode === SHIFT) {
+    if(slowMoEnabled){
+    slowMo = true;
+    }
+  }
   
   if (gameState === "game" && key === 'p') {
     gameState = "pause";
@@ -362,6 +495,12 @@ function keyPressed() {
   }
 }
 
+function keyReleased() {
+  if (keyCode === SHIFT) {
+    slowMo = false;
+  }
+}
+
 function drawOverMenu() {
   // darken everything below the UI bar
   fill(0, 200); 
@@ -371,14 +510,6 @@ function drawOverMenu() {
   // redraw UI bar so it’s visible on top
   image(UILayer, 0, 0);
 
-  // draw "time's over" + final round
-  fill(255);
-  textAlign(CENTER, CENTER);
-  textSize(50);  
-  text("Final Round: " + round, windowWidth / 2, windowHeight / 2); 
-  text("Time's Over!", windowWidth / 2, windowHeight / 2.5);
-
-  drawButton(againButton);
   drawBackButton();
 }
 
@@ -560,6 +691,19 @@ function handleInteractorClick() {
   }
 }
 
+function updateDifficultyVisuals(selected) {
+  // Reset all to base images
+  easyButton.img = easyButton0;
+  mediumButton.img = mediumButton0;
+  hardButton.img = hardButton0;
+
+  // Set the selected one to its “active” image
+  if (selected === "easy") easyButton.img = easyButton1;
+  if (selected === "medium") mediumButton.img = mediumButton1;
+  if (selected === "hard") hardButton.img = hardButton1;
+}
+
+
 //mouse input
 function mousePressed() {
   if (gameState === "menu") {
@@ -568,6 +712,10 @@ function mousePressed() {
       startGame();
     } else if (mouseInside(modesButton)) {
       gameState = "modes";
+    } else if (mouseInside(builderButton)) {
+      gameState = "builder";
+    } else if (mouseInside(statsButton)) {
+      gameState = "stats";
     }
 
   } else if (gameState === "game") {
@@ -593,6 +741,7 @@ function mousePressed() {
       stopHardBGM();
       playMenuBGM();
       gameState = "menu";
+      //gameEvents.Fire("gameOver", false);
     }
 
   } else if (gameState === "modes") {
@@ -600,21 +749,22 @@ function mousePressed() {
     if (mouseInside(easyButton)) {
       playMenuSFX();
       difficulty = "easy";
-      triggerCurtains();
-      startGame();
+      updateDifficultyVisuals("easy");
     } else if (mouseInside(mediumButton)) {
       playMenuSFX();
       difficulty = "medium";
-      triggerCurtains();
-      startGame();
+      updateDifficultyVisuals("medium");
     } else if (mouseInside(hardButton)) {
       playMenuSFX();
       difficulty = "hard";
+      updateDifficultyVisuals("hard");
+    }
+
+    // Start button now actually begins the game
+    if (mouseInside(startGameButton)) {
+      playMenuSFX();
       triggerCurtains();
       startGame();
-        } else if (mouseInside({ x: width/2 - 100, y: height/2 + 250, w: 200, h: 60 })) { // Lamps Mode Button Logic:
-          difficulty = "lamps";
-          startGame();
     }
 
     // Back button to main menu (if you want, optional)
@@ -631,14 +781,34 @@ function mousePressed() {
     } else if (mouseInside(backToMenuButton)) {
       playMenuSFX();
       gameState = "menu";
+      gameEvents.Fire("gameOver", false);
+      finalRoundPopupShown = false;
       playMenuBGM();
     }
+  } else if (gameState === "builder") {
+    if (mouseInside(backButton)) {
+      consoleInput.hide();
+      gameState = "menu";
+      return;
+    }
+    handleBuilderClick();
+  } else if (gameState === "stats") {
+    if (mouseInside(backButton)) {
+      gameState = "menu";
+    }
+  }
+}
+
+function mouseReleased() {
+  if (gameState === "builder") {
+    gameEvents.Fire("dragEnd")
   }
 }
 
 
 // helper, checks if mouse is inside a rectangle button
 function mouseInside(btn) {
+  if (!btn) return false;
   if(mouseX > btn.x && mouseX < btn.x + btn.w && mouseY > btn.y && mouseY < btn.y + btn.h){
     playMenuSFX();
     return true;
@@ -647,17 +817,21 @@ function mouseInside(btn) {
 }
 
 function setup() {
+  setupBuilder();
   createCanvas(windowWidth, windowHeight);
 
   userStartAudio().then(() => {
     playMenuBGM();
   });
 
-  console.log("Version 6.0");//change this each master commit to see when changes happen
+  fileInput = createFileInput(handleInputFile);
+  fileInput.hide();
+
+  console.log("Version 7.0");//change this each master commit to see when changes happen
   
   startButton = {
     x: width / 2 - startBtnImg1.width * startButtonScale / 2,
-    y: height / 2 - startBtnImg1.height * startButtonScale / 2 + 65,
+    y: height / 2 - startBtnImg1.height * startButtonScale / 2 - 75,
     img: startBtnImg1,
     hoverImg: startBtnImg2,
     w: startBtnImg1.width * startButtonScale,
@@ -666,18 +840,39 @@ function setup() {
 
   modesButton = {
     x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2,
-    y: height / 2 + 120,
+    y: height / 2 - 30,
     img: optionsBtnImg1,
     hoverImg: optionsBtnImg2,
     w: optionsBtnImg1.width * optionsButtonScale,
     h: optionsBtnImg1.height * optionsButtonScale
   };
 
+  builderButton = { 
+    x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2, 
+    y: height/2 + 100, 
+    img: builderButton0, 
+    hoverImg: builderButton1, 
+    w: builderButton0.width * optionsButtonScale, 
+    h: builderButton0.height * optionsButtonScale, 
+
+  };
+
+  statsButton = { 
+    x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2,
+    y: height/2 + 250, 
+    img: statsButton0, 
+    hoverImg: statsButton1, 
+    w: builderButton0.width * optionsButtonScale, 
+    h: builderButton0.height * optionsButtonScale, 
+
+   };
+  backButton = { x: 30, y: 10, w: 200, h: 60, label: "BACK" };
+
   const buttonScale = 1.8; // adjust as needed
 
   pauseButton = {
     x: 20,
-    y: 20,
+    y: height*0.011299435,
     w: pauseButton0.width * buttonScale,
     h: pauseButton0.height * buttonScale,
     img: pauseButton0,
@@ -703,30 +898,40 @@ function setup() {
 };
   
   easyButton = {
-    x: width/2 - easyButton0.width*buttonScale/2,
-    y: height/2 - 50,
-    w: easyButton0.width*buttonScale,
-    h: easyButton0.height*buttonScale,
+    x: width/2 - easyButton0.width*buttonScale,
+    y: height/2-height/10,
+    w: easyButton0.width*buttonScale*2,
+    h: easyButton0.height*buttonScale*2,
     img: easyButton0,
     hoverImg: easyButton1
   };
   
   mediumButton = {
-    x: width/2 - mediumButton0.width*buttonScale/2,
-    y: height/2 + 50,
-    w: mediumButton0.width*buttonScale,
-    h: mediumButton0.height*buttonScale,
+    x: width/2 - mediumButton0.width*buttonScale,
+    y: height/2 + height/18,
+    w: mediumButton0.width*buttonScale*2,
+    h: mediumButton0.height*buttonScale*2,
     img: mediumButton0,
     hoverImg: mediumButton1
   };
   
   hardButton = {
-    x: width/2 - hardButton0.width*buttonScale/2,
-    y: height/2 + 150,
-    w: hardButton0.width*buttonScale,
-    h: hardButton0.height*buttonScale,
+    x: width/2 - hardButton0.width*buttonScale,
+    y: height/2 + (height*0.2118644068),
+    w: hardButton0.width*buttonScale*2,
+    h: hardButton0.height*buttonScale*2,
     img: hardButton0,
     hoverImg: hardButton1
+  };
+
+  // Add start button for modes menu (reuse main start image)
+   startGameButton = {
+    x: width / 2 - startBtnImg1.width * startButtonScale / 2,
+    y: height / 2 + (height * 0.4), // below difficulty buttons
+    w: startBtnImg1.width * startButtonScale,
+    h: startBtnImg1.height * startButtonScale,
+    img: startBtnImg1,
+    hoverImg: startBtnImg2
   };
   
 
@@ -746,6 +951,9 @@ function setup() {
 //makes the shapes
 function playMode() {
   background(50);
+  for (const obj of combinedObjectList) {
+    obj.update()
+  }
   for (const it of interactors) {
     it.update();  // runs movement + modifiers
     it.render();  // draws the object
@@ -770,24 +978,26 @@ function nextRound(){
     else{
       playHardBGM();
       stopBossBGM();
-      // Increase lamp difficulty (--Radius & ++ Speed) for the upcoming round, then reset positions:
-      if (typeof scaleLampDifficulty === 'function') scaleLampDifficulty();
-      if (typeof initLamps === 'function') initLamps();
       spawnInteractors();
     }
   }, 750);
 }
 
 function startGame() {
+  setupGameEvents();
   Timer = StartTime;        // reset round length
   startMillis = millis();   // bookmark the start time ONCE
   totalPausedTime = 0;
   TimeOver = false;
+  gameOverTriggered = false;
+  shownGameOverScreen = false;
   blackout = true;
   gameOver = false;
   gameState = "game";
   round = 1;
   combo = 0;
+
+  Stats = new StatTracker();
 
   stopBossBGM();
   playHardBGM();
@@ -802,6 +1012,8 @@ function startGame() {
   if (typeof initLamps === 'function') initLamps();
   spawnInteractors();
   playMode();
+
+  gameEvents.Fire("setDifficulty", difficulty);
 }
 
 //draw loop
@@ -822,9 +1034,21 @@ function draw() {
   } else if (gameState === "pause") {
     drawGame();        // shows the frozen game
     drawPauseMenu();   // overlay pause menu
+    } else if (gameState === "builder") {
+    drawBuilder();
+  } else if (gameState === "stats") {
+    drawStats();
   }
 
-  console.log(isHardBGMPlaying);
+  if(gameState != "modes" && checkboxLight){
+      checkboxLight.remove(); // completely deletes it from the DOM
+      checkboxLight = null;   // clear reference
+  }
+
+  if(gameState != "modes" && checkboxSlow){
+      checkboxSlow.remove(); // completely deletes it from the DOM
+      checkboxSlow = null;   // clear reference
+  }
 
   updateScoreIndicators();
 }
@@ -846,20 +1070,22 @@ function drawGame() {
 
     // Hopefully this won't block the main thread since we won't have that much round objects.
     // We will have to refactor this to have async/Promise if we notice a block in the future.
-    localstorageRoundManager.storeRound();
+    topRoundsBeforeUpdate = localstorageRoundManager.getTopRounds();
 
     times = 0;
-    TimeOver = true;
-    gameOver = true;
-    gameState = "over";
 
-  // Reset lamp difficulty when the game ends so next game starts back at defaults:
-  if (typeof resetLampDifficulty === 'function') resetLampDifficulty();
-
-    if (!finalRoundPopupShown) {
-      finalRoundPopupShown = true;
-      finalRoundPopup.render(); // <- show the overlay window
+    if (!TimeOver) {
+      TimeOver = true;
+      localstorageRoundManager.storeRound();
+      // Sequence:
+      // Fire gameOver. Handled in events.js, "gameOver" event plays a finisher
+      // FinisherSequence class fires "showGameOverScreen" event (also in events.js)
+      // sets gameState to "over", gameOver to true, re-enables the flashlight, renders the finalRoundPopup
+      gameEvents.Fire("gameOver", true); // 'true' or 'false' determines whether to show a finisher sequence
     }
+
+    // gameOver = true; <- Moved this to 
+    // gameState = "over";
   }
 
   // play mode only while not gameOver
@@ -875,14 +1101,8 @@ function drawGame() {
 
   const dx = fx - coverW / 2;
   const dy = fy - coverH / 2;
-  // 
-  // Chooses between one of the Gamemodes that uses the mouse Flashlight (Easy/Medium/Hard) or the Lamps Gamemode to disable the Flashlight:
-  // 
-  if (typeof difficulty !== 'undefined' && difficulty === 'lamps' && typeof drawLampsOverlay === 'function') {
-    drawLampsOverlay();
-  } else {
-    drawFlashlightOverlay();
-  }
+  //image(darkness, dx, dy);
+  drawFlashlightOverlay();
 
   events.renderFront();
 
@@ -892,6 +1112,7 @@ function drawGame() {
   UILayer.textSize(24);
   UILayer.textAlign(RIGHT, CENTER);
   UILayer.fill('black');
+  UILayer.textFont(pixelFont);
   UILayer.text("Round: " + round + " Combo: "+ combo + " Time: " + times, UILayer.width - 20, UILayer.height /2);
   image(UILayer, 0,0);
   wantedObj.render();
