@@ -47,7 +47,7 @@ class Director {
     switch (eventType) {
       case 'BLACKHOLE_EVENT': triggerBlackHoleEvent(4000); break;
       case 'ZOMBIE_EVENT': triggerZombieEvent(8000, 40); break;
-      case 'BOAT_EVENT': triggerWarningBoatLines(2000, 12000); break;
+      case 'BOAT_EVENT': triggerBoatLines(16000); break;
     }
 
     // prevent event spam
@@ -60,3 +60,4 @@ class Director {
     // could also spawn bonus items, or temporarily disable ScoreDown shapes
   }
 }
+
