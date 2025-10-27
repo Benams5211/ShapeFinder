@@ -774,6 +774,7 @@ function mousePressed() {
       playMenuSFX();
       gameState = "menu";
       gameEvents.Fire("gameOver", false);
+      finalRoundPopupShown = false;
       playMenuBGM();
     }
   } else if (gameState === "builder") {
