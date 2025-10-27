@@ -128,33 +128,7 @@ const gameEvents = new EventListener();
 // Important game events
 // -----------------------------------------------------------------------------
 
-function setupGameEvents() {
-  // Fires in FinisherSequence after the time is played through
-  gameEvents.OnEvent("showGameOverScreen", () => {
-    // debounce (simple fix for double calls for now, not sure what's happening)
-    if (shownGameOverScreen) return;
-    shownGameOverScreen = true;
-    gameState = "over";
-    gameOver = true;
 
-    finalRoundPopupShown = true;
-    finalRoundPopup.render();
-    gameEvents.Clear();
-  })
-  gameEvents.OnEvent("gameOver", (showFinisher) => {
-    //delay ending screen show
-    // debounce (simple fix for double calls for now, not sure what's happening)
-    if (gameOverTriggered) return;
-    gameOverTriggered = true;
-    //interactors.length = 0;
-    combinedObjectList.length = 0;
-    if (showFinisher) {
-      blackout = false;
-      const finisher = new FinisherSequence();
-      finisher.playRandom();
-    }
-  })
-}
 
 // -----------------------------------------------------------------------------
 // event constants
