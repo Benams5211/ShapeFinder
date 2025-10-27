@@ -470,6 +470,7 @@ function keyPressed() {
   if (key === 'b') triggerBlackHoleEvent(3000);
   if (key === 'w') triggerWarning(5000);
   if (key === 'z') triggerZombieEvent(5000);
+  if (key === 'c') triggerPartyEvent(8000);
 
   if (keyCode === ENTER && consoleInput.elt === document.activeElement) {
     const cmd = consoleInput.value().trim();
@@ -811,6 +812,8 @@ function setup() {
   setupBuilder();
   createCanvas(windowWidth, windowHeight);
 
+  director = new Director(events, gameEvents);
+
   userStartAudio().then(() => {
     playMenuBGM();
   });
@@ -1075,6 +1078,10 @@ function drawGame() {
 
     // gameOver = true; <- Moved this to 
     // gameState = "over";
+  }
+
+  if (director && gameState === "game") {
+    director.update();
   }
 
   // play mode only while not gameOver
