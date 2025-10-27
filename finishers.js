@@ -17,37 +17,50 @@ class FinisherSequence {
                     }, tot_delay)
                     tot_delay += 10;
                 }
-               // break;
-            //case "TEST":
-                // For some reason this doesn't work unless setTimeout() is used (IDK, this is only a test)
-               // for (const it of interactors) {
-                //    setTimeout(() => {
-                 //       it.deleteSelf();
-                 //   }, 0)
-               // }
-              //  const alien1 = new Alien();
-              //  const alien2 = new Alien();
-               // await alien1.spawn();    
-              //  await alien2.spawn();      
-              //  const cloud = new Cloud();
-              //  await cloud.spawn();
-              //  const angel = new Angel();
-             //   await angel.spawn();
+            break;
         }
-        //setTimeout(() => {
-        //        combinedObjectList.length = 0;
-        //        gameEvents.Fire("showGameOverScreen");
-        //}, this.duration);
+        setTimeout(() => {
+                combinedObjectList.length = 0;
+                gameEvents.Fire("showGameOverScreen");
+        }, this.duration);
 
 
         //This event is NOT firing, so i (ben hehe) temporarily replaced it with the above code
 
         // After animation finishes, show the end screen
-        events.start("SHOW_END_SCREEN", this.duration, {
-            onEnd: () => {
-                combinedObjectList.length = 0;
-                gameEvents.Fire("showGameOverScreen");
-            }
-        });
+        //events.start("SHOW_END_SCREEN", this.duration, {
+            //onEnd: () => {
+                //combinedObjectList.length = 0;
+                //gameEvents.Fire("showGameOverScreen");
+            //}
+        //});
     } 
+}
+
+function setupGameEvents() {
+  // Fires in FinisherSequence after the time is played through
+  gameEvents.OnEvent("showGameOverScreen", () => {
+    // debounce (simple fix for double calls for now, not sure what's happening)
+    if (shownGameOverScreen) return;
+    shownGameOverScreen = true;
+    gameState = "over";
+    gameOver = true;
+
+    finalRoundPopupShown = true;
+    finalRoundPopup.render();
+    gameEvents.Clear();
+  })
+  gameEvents.OnEvent("gameOver", (showFinisher) => {
+    //delay ending screen show
+    // debounce (simple fix for double calls for now, not sure what's happening)
+    if (gameOverTriggered) return;
+    gameOverTriggered = true;
+    //interactors.length = 0;
+    combinedObjectList.length = 0;
+    if (showFinisher) {
+      blackout = false;
+      const finisher = new FinisherSequence();
+      finisher.playRandom();
+    }
+  })
 }
