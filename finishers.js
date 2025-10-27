@@ -6,9 +6,9 @@ class FinisherSequence {
     async playRandom() {
         //const types = ["SPLASH", "TEST"];
         //const chosen = random(types);
-        //const chosen = "SPLASH";
-       // switch (chosen) {   
-           // case "SPLASH":
+        const chosen = "SPLASH";
+        switch (chosen) {   
+            case "SPLASH":
                 let tot_delay = 0;
                 for (const it of interactors) {
                     setTimeout(() => {
