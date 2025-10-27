@@ -482,7 +482,17 @@ function keyPressed() {
     slowMo = true;
     }
   }
-  
+ // TEMP: press F in-game to test the FoundEffect
+if (gameState === "game" && (key === 'f' || key === 'F')) {
+  const col = [80, 200, 255];
+  FoundEffect.onCorrectShapeChosen(mouseX, mouseY, col, () => {
+    noStroke(); 
+    fill(col);
+    ellipse(0, 0, 90, 90);  // simple pulse so we can see it
+  });
+  return; // optional: stop further key handling for this press
+}
+ 
   if (gameState === "game" && key === 'p') {
     gameState = "pause";
     triggerCurtains();
@@ -1201,3 +1211,4 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
+
