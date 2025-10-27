@@ -6,9 +6,9 @@ class FinisherSequence {
     async playRandom() {
         //const types = ["SPLASH", "TEST"];
         //const chosen = random(types);
-        //const chosen = "SPLASH";
-       // switch (chosen) {   
-           // case "SPLASH":
+        const chosen = "SPLASH";
+        switch (chosen) {   
+            case "SPLASH":
                 let tot_delay = 0;
                 for (const it of interactors) {
                     setTimeout(() => {
@@ -17,7 +17,7 @@ class FinisherSequence {
                     }, tot_delay)
                     tot_delay += 10;
                 }
-               // break;
+                break;
             //case "TEST":
                 // For some reason this doesn't work unless setTimeout() is used (IDK, this is only a test)
                // for (const it of interactors) {
@@ -35,12 +35,11 @@ class FinisherSequence {
              //   await angel.spawn();
         }
         //setTimeout(() => {
-        //        combinedObjectList.length = 0;
-        //        gameEvents.Fire("showGameOverScreen");
+                //combinedObjectList.length = 0;
+                //gameEvents.Fire("showGameOverScreen");
         //}, this.duration);
 
 
-        //This event is NOT firing, so i (ben hehe) temporarily replaced it with the above code
 
         // After animation finishes, show the end screen
         events.start("SHOW_END_SCREEN", this.duration, {
