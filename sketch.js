@@ -602,44 +602,101 @@ function drawShop(){
   // Keep the background visuals pretty much the same
   playModeMenu();
 
-  // Shop background
+  // white translucent blanket
   push();
   noStroke();
   fill(255, 230);
   rect(0,0,width,height);
 
   // Central shop card
-  const cw = min(width * 0.8, 800);
-  const ch = min(height * 0.8, 600);
+  const cw = min(width * 0.8, 900);
+  const ch = min(height * 0.78, 640);
   const cx = width / 2 - cw / 2;
   const cy = height / 2 - ch / 2;
-  fill(240);
-  stroke(0);
-  strokeWeight(4);
+  fill(245);
+  stroke(30);
+  strokeWeight(3);
   rect(cx, cy, cw, ch, 12);
-  // Shop title
+
+  // Title
   noStroke();
-  fill(0);
+  fill(20);
   textFont(pixelFont);
   textAlign(CENTER, TOP);
   textSize(40);
-  text("SHOP", width/2, cy+24);
+  text("SHOP", width/2, cy + 18);
 
-  // Placeholder or template items
-  textSize(22);
-  textAlign(LEFT, TOP);
+  // Grid of 3 x 2 item boxes (three on top, three on bottom)
+  const cols = 3;
+  const rows = 2;
   const pad = 36;
-  const coLX = cx + pad;
-  let itemY = cy + 100;
-  fill(60);
-  text("- Flashlight Upgrade", coLX, itemY); itemY += 44;
-  text("- Extra Time", coLX, itemY); itemY += 44;
-  text("- Delozier Effect", coLX, itemY); itemY += 44;
+  const gap = 28;
+  const gridX = cx + pad;
+  const gridY = cy + 90;
+  const gridW = cw - pad * 2;
+  const gridH = ch - 90 - pad;
+  const itemW = (gridW - (cols - 1) * gap) / cols;
+  const itemH = (gridH - (rows - 1) * gap) / rows;
 
-  // Makes the back button in the top-left corner
+  textSize(18);
+  textAlign(CENTER, CENTER);
+
+  const items = [
+    { title: "Flashlight+", price: "100" },
+    { title: "Extra Time", price: "150" },
+    { title: "Skin Pack", price: "200" },
+    { title: "Delozier", price: "250" },
+    { title: "Auto-Target", price: "300" },
+    { title: "Lucky Charm", price: "350" }
+  ];
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const idx = r * cols + c;
+      const x = gridX + c * (itemW + gap);
+      const y = gridY + r * (itemH + gap);
+
+      // Hover detection (visual only - no sound)
+      const hovering = mouseX > x && mouseX < x + itemW && mouseY > y && mouseY < y + itemH;
+
+      // box shadow
+      push();
+      noStroke();
+      fill(0, hovering ? 30 : 16);
+      rect(x + 6, y + 6, itemW, itemH, 10);
+      pop();
+
+      // box
+      stroke(180);
+      strokeWeight(1);
+      fill(hovering ? 250 : 255);
+      rect(x, y, itemW, itemH, 10);
+
+      // Icon placeholder (circle)
+      noStroke();
+      fill(200);
+      const iconSize = min(itemW, itemH) * 0.36;
+      ellipse(x + itemW / 2, y + itemH / 2 - 16, iconSize, iconSize);
+
+      // Title
+      fill(30);
+      textSize(18);
+      text(items[idx].title, x + itemW / 2, y + itemH - 42);
+
+      // Price badge
+      fill(30);
+      textSize(16);
+      textAlign(RIGHT, CENTER);
+      text(items[idx].price + "¢", x + itemW - 12, y + 18);
+      textAlign(CENTER, CENTER);
+    }
+  }
+
+  // place back button in top-left of modal card
   backButton.x = cx + 12;
   backButton.y = cy + 12;
   drawButton(backButton);
+
   pop();
 }
 
