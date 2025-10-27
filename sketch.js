@@ -30,6 +30,9 @@ let builderButton0, builderButton1;
 let statsButton0, statsButton1;
 const optionsButtonScale = 5.5;
 
+//colorblind buttons
+let defaultColorBtn, protanopiaBtn, deuteranopiaBtn, tritanopiaBtn;
+
 // stuff for paused
 let pauseStartMillis = 0;
 let totalPausedTime = 0;
@@ -269,12 +272,12 @@ function drawMenu() {
   // Title text or logo image
   if (logoImg) {
     imageMode(CENTER);
-    image(logoImg, width/2, height/2 - 350);
+    image(logoImg, width/2, height/2 - 280);
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(width/35);
     textFont(pixelFont);
-    text("THAT TIME I GOT REINCARNATED INTO A NEW WORLD\nAND USED MY LEVEL 100 FLASHLIGHT SKILLS TO FIND THE WANTED SHAPE!", width/2, height/2 - 215);
+    text("THAT TIME I GOT REINCARNATED INTO A NEW WORLD\nAND USED MY LEVEL 100 FLASHLIGHT SKILLS TO FIND THE WANTED SHAPE!", width/2, height/2 - 155);
     imageMode(CORNER);
   } else {
     fill(255); // white
@@ -286,7 +289,6 @@ function drawMenu() {
   // Draw buttons
   drawButton(startButton);
   drawButton(modesButton);
-  drawButton(builderButton);
   drawButton(statsButton);
 }
 
@@ -417,7 +419,10 @@ function drawModes() {
 
 
   text("Select Color Scheme", width/4+width/2, height/2 - 150);
-
+  drawButton(defaultColorBtn);
+  drawButton(protanopiaBtn);
+  drawButton(deuteranopiaBtn);
+  drawButton(tritanopiaBtn);
 
   // place backToMenuButton in top-left for modes
   backToMenuButton.x = 20;
@@ -429,6 +434,13 @@ function drawModes() {
 
 function drawStats() {
     background(60); 
+
+
+    playModeMenu();
+
+    fill(0, 180);
+    noStroke();
+    rect(0, 0, width, height);
     fill(255);
     textAlign(CENTER, TOP);
     textSize(48);
@@ -496,6 +508,16 @@ function keyPressed() {
     slowMo = true;
     }
   }
+
+  if (gameState === "game" && (key === 'f' || key === 'F')) {
+  const col = [80, 200, 255];
+  FoundEffect.onCorrectShapeChosen(mouseX, mouseY, col, () => {
+    noStroke(); 
+    fill(col);
+    ellipse(0, 0, 90, 90);  // simple pulse so we can see it
+  });
+  return; // optional: stop further key handling for this press
+}
   
   if (gameState === "game" && key === 'p') {
     gameState = "pause";
@@ -505,6 +527,9 @@ function keyPressed() {
     gameState = "game";
     triggerCurtains();
     totalPausedTime += millis() - pauseStartMillis;
+  }
+  else if (gameState === "menu" && key === 'd'){
+    gameState = "builder";
   }
 }
 
@@ -526,6 +551,19 @@ function drawOverMenu() {
   drawBackButton();
 }
 
+/////////////////////////////
+// color scheme 
+/////////////////////////////
+function setColorScheme(scheme) {
+  currentPaletteMode = scheme;
+  console.log("Color scheme set to:", scheme);
+
+  if (gameState === "modes") {
+    clearInteractors();
+    spawnMenuShapes(); // your new function
+  }
+
+}
 
 ////////////////////////////////////
 //songs
@@ -718,8 +756,6 @@ function mousePressed() {
       startGame();
     } else if (mouseInside(modesButton)) {
       gameState = "modes";
-    } else if (mouseInside(builderButton)) {
-      gameState = "builder";
     } else if (mouseInside(statsButton)) {
       gameState = "stats";
     }
@@ -765,6 +801,21 @@ function mousePressed() {
       difficulty = "hard";
       updateDifficultyVisuals("hard");
     }
+
+    //colorscheme buttons
+  if (mouseInside(defaultColorBtn)) {
+    playMenuSFX();
+    setColorScheme("default");
+  } else if (mouseInside(protanopiaBtn)) {
+    playMenuSFX();
+    setColorScheme("protanopia");
+  } else if (mouseInside(deuteranopiaBtn)) {
+    playMenuSFX();
+    setColorScheme("deuteranopia");
+  } else if (mouseInside(tritanopiaBtn)) {
+    playMenuSFX();
+    setColorScheme("tritanopia");
+  }
 
     // Start button now actually begins the game
     if (mouseInside(startGameButton)) {
@@ -837,7 +888,7 @@ function setup() {
   
   startButton = {
     x: width / 2 - startBtnImg1.width * startButtonScale / 2,
-    y: height / 2 - startBtnImg1.height * startButtonScale / 2 - 75,
+    y: height / 2 - startBtnImg1.height * startButtonScale / 2 - 15,
     img: startBtnImg1,
     hoverImg: startBtnImg2,
     w: startBtnImg1.width * startButtonScale,
@@ -846,32 +897,23 @@ function setup() {
 
   modesButton = {
     x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2,
-    y: height / 2 - 30,
+    y: height / 2 + 40,
     img: optionsBtnImg1,
     hoverImg: optionsBtnImg2,
     w: optionsBtnImg1.width * optionsButtonScale,
     h: optionsBtnImg1.height * optionsButtonScale
   };
 
-  builderButton = { 
-    x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2, 
-    y: height/2 + 100, 
-    img: builderButton0, 
-    hoverImg: builderButton1, 
-    w: builderButton0.width * optionsButtonScale, 
-    h: builderButton0.height * optionsButtonScale, 
-
-  };
-
   statsButton = { 
-    x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2,
-    y: height/2 + 250, 
+    x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2, 
+    y: height/2 + 180, 
     img: statsButton0, 
     hoverImg: statsButton1, 
     w: builderButton0.width * optionsButtonScale, 
     h: builderButton0.height * optionsButtonScale, 
 
-   };
+  };
+
   backButton = { x: 30, y: 10, w: 200, h: 60, label: "BACK" };
 
   const buttonScale = 1.8; // adjust as needed
@@ -940,6 +982,40 @@ function setup() {
     hoverImg: startBtnImg2
   };
   
+    // button set up for color scheme  
+  const btnWidth = 150;
+  const btnHeight = 50;
+  const baseX = width / 4 + width / 2;
+  const baseY = height / 2 - 100;
+
+  defaultColorBtn = {
+    x: baseX,
+    y: baseY + 50,
+    w: btnWidth,
+    h: btnHeight,
+    label: "Default"
+  };
+  protanopiaBtn = {
+    x: baseX,
+    y: baseY + 50 + 60,
+    w: btnWidth,
+    h: btnHeight,
+    label: "Protanopia"
+  };
+  deuteranopiaBtn = {
+    x: baseX,
+    y: baseY + 50 + 120,
+    w: btnWidth,
+    h: btnHeight,
+    label: "Deuteranopia"
+  };
+  tritanopiaBtn = {
+    x: baseX,
+    y: baseY + 50 + 180,
+    w: btnWidth,
+    h: btnHeight,
+    label: "Tritanopia"
+  };
 
 
   //gameplay ui business
