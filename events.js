@@ -642,7 +642,4 @@ function boundsRadius(o) {
 
   // Fallback if unknown shape — small hit radius
   return 10;
-}e — small hit radius
-  return 10;
-
 }
