@@ -110,7 +110,7 @@ class Alien {
         this.object = null;
     }
     async spawn() {
-        this.object = await loadCombinedObjectFromFile("/ShapingBad/assets/combinedObjects/alien.json");
+        this.object = await loadCombinedObjectFromFile("../assets/combinedObjects/alien.json");
         combinedObjectList.push(this.object);
 
         interactors.push(this.object.mainObject);
@@ -123,7 +123,7 @@ class Cloud {
         this.object = null;
     }
     async spawn() {
-        this.object = await loadCombinedObjectFromFile("/ShapingBad/assets/combinedObjects/cloud.json");
+        this.object = await loadCombinedObjectFromFile("../assets/combinedObjects/cloud.json");
         combinedObjectList.push(this.object);
 
         interactors.push(this.object.mainObject);
@@ -136,7 +136,7 @@ class Angel {
         this.object = null;
     }
     async spawn() {
-        this.object = await loadCombinedObjectFromFile("/ShapingBad/assets/combinedObjects/angel.json");
+        this.object = await loadCombinedObjectFromFile("../assets/combinedObjects/angel.json");
         combinedObjectList.push(this.object);
 
         interactors.push(this.object.mainObject);
