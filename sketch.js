@@ -642,12 +642,12 @@ function drawShop(){
   textAlign(CENTER, CENTER);
 
   const items = [
-    { title: "Flashlight+", price: "100" },
+    { title: "Bigger Flashlight", price: "100" },
     { title: "Extra Time", price: "150" },
-    { title: "Skin Pack", price: "200" },
-    { title: "Delozier", price: "250" },
-    { title: "Auto-Target", price: "300" },
-    { title: "Lucky Charm", price: "350" }
+    { title: "Skip Level", price: "200" },
+    { title: "Delozier Effect", price: "750" },
+    { title: "Double points & coins", price: "300" },
+    { title: "Bomb", price: "350" }
   ];
 
   for (let r = 0; r < rows; r++) {
