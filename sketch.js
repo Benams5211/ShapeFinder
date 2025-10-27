@@ -65,7 +65,7 @@ let fileInput;
 // tracks which part of the program we are in, right now its just  "menu", "game", or "modes", "stats", "builder"
 let gameState = "menu"; 
 // the two button definitions, x, y, width, height, and label
-let startButton, modesButton, againButton, builderButton, statsButton, backButton;
+let startButton, modesButton, againButton, builderButton, statsButton, backButton, shopButton;
 
 // image variables
 let menuBgImg;   // optional menu background
@@ -288,6 +288,10 @@ function drawMenu() {
   drawButton(modesButton);
   drawButton(builderButton);
   drawButton(statsButton);
+  // Shop button
+  if (shopButton) {
+    drawButton(shopButton);
+  }
 }
 
 function spawnMenuShape() {
@@ -594,6 +598,51 @@ function stopMenuBGM(){
   }
 }
 
+function drawShop(){
+  // Keep the background visuals pretty much the same
+  playModeMenu();
+
+  // Shop background
+  push();
+  noStroke();
+  fill(255, 230);
+  rect(0,0,width,height);
+
+  // Central shop card
+  const cw = min(width * 0.8, 800);
+  const ch = min(height * 0.8, 600);
+  const cx = width / 2 - cw / 2;
+  const cy = height / 2 - ch / 2;
+  fill(240);
+  stroke(0);
+  strokeWeight(4);
+  rect(cx, cy, cw, ch, 12);
+  // Shop title
+  noStroke();
+  fill(0);
+  textFont(pixelFont);
+  textAlign(CENTER, TOP);
+  textSize(40);
+  text("SHOP", width/2, cy+24);
+
+  // Placeholder or template items
+  textSize(22);
+  textAlign(LEFT, TOP);
+  const pad = 36;
+  const coLX = cx + pad;
+  let itemY = cy + 100;
+  fill(60);
+  text("- Flashlight Upgrade", coLX, itemY); itemY += 44;
+  text("- Extra Time", coLX, itemY); itemY += 44;
+  text("- Delozier Effect", coLX, itemY); itemY += 44;
+
+  // Makes the back button in the top-left corner
+  backButton.x = cx + 12;
+  backButton.y = cy + 12;
+  drawButton(backButton);
+  pop();
+}
+
 ////////////////////////////////////
 //sound effects
 ////////////////////////////////////
@@ -718,6 +767,10 @@ function mousePressed() {
       startGame();
     } else if (mouseInside(modesButton)) {
       gameState = "modes";
+    } else if (mouseInside(shopButton)){
+      // Shop menu
+      playMenuSFX();
+      gameState = "shop";
     } else if (mouseInside(builderButton)) {
       gameState = "builder";
     } else if (mouseInside(statsButton)) {
@@ -802,6 +855,11 @@ function mousePressed() {
     if (mouseInside(backButton)) {
       gameState = "menu";
     }
+  } else if (gameState === "shop") {
+    if (mouseInside(backButton)) {
+      playMenuSFX();
+      gameState = "menu";
+    }
   }
 }
 
@@ -873,6 +931,15 @@ function setup() {
 
    };
   backButton = { x: 30, y: 10, w: 200, h: 60, label: "BACK" };
+
+  // shop button 
+  shopButton = {
+    x: 20,
+    y: height - 60 - 20,
+    w: 150,
+    h: 60,
+    label: "SHOP"
+  };
 
   const buttonScale = 1.8; // adjust as needed
 
@@ -1044,6 +1111,8 @@ function draw() {
     drawBuilder();
   } else if (gameState === "stats") {
     drawStats();
+  } else if (gameState === "shop") {
+    drawShop();
   }
 
   if(gameState != "modes" && checkboxLight){
@@ -1227,5 +1296,11 @@ function windowResized() {
   if (backToMenuButton) {
     backToMenuButton.x = width / 2 - 100;
     backToMenuButton.y = height / 2 + 80;
+  }
+
+  // Keep shop button at the bottom left
+  if (shopButton) {
+    shopButton.x = 20;
+    shopButton.y = height - shopButton.h - 20;
   }
 }
