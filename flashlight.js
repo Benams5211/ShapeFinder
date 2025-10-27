@@ -158,6 +158,7 @@ function drawLampsOverlay() {
 }
 
 // Makes shapes clickable only when they are within the glow radius of a lamp:
+// --- NOT IN USE AS OF V7.0! ---
 function isUnderLamps(x, y, pad = 0) {
   const positions = getLampPositions(); // Call helper to get current positions of each lamp:
   for (const p of positions) {

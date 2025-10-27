@@ -39,6 +39,9 @@ let flashlightFreeze = true;
 let slowMoEnabled = false;
 let checkboxLight;
 let checkboxSlow;
+// three lamps overlay option (created in modes screen)
+let checkboxLamps;
+let threeLampsEnabled = false;
 
 //combo counter
 let combo = 0;
@@ -385,6 +388,7 @@ function drawModes() {
   text("Select Modifiers", width/4, height/2 - 150);
   text("Flashlight Freeze", width/4-width/32, height/2+height/-(height*0.0282));
   text("Slow-Mo Enabled", width/4-width/32, height/2+height/(height*0.0169));
+  text("Three Lamps Mode", width/4-width/32, height/2+height/(height*0.0062));
 
   if (!checkboxLight) {
     checkboxLight = createCheckbox("", flashlightFreeze);
@@ -398,9 +402,18 @@ function drawModes() {
     checkboxSlow.style("transform", "scale(5)");
   }
 
+  // Three Lamps overlay checkbox
+  if (!checkboxLamps) {
+    checkboxLamps = createCheckbox("", threeLampsEnabled);
+    checkboxLamps.position(width / 4 + width/10, height / 4 + height * 0.45);
+    checkboxLamps.style("transform", "scale(5)");
+  }
+
   if (checkboxSlow.checked()) {slowMoEnabled = true; } else {slowMoEnabled = false;}
 
   if (checkboxLight.checked()) {flashlightFreeze = true;} else {flashlightFreeze = false;}
+
+  if (checkboxLamps.checked()) { threeLampsEnabled = true; } else { threeLampsEnabled = false; }
 
 
   text("Select Color Scheme", width/4+width/2, height/2 - 150);
@@ -675,13 +688,6 @@ function drawBackButton() {
 
 // helper
 function handleInteractorClick() {
-  // For Lamps Mode: Does not allow mouse clicking if the shape is not currently within the lamp's glow radius.
-  if (typeof difficulty !== 'undefined' && difficulty === 'lamps') {
-    if (typeof isUnderLamps !== 'function' || !isUnderLamps(mouseX, mouseY)) {
-      return; // Ignore any clicks that are made outside of the lamp's glow radius:
-    }
-  }
-
   for (let i = interactors.length - 1; i >= 0; i--) {
     const it = interactors[i];
     if (it.enabled && it.contains(mouseX, mouseY)) {
@@ -1050,6 +1056,11 @@ function draw() {
       checkboxSlow = null;   // clear reference
   }
 
+  if(gameState != "modes" && checkboxLamps){
+    checkboxLamps.remove(); // completely deletes it from the DOM
+    checkboxLamps = null;   // clear reference
+  }
+
   updateScoreIndicators();
 }
 
@@ -1102,7 +1113,12 @@ function drawGame() {
   const dx = fx - coverW / 2;
   const dy = fy - coverH / 2;
   //image(darkness, dx, dy);
-  drawFlashlightOverlay();
+  // Choose between the flashlight or the three-lamps overlay
+  if (typeof threeLampsEnabled !== 'undefined' && threeLampsEnabled && typeof drawLampsOverlay === 'function') {
+    drawLampsOverlay();
+  } else {
+    drawFlashlightOverlay();
+  }
 
   events.renderFront();
 
