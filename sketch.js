@@ -772,10 +772,16 @@ function mousePressed() {
       startGame();
     } else if (mouseInside(backToMenuButton)) {
       playMenuSFX();
-      gameState = "menu";
-      gameEvents.Fire("gameOver", false);
+      //bug fix for pop up
+      if (finalRoundPopup && typeof finalRoundPopup.close === "function") {
+        finalRoundPopup.close();
+      }
       finalRoundPopupShown = false;
+      shownGameOverScreen = false;
+      gameOver = false;
+
       playMenuBGM();
+      gameState = "menu";
     }
   } else if (gameState === "builder") {
     if (mouseInside(backButton)) {
