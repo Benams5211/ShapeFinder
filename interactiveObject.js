@@ -3,6 +3,14 @@ let wantedObj = null;
 let interactors = [];
 let winColorChar = 'a';
 
+// Type of effects apply on the shapes when OnClick event occured.
+const ShapeEffects = {
+  FADEOUT: 'fade-out',
+  SHIVER: 'shiver',
+  BLAST: 'blast',
+  DEFAULT: 'default'
+};
+
 // abstract clickable class definition
 // -----------------------------------------------------------------------------
 class InteractiveObject {
@@ -26,7 +34,16 @@ class InteractiveObject {
     this.randomColor = !!opts.randomColor;
     this.outline = !!opts.outline;
     this.isWanted = !!opts.wanted;
-    
+
+    // Shape effects related variables.
+    this.alpha = 255; // Full opacity by default
+    this.shiverTime = 0; // frames to shiver before deleting
+    this.shiverIntensity = 2; // small, subtle movement
+    this.blastScale = 1; // The Scale of enlargement of blast effect.
+    this.blastEnlargingTimes = this.getRandomInt(25, 35); // blastScale need to be multiplied by this for the shapes except the Circle.
+    this.blastTime = 0; // frames to blast before deleting
+    this.isEffectStarting = false; // Flag of starting an effect.
+
     // click behavior
     this.deleteOnClick = !!opts.deleteOnClick;
     const s = opts.stroke ?? {};
@@ -69,6 +86,14 @@ class InteractiveObject {
       this.targetVx = random(-this.movement.velocityLimit, this.movement.velocityLimit);
       this.targetVy = random(-this.movement.velocityLimit, this.movement.velocityLimit);
     }
+
+    // randomly pick an effect
+    this.effect = random([
+      ShapeEffects.FADEOUT, 
+      ShapeEffects.SHIVER, 
+      ShapeEffects.BLAST, 
+      ShapeEffects.DEFAULT
+    ]);
   }
 
   // to be implemented by subclasses
@@ -89,6 +114,21 @@ class InteractiveObject {
       return; // skip movement entirely
     }
 
+    if (this.isEffectStarting) {
+      switch (this.effect) {
+        case ShapeEffects.FADEOUT:
+          this.startFadeOut();
+          break;
+        case ShapeEffects.SHIVER:
+          this.startShiver();
+          break;
+        case ShapeEffects.BLAST:
+          this.startBlast()
+          break;
+        default:
+          this.deleteSelf();
+      }
+    }
   if (this.movement.enabled) this.updatePos();
   }
   
@@ -155,7 +195,21 @@ class InteractiveObject {
   // because the deletion on click is handled in the base class be sure to call
   // the parent (super) onClick function in child classes when developing additional objects
   onClick() {
-    if (this.deleteOnClick) this.deleteSelf();
+    if (this.deleteOnClick) {
+      this.isEffectStarting = true;
+      switch (this.effect) {
+        case ShapeEffects.FADEOUT:
+          break;
+        case ShapeEffects.SHIVER:
+          this.shiverTime = 30;
+          break;
+        case ShapeEffects.BLAST:
+          this.blastTime = 30;
+          break;
+        default:
+          this.deleteSelf();
+      }
+    }
 
     // On click, fire the attached event connections
     for (let e of this.events)
@@ -195,6 +249,54 @@ class InteractiveObject {
     const i = interactors.indexOf(this);
     if (i !== -1) interactors.splice(i, 1);
   }
+
+  startFadeOut() {
+    this.alpha -= 10; // controls fade speed; smaller = slower fade
+    if (this.alpha <= 0) {
+      this.deleteSelf();
+      return;
+    }
+  }
+
+  startShiver() {
+    const progress = 1 - this.shiverTime / 40;
+
+    // gradually increase speed and intensity a bit
+    const intensity = lerp(this.shiverIntensity, this.shiverIntensity * 20, progress);
+
+    this.x = this.x + sin(frameCount * 15) * random(-intensity, intensity);
+    this.y = this.y + cos(frameCount * 20) * random(-intensity, intensity);
+
+    this.alpha = map(sin(frameCount * 1.5), -1, 1, 180, 255);
+
+    this.shiverTime--;
+
+    if (this.shiverTime <= 0) {
+      this.deleteSelf();
+      return;
+    }
+  }
+
+  startBlast() {
+    const progress = 1 - this.blastTime / 30;
+
+    // Scale up like an expanding explosion
+    this.blastScale = 1 + progress * 2.5; // grows 2.5x size
+    this.alpha = this.alpha * (1 - progress); // fades out
+
+    this.blastTime--;
+
+    if (this.blastTime <= 0) {
+      this.deleteSelf();
+      return;
+    }
+  }
+
+  getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -223,6 +325,7 @@ class ClickRect extends InteractiveObject {
   getBoundsRadius() { return Math.max(this.w, this.h) / 2; }
   render() {
     if (!this.visible) return;
+    const offsetScale = this.isEffectStarting && this.effect == ShapeEffects.BLAST ? this.blastScale * 25 : 0;
     push();
     rectMode(CENTER);
     if (this.stroke?.enabled) {
@@ -231,13 +334,12 @@ class ClickRect extends InteractiveObject {
     } else {
       noStroke();
     }
-
-    fill(...this.fillCol);
-    rect(this.x, this.y, this.w, this.h, this.radius);
+    fill(this.fillCol[0], this.fillCol[1], this.fillCol[2], this.alpha);
+    rect(this.x - offsetScale, this.y + offsetScale, this.w + offsetScale, this.h + offsetScale, this.radius);
     if(this.outline){
       stroke('black');
       strokeWeight(2);
-      rect(this.x, this.y, this.w, this.h, this.radius);
+      rect(this.x - offsetScale, this.y + offsetScale, this.w + offsetScale, this.h + offsetScale, this.radius);
     }
     pop();
   }
@@ -321,11 +423,13 @@ class ClickCircle extends InteractiveObject {
     } else {
       noStroke();
     }
-    fill(...this.fillCol);
+    fill(this.fillCol[0], this.fillCol[1], this.fillCol[2], this.alpha);
+    scale(this.blastScale); // apply scaling if blasting
     circle(0, 0, this.r*2);
     if(this.outline){
       stroke('black');
       strokeWeight(2);
+      scale(this.blastScale); // apply scaling if blasting
       circle(0, 0, this.r*2);
     }
 
@@ -410,6 +514,7 @@ class ClickTri extends InteractiveObject {
   render() {
     if (!this.visible) return;
     const [A, B, C] = this.vertices();
+    const offsetScale = this.isEffectStarting && this.effect == ShapeEffects.BLAST ? this.blastScale * 25 : 0;
     push();
 
     // uniform stroke handling
@@ -420,12 +525,12 @@ class ClickTri extends InteractiveObject {
       noStroke();
     }
 
-    fill(...this.fillCol);
-    triangle(A[0], A[1], B[0], B[1], C[0], C[1]);
+    fill(this.fillCol[0], this.fillCol[1], this.fillCol[2], this.alpha);
+    triangle(A[0] - offsetScale, A[1] - offsetScale, B[0] + offsetScale, B[1] + offsetScale, C[0] + offsetScale, C[1] - offsetScale);
     if(this.outline){
       stroke('black');
       strokeWeight(2);
-      triangle(A[0], A[1], B[0], B[1], C[0], C[1]);
+      triangle(A[0] - offsetScale, A[1] - offsetScale, B[0], B[1] + offsetScale, C[0] + offsetScale, C[1] - offsetScale);
     }
     pop();
   }
@@ -1019,10 +1124,10 @@ function randomWinColor(){
 }
 
 const palette = {
-  r: [255, 107, 107],   // red
-  y: [255, 241, 118],   // yellow
-  g: [129, 236, 128],   // green
-  b: [116, 185, 255],   // blue
+    r: [255, 107, 107],   // red
+    y: [255, 241, 118],   // yellow
+    g: [129, 236, 128],   // green
+    b: [116, 185, 255],   // blue
 };
 
 function randomColor() {
