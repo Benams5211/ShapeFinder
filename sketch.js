@@ -839,8 +839,16 @@ function mousePressed() {
       playMenuSFX();
       gameState = "menu";
       gameEvents.Fire("gameOver", false);
+      //bug fix for pop up
+      if (finalRoundPopup && typeof finalRoundPopup.close === "function") {
+        finalRoundPopup.close();
+      }
       finalRoundPopupShown = false;
+      shownGameOverScreen = false;
+      gameOver = false;
+
       playMenuBGM();
+      gameState = "menu";
     }
   } else if (gameState === "builder") {
     if (mouseInside(backButton)) {
@@ -1305,3 +1313,4 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
+
