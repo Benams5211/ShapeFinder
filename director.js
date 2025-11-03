@@ -1,11 +1,11 @@
 class Director {
   constructor(eventManager, gameEventBus) {
-    this.events = eventManager;      // instance of EventManager (your "events")
-    this.gameEvents = gameEventBus;  // instance of EventListener (your "gameEvents")
+    this.events = eventManager;
+    this.gameEvents = gameEventBus;
 
-    this.difficultyScore = 0;        // abstract "stress" or challenge value
+    this.difficultyScore = 0;
     this.lastDecisionTime = 0;
-    this.decisionCooldown = 5000;    // how often to reevaluate (ms)
+    this.decisionCooldown = 5000;
   }
 
   update() {
@@ -20,19 +20,17 @@ class Director {
   }
 
   assessPlayer() {
-    // base metrics (replace with your real globals)
     const scoreWeight = combo * 2;
     const timeWeight = Timer < 10 ? -20 : (Timer > 30 ? 10 : 0);
     const roundWeight = round * 0.5;
 
-    // combine metrics into one "difficulty index"
     this.difficultyScore = constrain(scoreWeight + timeWeight + roundWeight, -50, 100);
   }
 
   makeDecision() {
-    if (this.events.isActive('DIRECTOR_EVENT')) return; // avoid overlaps
+    if (this.events.isActive('DIRECTOR_EVENT')) return;
 
-    // harder events when doing well
+
     if (this.difficultyScore > 40) {
       const choice = random(['BLACKHOLE_EVENT', 'ZOMBIE_EVENT', 'BOAT_EVENT']);
       this.triggerEvent(choice);
@@ -57,7 +55,7 @@ class Director {
   spawnBonus() {
     console.log("Director: giving player a breather");
     Timer += 5;  // small bonus time
-    // could also spawn bonus items, or temporarily disable ScoreDown shapes
   }
 }
+
 
