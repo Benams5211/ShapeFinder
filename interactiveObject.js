@@ -184,6 +184,7 @@ class InteractiveObject {
           sfxCorrect.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
         }
         stars.push(new StarScoreIndicator(mouseX, mouseY));
+      
         // Celebrate the exact shape/color that was clicked
 if (window.FoundEffect && typeof window.FoundEffect.triggerFoundEffect === 'function') {
   // exact RGB the shape is using
@@ -1156,6 +1157,7 @@ function clearInteractors() {
   interactors.length = 0;
   wantedObj == null;
 }
+
 
 
 
