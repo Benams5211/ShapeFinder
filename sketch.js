@@ -1154,6 +1154,8 @@ function draw() {
 // GAME (placeholder)
 function drawGame() {
   fill(0);
+  if (window.FoundEffect) FoundEffect.applyCameraShakeIfActive();
+
 
   // compute time left based on the single startMillis
   // added totalPaused time so that it only counts time spent NOT pause
@@ -1240,6 +1242,8 @@ function drawGame() {
   // back button
   //drawBackButton();
   drawButton(pauseButton);
+  // overlay LAST so it renders above darkness/UI
+if (window.FoundEffect) FoundEffect.renderFoundEffectOverlay();
 
 }
 
@@ -1333,6 +1337,7 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
+
 
 
 
