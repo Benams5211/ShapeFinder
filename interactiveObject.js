@@ -184,6 +184,24 @@ class InteractiveObject {
           sfxCorrect.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
         }
         stars.push(new StarScoreIndicator(mouseX, mouseY));
+        // Celebrate the exact shape/color that was clicked
+if (window.FoundEffect && typeof window.FoundEffect.triggerFoundEffect === 'function') {
+  // exact RGB the shape is using
+  const col = Array.isArray(this.fillCol) ? this.fillCol : [255, 215, 0];
+
+  // which win-shape class are we?
+  const shapeType =
+    (this instanceof WinCircle) ? 'circle' :
+    (this instanceof WinRect)   ? 'rect'   :
+    (this instanceof WinTri)    ? 'tri'    : 'unknown';
+
+  // a size hint so the overlay can scale nicely
+  const sizeHint = (typeof this.getBoundsRadius === 'function') ? this.getBoundsRadius() : 30;
+
+  // snapshot — no globals (wantedObj/winColorChar) involved
+  window.FoundEffect.triggerFoundEffect(this.x, this.y, col, { shapeType, sizeHint });
+}
+
       }
       gameEvents.Fire("Clicked", isWin);
     } catch (e) {
@@ -1138,5 +1156,6 @@ function clearInteractors() {
   interactors.length = 0;
   wantedObj == null;
 }
+
 
 
