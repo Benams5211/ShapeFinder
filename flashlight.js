@@ -30,6 +30,100 @@ const lampRadiusMin = 200;
 const lampSpeedMax = 500;
 let lampBuffer = null; // Persistent graphics buffer to draw the darkness & lamp light circles.
 
+//
+// Lightning Mode Variables
+//
+let lightningEvent = null; // Holds data of a lightning event - {start, duration, flashes: [{offset,dur}, ...]}
+let lightningNextAt = 0;   // Random time for when the next lightning event should start.
+let thunderNextAt = 0;     // 'millis()' when the scheduled thunder should play.
+let thunderToPlay = null;  // String key of thunder sound to play.
+let rainPlaying = false;   // Tracks if the rain sound effect is looping during Lightning Mode.
+
+// Called each frame to schedule/start/clear lightning events when "Lightning Mode" is enabled.
+function updateLightning() {
+  if (typeof lightningEnabled === 'undefined' || !lightningEnabled) { // Lightning mode disabled - clear any pending lightning & thunder:
+    lightningEvent = null;
+    lightningNextAt = 0;
+    thunderNextAt = 0;
+    thunderToPlay = null;
+
+      if (rainPlaying) { // Stop looping rain if it was playing:
+        if (window.AudioManager && typeof AudioManager.stop === 'function') {
+          try { AudioManager.stop('rain_looping'); } catch (e) {}
+        }
+        rainPlaying = false;
+      }
+      return;
+    }
+
+  // If Lightning Mode is active, ensures rain loop is playing for duration of the game:
+  if (rainPlaying && typeof gameState !== 'undefined' && gameState !== 'game') {
+    if (window.AudioManager && typeof AudioManager.stop === 'function') { // Stop rain loop when exiting the game:
+      try { AudioManager.stop('rain_looping'); } catch (e) {}
+    }
+    rainPlaying = false;
+  }
+
+  if (!rainPlaying && typeof gameState !== 'undefined' && gameState === 'game') {
+    if (window.AudioManager && typeof AudioManager.play === 'function') {
+      try { AudioManager.play('rain_looping', { vol: 0.45, loop: true }); } catch (e) {}
+    } else { // Fallback - try to play an HTMLAudio instance:
+      try { const a = new Audio('assets/audio/rain_looping.mp3'); a.loop = true; a.volume = 0.45; a.play().catch(()=>{}); } catch (e) {}
+    }
+    rainPlaying = true;
+  }
+
+  const now = millis(); // Returns number of milliseconds passed since the program started running for timing lightning strikes.
+
+  if (!lightningEvent) { // If no lightning event has been set up already:
+    if (lightningNextAt === 0) lightningNextAt = now + random(1000, 5000); // Schedule the next lightning strike based on 'millis()'.
+    if (now >= lightningNextAt) { // If the time to start a lightning event has come (based on 'now'):
+      const duration = random(1000, 2000); // Length of lightning event:
+      const flashCount = floor(random(2, 5)); // 2-4 lightning flashes per event:
+      const flashes = [];
+      for (let i = 0; i < flashCount; i++) {
+        const offset = random(0, max(0, duration - 80)); // Sets time between each flash in an event from the start of the event:
+        const dur = random(200, 450); // Sets how long a flash is:
+        flashes.push({ offset, dur });
+      }
+      flashes.sort((a, b) => a.offset - b.offset); // Arrow function to sort lightning flashes in ascending order based on subtraction of offsets.
+      lightningEvent = { start: now, duration, flashes };
+
+      lightningNextAt = now + random(5000, 10000); // Schedule next lightning event after a random gap of time:
+    }
+  } else { // Current lightning event has expired, so clear it and then schedule thunder:
+    if (now - lightningEvent.start > lightningEvent.duration) { // Choose a random thunder sample to play after lightning strike:
+      const idx = floor(random(1, 4));
+      thunderToPlay = 'thunder' + idx; // Create name of each thunder file from 1-3:
+
+      thunderNextAt = now + random(90, 250);
+      lightningEvent = null;
+    }
+  }
+
+  if (thunderToPlay && now >= thunderNextAt) { // If a thunder sample has been scheduled, play it when now surpasses its time:
+    if (window.AudioManager && typeof AudioManager.play === 'function') {
+      try { AudioManager.play(thunderToPlay, { vol: 0.9, loop: false }); } catch (e) {}
+    } else { // Fallback - try to play as HTMLAudio:
+      try { const p = new Audio('assets/audio/' + thunderToPlay + '.mp3'); p.volume = 0.9; p.play().catch(()=>{}); } catch (e) {}
+    }
+    thunderToPlay = null;
+    thunderNextAt = 0;
+  }
+}
+
+// Returns true while any flash in the current lightning event is active
+function isLightningActive() {
+  if (!lightningEvent) return false;
+
+  const now = millis();
+  const elapsed = now - lightningEvent.start;
+  for (const f of lightningEvent.flashes) {
+    if (elapsed >= f.offset && elapsed <= f.offset + f.dur) return true; // While 'elapsed' falls between a lightning strike (from 'offset' to 'dur'):
+  }
+  return false; // Flash is over, so return flase:
+}
+
 // Initialize lamp objects with positions and random velocities.
 function initLamps() {
   lampObjs = [];
@@ -121,6 +215,9 @@ function drawLampsOverlay() {
 
   // Update lamp positions using p5's built-in "deltaTime" to create constant movement.
   updateLamps(deltaTime);
+  // Update lightning event (if active):
+  updateLightning();
+  const flashActive = isLightningActive();
   const positions = getLampPositions();
 
   // Clear and fill darkness on the lamp buffer:
@@ -143,8 +240,17 @@ function drawLampsOverlay() {
     }
   }
 
-  // Draw 'lampBuffer' over the main canvas:
-  image(lampBuffer, 0, 0);
+  // Draw 'lampBuffer' over the main canvas (skip when lightning flash is active):
+  if (!flashActive) {
+    image(lampBuffer, 0, 0);
+  } else {
+    // Draw in the lightning flash instead of 'lampBuffer':
+    push();
+    noStroke();
+    fill(150, 60);
+    rect(0, 0, width, height);
+    pop();
+  }
 
   // Draw visible lamp markers on top to create visible lamp "assets":
   for (const p of positions) {
@@ -278,6 +384,10 @@ function drawFlashlightOverlay () {
   const dx = fx - coverW / 2;
   const dy = fy - coverH / 2;
   
+  // update lightning scheduling
+  updateLightning();
+  const flashActive = isLightningActive();
+
   if(blackout){
     //screen goes black
     push();
@@ -287,7 +397,16 @@ function drawFlashlightOverlay () {
     pop();
   }
   else if (!TimeOver && !blackout) {
-    image(darkness, dx, dy);
+    if (flashActive) {
+      // Draw in lightning flash instead of darkness buffer:
+      push();
+      noStroke();
+      fill(150, 60);
+      rect(0, 0, width, height);
+      pop();
+    } else {
+      image(darkness, dx, dy);
+    }
   }
 }
 
