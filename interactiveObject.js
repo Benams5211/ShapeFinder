@@ -187,6 +187,12 @@ class InteractiveObject {
           sfxCorrect.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
         }
         stars.push(new StarScoreIndicator(mouseX, mouseY));
+        // Celebrate the correct shape (color-matched)
+if (window.FoundEffect && typeof window.FoundEffect.triggerFoundEffect === 'function') {
+  const col = Array.isArray(this.fillCol) ? this.fillCol : [255, 215, 0];
+  window.FoundEffect.triggerFoundEffect(this.x, this.y, col);
+}
+
       }
       gameEvents.Fire("Clicked", isWin);
     } catch (e) {
@@ -1177,6 +1183,7 @@ function clearInteractors() {
   interactors.length = 0;
   wantedObj == null;
 }
+
 
 
 
