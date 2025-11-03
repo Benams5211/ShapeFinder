@@ -115,7 +115,10 @@
     // NEW: snapshot shape + size so overlay matches the clicked object
     foundFX.shapeType = shapeType;
     foundFX.sizeHint  = sizeHint;
+    console.log('[FoundFX snapshot]', { x, y, col, shapeType, sizeHint });
+
     foundFX.drawShapeFn = drawShapeFn;
+    console.log('[FoundFX snapshot]', { x, y, col, shapeType, sizeHint });
 
     foundFX.particles.length = 0;
     for (let i = 0; i < 60; i++) foundFX.particles.push(new Particle(x, y, col));
