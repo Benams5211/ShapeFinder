@@ -513,6 +513,7 @@ function keyPressed() {
   if (key === 'b') triggerBlackHoleEvent(3000);
   if (key === 'w') triggerWarning(5000);
   if (key === 'z') triggerZombieEvent(5000);
+  if (key === 'c') triggerPartyEvent(8000);
 
   if (keyCode === ENTER && consoleInput.elt === document.activeElement) {
     const cmd = consoleInput.value().trim();
@@ -856,8 +857,16 @@ function mousePressed() {
       playMenuSFX();
       gameState = "menu";
       gameEvents.Fire("gameOver", false);
+      //bug fix for pop up
+      if (finalRoundPopup && typeof finalRoundPopup.close === "function") {
+        finalRoundPopup.close();
+      }
       finalRoundPopupShown = false;
+      shownGameOverScreen = false;
+      gameOver = false;
+
       playMenuBGM();
+      gameState = "menu";
     }
   } else if (gameState === "builder") {
     if (mouseInside(backButton)) {
@@ -893,6 +902,8 @@ function mouseInside(btn) {
 function setup() {
   setupBuilder();
   createCanvas(windowWidth, windowHeight);
+
+  director = new Director(events, gameEvents);
 
   userStartAudio().then(() => {
     playMenuBGM();
@@ -1164,6 +1175,8 @@ function draw() {
 // GAME (placeholder)
 function drawGame() {
   fill(0);
+  if (window.FoundEffect) FoundEffect.applyCameraShakeIfActive();
+
 
   // compute time left based on the single startMillis
   // added totalPaused time so that it only counts time spent NOT pause
@@ -1196,6 +1209,10 @@ function drawGame() {
     // gameState = "over";
   }
 
+  if (director && gameState === "game") {
+    director.update();
+  }
+
   // play mode only while not gameOver
   if (!gameOver && gameState !== "pause") {
     playMode();
@@ -1226,6 +1243,19 @@ function drawGame() {
   UILayer.textAlign(RIGHT, CENTER);
   UILayer.fill('black');
   UILayer.textFont(pixelFont);
+
+  let blinkAlpha = 255;
+
+    // Check if time is in the last 10 seconds
+  if (times < 10 && times > 0) {
+    // Blink every half a second
+    let blinkSpeed = 500; // milliseconds
+    blinkAlpha = (millis() % (blinkSpeed * 2) < blinkSpeed) ? 255 : 50; 
+  }
+
+  // Apply blinking color
+  UILayer.fill(0, 0, 0, blinkAlpha);
+  
   UILayer.text("Round: " + round + " Combo: "+ combo + " Time: " + times, UILayer.width - 20, UILayer.height /2);
   image(UILayer, 0,0);
   wantedObj.render();
@@ -1233,6 +1263,8 @@ function drawGame() {
   // back button
   //drawBackButton();
   drawButton(pauseButton);
+  // overlay LAST so it renders above darkness/UI
+if (window.FoundEffect) FoundEffect.renderFoundEffectOverlay();
 
 }
 
@@ -1326,3 +1358,7 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
+
+
+
+

@@ -116,8 +116,11 @@ class InteractiveObject {
     if (this.state.frozen) return;
     
 
+      if(!isBoss){
       if(slowMo){m.velocityLimit=1.5;}
       else {m.velocityLimit=4;}
+      }
+      
       
     // Pick a new target velocity every switchRate frames
     if (frameCount % m.switchRate === 0) {
@@ -710,14 +713,15 @@ function spawnInteractors() {
   let size, count;
   if (difficulty === "easy" || difficulty === "lamps") { // Same values used for Easy & Lamp modes:
     size = 50;        // bigger shapes
-    count = 30;  // fewer objects
+    count = 20;  // fewer objects
   } else if (difficulty === "medium") {
     size = 40;        // medium size & amount
-    count = 60;  
+    count = 40;  
   } else if (difficulty === "hard") {
     size = 25;        // smaller shapes
-    count = 100; // more objects
+    count = 75; // more objects
   }
+  count+=round;
 
   const winShapeType = random(['circle','rect','tri']);
   randomWinColor(); 
@@ -727,7 +731,7 @@ function spawnInteractors() {
     const movement = {
       enabled: true,
       lerpStrength: 0.1,
-      velocityLimit: 4,
+      velocityLimit: (4+round),
       switchRate: 60,
     };
 
@@ -971,7 +975,7 @@ function SpawnBoss(h){
   const movement = {
       enabled: true,
       lerpStrength: 0.05,
-      velocityLimit: 30,
+      velocityLimit: (5+h),
       switchRate: 15, 
     };
 
@@ -1173,5 +1177,6 @@ function clearInteractors() {
   interactors.length = 0;
   wantedObj == null;
 }
+
 
 
