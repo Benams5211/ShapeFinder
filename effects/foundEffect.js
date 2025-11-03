@@ -12,6 +12,8 @@
     flashAlpha: 0,
     shakeAmt: 0,
     color: [255, 215, 0],
+     shapeType: 'circle',
+     sizeHint: 30,
     drawShapeFn: null
   };
 
@@ -96,12 +98,23 @@
   }
 
   // --- API internals ---
-  function triggerFoundEffect(x, y, col = [255, 215, 0], drawShapeFn = null) {
+  function triggerFoundEffect(
+  x,
+  y,
+  col = [255, 215, 0],
+  shapeType = 'circle',
+  sizeHint  = 30,
+  drawShapeFn = null   // keep old arg last for backward-compat
+) {
+
     foundFX.active = true;
     foundFX.x = x;
     foundFX.y = y;
     foundFX.startTime = millis();
     foundFX.color = col;
+    // NEW: snapshot shape + size so overlay matches the clicked object
+    foundFX.shapeType = shapeType;
+    foundFX.sizeHint  = sizeHint;
     foundFX.drawShapeFn = drawShapeFn;
 
     foundFX.particles.length = 0;
@@ -173,6 +186,31 @@
       drawingContext.shadowBlur = 40;
       drawingContext.shadowOffsetX = 0;
       drawingContext.shadowOffsetY = 0;
+      const s = foundFX.sizeHint;
+
+noFill();
+stroke(...foundFX.color);
+strokeWeight(6);
+
+switch (foundFX.shapeType) {
+  case 'rect':
+    rectMode(CENTER);
+    rect(0, 0, s * 2, s * 2, 6);
+    break;
+
+  case 'tri': {
+    const R = s;
+    const ax = 0,        ay = -R;
+    const bx = -R * Math.cos(Math.PI / 6), by =  R * Math.sin(Math.PI / 6);
+    const cx =  R * Math.cos(Math.PI / 6), cy =  R * Math.sin(Math.PI / 6);
+    triangle(ax, ay, bx, by, cx, cy);
+    break;
+  }
+
+  default: // circle
+    circle(0, 0, s * 2);
+    break;
+}
 
       foundFX.drawShapeFn();
       pop();
