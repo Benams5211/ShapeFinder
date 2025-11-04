@@ -199,7 +199,6 @@ class InteractiveObject {
   // because the deletion on click is handled in the base class be sure to call
   // the parent (super) onClick function in child classes when developing additional objects
   onClick() {
-    if (this.deleteOnClick) this.deleteSelf();
     if (this.deleteOnClick) {
       this.isEffectStarting = true;
       switch (this.effect) {
