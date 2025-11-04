@@ -601,11 +601,9 @@ function stopMenuBGM(){
 function drawShop(){
   // Keep the background visuals pretty much the same
   playModeMenu();
-
-  // white translucent blanket
   push();
   noStroke();
-  fill(255, 230);
+  fill(34, 139, 34, 160);
   rect(0,0,width,height);
 
   // Central shop card
@@ -613,7 +611,7 @@ function drawShop(){
   const ch = min(height * 0.78, 640);
   const cx = width / 2 - cw / 2;
   const cy = height / 2 - ch / 2;
-  fill(245);
+  fill(255, 235, 200);
   stroke(30);
   strokeWeight(3);
   rect(cx, cy, cw, ch, 12);
@@ -662,7 +660,13 @@ function drawShop(){
       // box shadow
       push();
       noStroke();
-      fill(0, hovering ? 30 : 16);
+      if (hovering) {
+        // teal shadow when hovering
+        fill(54, 192, 177, 90);
+      } else {
+        //dark shadow when not hovering
+        fill(0, 16);
+      }
       rect(x + 6, y + 6, itemW, itemH, 10);
       pop();
 
