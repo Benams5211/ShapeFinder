@@ -1147,23 +1147,23 @@ const colorPalettes = {
     g: [129, 236, 128],   // green
     b: [116, 185, 255],   // blue
   },
-  protanopia: {
-    r: [0, 128, 255],     // blue
-    y: [255, 255, 102],   // yellow
-    g: [0, 255, 255],     // cyan
-    b: [128, 0, 128],     // purple
+ protanopia: {
+    r: [36, 123, 160],    // muted blue
+    y: [242, 202, 25],    // yellow
+    g: [112, 193, 179],   // aqua green
+    b: [204, 51, 63],     // brick red
   },
   deuteranopia: {
-    r: [255, 165, 0],     // orange
-    y: [255, 255, 102],   // yellow
-    g: [0, 128, 255],     // blue
-    b: [128, 0, 128],     // purple
+    r: [230, 97, 1],      // orange
+    y: [253, 184, 19],    // golden
+    g: [86, 180, 233],    // sky blue
+    b: [204, 121, 167],   // pinkie/magenta
   },
   tritanopia: {
-    r: [255, 105, 180],   // pink
-    y: [144, 238, 144],   // green
-    g: [255, 165, 0],     // orange
-    b: [128, 0, 128],     // purple
+    r: [213, 94, 0],      // orange
+    y: [0, 158, 115],     // teal green
+    g: [240, 228, 66],    // yellow
+    b: [86, 180, 233],    // light blue
   }
 };
 
