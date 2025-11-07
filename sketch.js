@@ -49,6 +49,9 @@ let combo = 0;
 //for slow motion (obviously)
 let slowMo = false;
 
+// Stuff for coins
+let coins = 0;
+let coinPopups = [];
 
 let Stats;
 let gameOverTriggered = false;
@@ -623,7 +626,35 @@ function drawShop(){
   textAlign(CENTER, TOP);
   textSize(40);
   text("SHOP", width/2, cy + 18);
+  // coin display in top-right of the shop card
+  push();
+  textFont(pixelFont);
+  noStroke();
 
+  // size & positioning
+  const coinSize = min(48, cw * 0.06);           
+  const coinPadding = 18;                        
+  const coinY = cy + coinPadding + coinSize / 2; 
+  const coinX = cx + cw - coinPadding - coinSize / 2; 
+
+  // coin icon (gold circle with inner shine)
+  // gold
+  fill(244, 203, 75);
+  stroke(180);
+  strokeWeight(1.5);
+  ellipse(coinX, coinY, coinSize, coinSize);
+  noStroke();
+  fill(255, 230);
+  // shine
+  ellipse(coinX - coinSize * 0.18, coinY - coinSize * 0.22, coinSize * 0.34, coinSize * 0.34);
+
+  // coin count text (to the left of the coin icon)
+  const coinCount = (typeof userCoins !== 'undefined') ? userCoins : 0;
+  textSize(max(14, coinSize * 0.45));
+  textAlign(RIGHT, CENTER);
+  fill(30);
+  text(coinCount + "¢", coinX - coinSize / 2 - 12, coinY);
+  pop();
   // Grid of 3 x 2 item boxes (three on top, three on bottom)
   const cols = 3;
   const rows = 2;
@@ -1259,7 +1290,8 @@ function drawGame() {
   UILayer.textAlign(RIGHT, CENTER);
   UILayer.fill('black');
   UILayer.textFont(pixelFont);
-  UILayer.text("Round: " + round + " Combo: "+ combo + " Time: " + times, UILayer.width - 20, UILayer.height /2);
+  // show Round, Combo, Time and Coins in the top UI bar
+  UILayer.text("Round: " + round + "  Combo: " + combo + "  Time: " + times + "  Coins: " + coins, UILayer.width - 20, UILayer.height /2);
   image(UILayer, 0,0);
   wantedObj.render();
 
@@ -1267,6 +1299,56 @@ function drawGame() {
   //drawBackButton();
   drawButton(pauseButton);
 
+}
+
+class CoinDropPopup {
+  constructor(amount, startX = undefined) {
+    this.amount = amount;
+    this.x = (typeof startX !== 'undefined') ? startX : width/2;
+    this.y = -40;
+    this.targetY = height * 0.12; 
+    this.duration = 1000; 
+    this.startTime = millis();
+    this.dead = false;
+  }
+
+  update() {
+    const elapsed = millis() - this.startTime;
+    const t = constrain(elapsed / this.duration, 0, 1);
+
+    // ease out for a smooth fall 
+    const ease = 1 - (1 - t) * (1 - t);
+    this.y = lerp(-40, this.targetY, ease);
+
+    if (elapsed >= this.duration) {
+      this.dead = true;
+    }
+  }
+
+  show() {
+    push();
+    textFont(pixelFont);
+    textAlign(LEFT, CENTER);
+    const elapsed = constrain(millis() - this.startTime, 0, this.duration);
+    const alpha = map(elapsed, 0, this.duration, 255, 0);
+    noStroke();
+
+    // coin icon
+    const coinSize = max(18, min(36, width * 0.03));
+    fill(244, 203, 75, alpha);
+    ellipse(this.x, this.y, coinSize, coinSize);
+    fill(255, 230, alpha);
+    ellipse(this.x - coinSize * 0.18, this.y - coinSize * 0.22, coinSize * 0.34, coinSize * 0.34);
+
+    // +amount text
+    fill(255, alpha);
+    textSize(max(12, coinSize * 0.6));
+    text("+" + this.amount, this.x + coinSize*0.8, this.y);
+
+    pop();
+  }
+
+  isDead() { return this.dead; }
 }
 
 function updateScoreIndicators() {
@@ -1294,6 +1376,15 @@ function updateScoreIndicators() {
     bossKills[i].show();
     if (bossKills[i].isDead()) {
       bossKills.splice(i, 1);
+    }
+  }
+
+   // handle coin popups
+  for (let i = coinPopups.length - 1; i >= 0; i--) {
+    coinPopups[i].update();
+    coinPopups[i].show();
+    if (coinPopups[i].isDead()) {
+      coinPopups.splice(i, 1);
     }
   }
 }

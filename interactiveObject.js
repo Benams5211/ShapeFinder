@@ -492,10 +492,21 @@ class BossCircle extends ClickCircle {
     setTimeout(() => {
     this.fillCol=[0,0,0];
     }, 100);
-    if(this.health==0) {
+    if (this.health == 0) {
       super.onClick();
       ++round;
       Timer += this.timeAdd;
+        
+      // award coins
+      if (typeof coins === 'undefined') coins = 0;
+      coins += 50;
+        
+      // spawn the falling +50 popup (safe-guard if sketch hasn't declared it yet)
+      if (typeof coinPopups !== 'undefined' && typeof CoinDropPopup === 'function') {
+        // fall from center; you can pass a different startX if you'd like
+        coinPopups.push(new CoinDropPopup(50, width / 2));
+      }
+    
       nextRound();
     }
   }
