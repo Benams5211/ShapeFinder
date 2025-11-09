@@ -4,7 +4,7 @@
 //sprint 9
 
 let gameOver = false;
-let round = 1;
+let round = 9;
 const StartTime = 60;       // length of a round in seconds (set what you want)
 let Timer = StartTime;      // countdown mirror
 let startMillis = 0;        // when the round started
@@ -19,6 +19,7 @@ let bgmHard = null;         // bgm
 let stars = [];             // shapes of +1 round indicator
 let circleBursts = [];      // shapes of -1 round indicator
 let bossKills = [];         // for boss kill indicator
+let bonusStars = [];         // for bonus shape indicator
 
 let difficulty = "medium";  // default difficulty
 const MENU_SHAPE_CAP=80; 
@@ -1073,11 +1074,11 @@ function playMode() {
   events.update();
 }
 
+let isBonusRound = false;
 //add boss fights and round events here
 function nextRound(){
   triggerCurtains();
 
-  //wait, spawn new shapes, turn flashlight back on
   setTimeout(() => {
     clearInteractors();
     if (round%10==0){//boss fight every 10 rounds
@@ -1086,11 +1087,21 @@ function nextRound(){
       spawnBossInteractors();
       SpawnBoss(round);
     }
-    else{
+    else if(!isBonusRound){
       playHardBGM();
       stopBossBGM();
       spawnInteractors();
     }
+  }, 750);
+}
+
+function bonusRound(){
+  triggerCurtains();
+  clearInteractors();
+  setTimeout(() => {
+  stopBossBGM();
+  spawnBonusInteractors();
+  
   }, 750);
 }
 
@@ -1105,7 +1116,7 @@ function startGame() {
   blackout = true;
   gameOver = false;
   gameState = "game";
-  round = 1;
+  round =9;
   combo = 0;
 
   Stats = new StatTracker();
@@ -1130,7 +1141,6 @@ function startGame() {
 //draw loop
 function draw() {
   background(30); // dark gray background for contrast
-
   if (gameState === "menu") {
     stopBossBGM();
     stopHardBGM();
@@ -1181,7 +1191,7 @@ function drawGame() {
 
   // compute time left based on the single startMillis
   // added totalPaused time so that it only counts time spent NOT pause
-  if (gameState !== "pause") {
+  if (gameState !== "pause" && !isBonusRound) {
   let elapsed = int((millis() - startMillis - totalPausedTime) / 1000);
   times = Timer - elapsed;
   }
@@ -1294,6 +1304,14 @@ function updateScoreIndicators() {
     bossKills[i].show();
     if (bossKills[i].isDead()) {
       bossKills.splice(i, 1);
+    }
+  }
+
+  for (let i = bonusStars.length - 1; i >= 0; i--) {
+    bonusStars[i].update();
+    bonusStars[i].show();
+    if (bonusStars[i].isDead()) {
+      bonusStars.splice(i, 1);
     }
   }
 }

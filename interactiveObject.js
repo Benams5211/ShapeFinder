@@ -135,6 +135,7 @@ class InteractiveObject {
   
   updatePos() {
     const isBoss =  (this instanceof BossCircle);
+    const isBonus = (this instanceof BonusCircle);
     if (intensity == 1 && gameState == 'game' && !isBoss && flashlightFreeze) {
     const dx = this.x - mouseX;
     const dy = this.y - mouseY;
@@ -157,7 +158,7 @@ class InteractiveObject {
     if (this.state.frozen) return;
     
 
-      if(!isBoss){
+      if(!isBoss&&!isBonus){
       if(slowMo){m.velocityLimit=1.5;}
       else {m.velocityLimit=4;}
       }
@@ -223,10 +224,18 @@ class InteractiveObject {
     try {
       const isWin = (this instanceof WinRect) || (this instanceof WinCircle) || (this instanceof WinTri);
       const isBoss =  (this instanceof BossCircle);
+      const isBonus = (this instanceof BonusCircle);
       if(isBoss) {
         playBossKill();
         bossKills.push(new BossKillIndicator(mouseX, mouseY));
       }
+      else if(isBonus){
+        if (window.AudioManager && typeof AudioManager.play === 'function') {
+          AudioManager.play('sfxCorrect', { vol: 1.0 }); // Play "sfxCorrect" from the Audio Manager:
+        } else if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') {
+          sfxCorrect.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
+        }
+        bonusStars.push(new BonusIndicator(mouseX, mouseY));}
       else if (!isWin) { // If "isWin" was not one of the "Win" shapes:
         if (window.AudioManager && typeof AudioManager.play === 'function') {
           AudioManager.play('sfxIncorrect', { vol: 1.0 }); // Play "sfxIncorrect" from the Audio Manager:
@@ -612,9 +621,9 @@ class BossCircle extends ClickCircle {
     }, 100);
     if(this.health==0) {
       super.onClick();
-      ++round;
+      isBonusRound=true;
       Timer += this.timeAdd;
-      nextRound();
+      bonusRound();
     }
   }
 }
@@ -708,20 +717,13 @@ class WinTri extends ClickTri {
 }
 
 //special circle 
-// class WhiteCircle extends ClickCircle {
-//   onClick(){
-//     super.onClick();
+class BonusCircle extends ClickCircle {
+  onClick(){
+    super.onClick();
 
-//     if(combo > 9) score += 10;
-//     else if(combo > 19) score += 15;
-//     else if(combo > 29) score += 20;
-//     else if(combo > 39) score += 25;
-//     else if (combo > 49) score += 30;
-//     else score+=5;
-
-//     Timer += 10;
-//   }
-// }
+    Timer += 1;
+  }
+}
 
 
 class BoatCircle extends ClickCircle {
@@ -990,6 +992,51 @@ function spawnInteractors() {
   }
  
         
+}
+
+function spawnBonusInteractors(){
+  let size, count;
+  size = 50;
+  count = 25;
+  preview = null;
+  for (let i = 0; i < count; i++) {
+
+    const movement = {
+      enabled: true,
+      lerpStrength: 0.1,
+      velocityLimit: 20,
+      switchRate: 60,
+    };
+
+    const mods = [
+      new JitterModifier({ rate: 0.1 }),
+      new TeleportModifier({ chance: 0.005 }),
+    ];
+
+    const opts = {
+      movement, modifiers: mods,
+      deleteOnClick: true,
+      randomColor: true,
+      outline: true,
+      stroke: { enabled: true, weight: 9, color: [255,255,255] },
+    };
+
+    let obj;
+    
+      const r = size;
+      const x = random(r, width  - r);
+      const y = random(r, height - r);
+      obj = new BonusCircle(x, y, r, randomColor(),  {...opts, randomColor: false});
+    
+    
+    interactors.push(obj);
+  }
+  setTimeout(() => {
+    isBonusRound = false;
+    ++round;
+    nextRound();
+  }, 10000);
+
 }
 
 function spawnBossInteractors() {
