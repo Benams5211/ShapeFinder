@@ -4,7 +4,7 @@
 //sprint 9
 
 let gameOver = false;
-let round = 9;
+let round = 1;
 const StartTime = 60;       // length of a round in seconds (set what you want)
 let Timer = StartTime;      // countdown mirror
 let startMillis = 0;        // when the round started
@@ -1116,7 +1116,7 @@ function startGame() {
   blackout = true;
   gameOver = false;
   gameState = "game";
-  round =9;
+  round = 1;
   combo = 0;
 
   Stats = new StatTracker();
@@ -1377,6 +1377,7 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
+
 
 
 
