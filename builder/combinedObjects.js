@@ -5,6 +5,7 @@
 // objectList 
 // [Object] = { Offset }
 let combinedObjectList = [];
+let activeBosses = [];
 
 class CombinedObjects {
     constructor(mainObject, objectList) {
@@ -20,6 +21,8 @@ class CombinedObjects {
             o.Shape.x = this.mainObject.x + o.offsetX;
             o.Shape.y = this.mainObject.y + o.offsetY;
         }
+
+        //print(this.mainObject.movement.velocityLimit);
 
         // Bounds handling for the entire combined object
         // We use the main object's velocity to determine bounce direction
@@ -99,47 +102,5 @@ class CombinedObjects {
         });
 
         return new CombinedObjects(mainShape, childList);
-    }
-}
-
-// Will re-factor later to inherit CombinedObjects and its update
-// so animations can be created as well for each individual part
-// todo: key identifier for children shapes?
-class Alien {
-    constructor() {
-        this.object = null;
-    }
-    async spawn() {
-        this.object = await loadCombinedObjectFromFile("/ShapingBad/assets/combinedObjects/alien.json");
-        combinedObjectList.push(this.object);
-
-        interactors.push(this.object.mainObject);
-        for (const child of this.object.objectList) interactors.push(child.Shape);   
-    }
-}
-
-class Cloud {
-    constructor() {
-        this.object = null;
-    }
-    async spawn() {
-        this.object = await loadCombinedObjectFromFile("/ShapingBad/assets/combinedObjects/cloud.json");
-        combinedObjectList.push(this.object);
-
-        interactors.push(this.object.mainObject);
-        for (const child of this.object.objectList) interactors.push(child.Shape);
-    }
-}
-
-class Angel {
-    constructor() {
-        this.object = null;
-    }
-    async spawn() {
-        this.object = await loadCombinedObjectFromFile("/ShapingBad/assets/combinedObjects/angel.json");
-        combinedObjectList.push(this.object);
-
-        interactors.push(this.object.mainObject);
-        for (const child of this.object.objectList) interactors.push(child.Shape);
     }
 }

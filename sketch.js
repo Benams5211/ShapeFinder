@@ -1,6 +1,7 @@
 /////////////////////////////////////////////////////
 //General project vars
 /////////////////////////////////////////////////////
+//sprint 9
 
 let gameOver = false;
 let round = 1;
@@ -18,6 +19,7 @@ let bgmHard = null;         // bgm
 let stars = [];             // shapes of +1 round indicator
 let circleBursts = [];      // shapes of -1 round indicator
 let bossKills = [];         // for boss kill indicator
+let bonusStars = [];         // for bonus shape indicator
 
 let difficulty = "medium";  // default difficulty
 const MENU_SHAPE_CAP=80; 
@@ -39,12 +41,16 @@ let totalPausedTime = 0;
 
 //checkbox business
 let flashlightFreeze = true;
+let flashlightEnabled = true;
 let slowMoEnabled = false;
 let checkboxLight;
 let checkboxSlow;
 // three lamps overlay option (created in modes screen)
 let checkboxLamps;
 let threeLampsEnabled = false;
+// lightning options
+let checkboxLightning;
+let lightningEnabled = false;
 
 //combo counter
 let combo = 0;
@@ -60,6 +66,8 @@ let shownGameOverScreen = false;
 let consoleInput;
 let consoleMessages = [];
 let fileInput;
+//Boss Stats
+let bossImages = {}
 
 //////////////////////////////////////////////////
 //Classes and stuff for menu
@@ -118,7 +126,15 @@ function preload() {
   statsButton0 = loadImage("assets/images/statsButton0.png");
   statsButton1 = loadImage("assets/images/statsButton1.png");
 
-
+  bossImages = {
+          golagon: loadImage("assets/images/golagon.png"),
+          tsunoctagon: loadImage("assets/images/tsunoctagon.png"),
+          abyssagon: loadImage("assets/images/abyssagon.png"),
+          flaregon: loadImage("assets/images/flaregon.png"),
+          heartagon: loadImage("assets/images/heartagon.png"),
+          nullshape: loadImage("assets/images/nullshape.png"),
+          rotangle: loadImage("assets/images/rotangle.png")
+      };
   // Load font
   pixelFont = loadFont("assets/fonts/pixelFont.ttf");
 
@@ -136,6 +152,11 @@ function preload() {
       { name: 'bgmHard', path: 'assets/audio/gameBGM.mp3' },
       { name: 'bgmBoss', path: 'assets/audio/bgmBoss.mp3' },
       { name: 'mainMenu', path: 'assets/audio/mainMenu.mp3' },
+      { name: 'rain_looping', path: 'assets/audio/rain_looping.mp3' },
+      { name: 'thunder1', path: 'assets/audio/thunder-1.mp3' },
+      { name: 'thunder2', path: 'assets/audio/thunder-2.mp3' },
+      { name: 'thunder3', path: 'assets/audio/thunder-3.mp3' },
+      { name: 'bonusBGM', path: 'assets/audio/bonusBGM.mp3' },
     ]);
 
     if (AudioManager.sounds['sfxCorrect']) sfxCorrect = AudioManager.sounds['sfxCorrect'].obj;
@@ -146,6 +167,7 @@ function preload() {
     if (AudioManager.sounds['bgmHard']) bgmHard = AudioManager.sounds['bgmHard'].obj;
     if (AudioManager.sounds['bgmBoss']) bgmBoss = AudioManager.sounds['bgmBoss'].obj;
     if (AudioManager.sounds['mainMenu']) bgmBoss = AudioManager.sounds['mainMenu'].obj;
+    if (AudioManager.sounds['bonusBGM']) bonusBGM = AudioManager.sounds['bonusBGM'].obj;
   } else if (typeof loadSound === 'function') { // If the Audio Manager can't be loaded properly, then just load the sound effects like from previous iteration (with "loadSound()"):
     try {
       sfxCorrect = loadSound('assets/audio/correct.mp3');
@@ -194,6 +216,12 @@ function preload() {
     } catch (e) {
       bossHit = null;
       console.warn('Failed to preload "mainMenu.mp3!"' );
+    }
+    try {
+      bonusBGM = loadSound('assets/audio/bonusBGM.mp3');
+    } catch (e) {
+      bonusBGM = null;
+      console.warn('Failed to preload "bonusBGM.mp3!"' );
     }
   }
 
@@ -246,6 +274,12 @@ function preload() {
     } catch (e) {
       bossHit = null;
       console.warn('Failed to preload "mainMenu.mp3!"' );
+    }
+    try {
+      bonusBGM = loadSound('assets/audio/bonusBGM.mp3');
+    } catch (e) {
+      bonusBGM = null;
+      console.warn('Failed to preload "bonusBGM.mp3!"' );
     }
   }
 
@@ -302,7 +336,7 @@ function spawnMenuShape() {
       director: formationDirector,
       joinChance: 0.001,
       strength: 0.20,
-      types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare',],
+        types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare'],
       minGapFrames: 180,
     }));
   }
@@ -391,6 +425,7 @@ function drawModes() {
   text("Flashlight Freeze", width/4-width/32, height/2+height/-(height*0.0282));
   text("Slow-Mo Enabled", width/4-width/32, height/2+height/(height*0.0169));
   text("Three Lamps Mode", width/4-width/32, height/2+height/(height*0.0062));
+  text("Lightning Mode", width/4-width/32, height/4 + height * 0.57 + 8);
 
   if (!checkboxLight) {
     checkboxLight = createCheckbox("", flashlightFreeze);
@@ -411,11 +446,20 @@ function drawModes() {
     checkboxLamps.style("transform", "scale(5)");
   }
 
+  // Lightning Mode overlay checkbox 
+  if (!checkboxLightning) {
+    checkboxLightning = createCheckbox("", lightningEnabled);
+    checkboxLightning.position(width / 4 + width/10, height / 4 + height * 0.57);
+    checkboxLightning.style("transform", "scale(5)");
+  }
+
   if (checkboxSlow.checked()) {slowMoEnabled = true; } else {slowMoEnabled = false;}
 
   if (checkboxLight.checked()) {flashlightFreeze = true;} else {flashlightFreeze = false;}
 
   if (checkboxLamps.checked()) { threeLampsEnabled = true; } else { threeLampsEnabled = false; }
+
+  if (checkboxLightning.checked()) { lightningEnabled = true; } else { lightningEnabled = false; }
 
 
   text("Select Color Scheme", width/4+width/2, height/2 - 150);
@@ -431,63 +475,184 @@ function drawModes() {
   drawButton(backToMenuButton);
 }
 
+function drawBossCards() {
+    const cardWidth = 160;
+    const cardHeight = 200;
+    const paddingX = 30;
+    const paddingY = 30;
+
+    const totalTop = 4;
+    const totalBottom = 3;
+
+    const galleryTopY = height - 360; 
+    const galleryCenterX = width / 2;
+
+    const bosses = [
+        { name: "The Rainbow Crystalline Golagon", key: "golagon", defeated: false },
+        { name: "Flaregon", key: "flaregon", defeated: false },
+        { name: "Abyssagon",key: "abyssagon", defeated: false },
+        { name: "Heartagon", key: "heartagon",defeated: false },
+        { name: "Nullshape", key: "nullshape",defeated: false },
+        { name: "Rotangle", key: "rotangle",defeated: false },
+        { name: "Tsunoctagon", key: "tsunoctagon",defeated: false }
+    ];
+
+    rectMode(CENTER);
+    textAlign(CENTER, CENTER);
+    imageMode(CENTER);
+    textSize(14);
+    strokeWeight(2);
+
+    // Top row
+    const topRowWidth = totalTop * cardWidth + (totalTop - 1) * paddingX;
+    const topStartX = galleryCenterX - topRowWidth / 2;
+
+    for (let i = 0; i < totalTop; i++) {
+        const boss = bosses[i];
+        const x = topStartX + i * (cardWidth + paddingX);
+        const y = galleryTopY;
+
+        drawBossCard(x, y, cardWidth, cardHeight, boss);
+    }
+
+    // Bottom row
+    const bottomRowWidth = totalBottom * cardWidth + (totalBottom - 1) * paddingX;
+    const bottomStartX = galleryCenterX - bottomRowWidth / 2;
+    const bottomY = galleryTopY + cardHeight + paddingY;
+
+    for (let i = 0; i < totalBottom; i++) {
+        const boss = bosses[i + totalTop];
+        const x = bottomStartX + i * (cardWidth + paddingX);
+        drawBossCard(x, bottomY, cardWidth, cardHeight, boss);
+    }
+}
+
+// helper for a single card
+function drawBossCard(x, y, w, h, boss) {
+    push();
+    const bossKey = boss["key"];
+    const defeated = Stats.lifetime.get("defeatedBosses")
+
+    // Card frame
+    fill(40, 40, 60, 240);
+    stroke(defeated.includes(bossKey) ? color(100, 255, 150) : color(120));
+    rect(x, y, w, h, 10);
+
+    // Inner preview area
+    noStroke();
+    fill(80, 80, 130, 180);
+    const innerW = w - 30;
+    const innerH = h - 80;
+    const innerY = y - 20;
+    rect(x, innerY, innerW, innerH, 8);
+
+    // Draw boss image
+    const img = bossImages[boss.key];
+    if (img) {
+        const aspect = img.width / img.height;
+        let displayW = innerW - 10;
+        let displayH = displayW / aspect;
+
+        if (displayH > innerH - 10) {
+            displayH = innerH - 10;
+            displayW = displayH * aspect;
+        }
+
+        imageMode(CENTER);
+        image(img, x, innerY, displayW, displayH);
+    }
+
+    // Boss text
+    fill(255);
+    textSize(13);
+    text(boss.name, x, y + h / 2 - 30);
+
+    textSize(12);
+    fill(defeated.includes(bossKey) ? color(100, 255, 150) : color(255, 100, 100));
+    text(defeated.includes(bossKey) ? "Defeated" : "Undefeated", x, y + h / 2 - 12);
+
+    pop();
+}
+
 
 function drawStats() {
-    background(60); 
-
-
+    background(60);
     playModeMenu();
 
+    // --- Overall backdrop ---
+    push();
     fill(0, 180);
     noStroke();
+    rectMode(CORNER);
     rect(0, 0, width, height);
+    pop();
+
+    // --- Title ---
+    push();
     fill(255);
     textAlign(CENTER, TOP);
     textSize(48);
     text("Player Stats", width / 2, 20);
+    pop();
 
     // --- Session Stats ---
+    push();
     textSize(32);
     textAlign(LEFT, TOP);
     fill(200);
-    text("Last Game", 50, 100);
+    text("Last Game", width / 4, 100);
+    const lastGameX = width / 4;
 
     if (!Stats) Stats = new StatTracker();
 
     textSize(24);
     fill(255);
-    let y = 140; // starting y
+    let y = 140;
     const lineHeight = 30;
     const correct = Stats.lifetime.get("correctClicks");
-    const incorrect = Stats.lifetime.get("incorrectClicks")
+    const incorrect = Stats.lifetime.get("incorrectClicks");
 
-    text("Final Round: " + Stats.session.get("round"), 50, y); y += lineHeight;
-    text("Correct Clicks: " + Stats.session.get("correctClicks"), 50, y); y += lineHeight;
-    text("Incorrect Clicks: " + Stats.session.get("incorrectClicks"), 50, y); y += lineHeight;
-    text("Highest Combo: " + Stats.session.get("highestCombo"), 50, y); y += lineHeight;
-    text("Time Alive: " + nf(Stats.session.get("timeAlive"), 1, 2) + "s", 50, y); y += lineHeight;
-    text("Average Find Time: " + nf(Stats.session.get("averageFindTime") / 1000, 1, 2) + "s", 50, y); y += lineHeight;
-    text("Difficulty: " + Stats.session.get("difficulty"), 50, y); y += lineHeight;
+    text("Final Round: " + Stats.session.get("round"), lastGameX, y); y += lineHeight;
+    text("Correct Clicks: " + Stats.session.get("correctClicks"), lastGameX, y); y += lineHeight;
+    text("Incorrect Clicks: " + Stats.session.get("incorrectClicks"), lastGameX, y); y += lineHeight;
+    text("Highest Combo: " + Stats.session.get("highestCombo"), lastGameX, y); y += lineHeight;
+    text("Time Alive: " + nf(Stats.session.get("timeAlive"), 1, 2) + "s", lastGameX, y); y += lineHeight;
+    text("Average Find Time: " + nf(Stats.session.get("averageFindTime") / 1000, 1, 2) + "s", lastGameX, y); y += lineHeight;
+    text("Difficulty: " + Stats.session.get("difficulty"), lastGameX, y);
+    pop();
 
     // --- Lifetime Stats ---
+    push();
     textSize(32);
     fill(200);
     textAlign(LEFT, TOP);
-    text("Lifetime Stats", width / 2 + 50, 100);
+    text("Lifetime Stats", width / 2, 100);
 
     textSize(24);
     fill(255);
     y = 140;
-    text("Total Games Played: " + Stats.lifetime.get("totalGames"), width / 2 + 50, y); y += lineHeight;
-    text("Total Correct Clicks: " + correct + " (" + (correct/(correct+incorrect) * 100).toFixed(2) + "%)", width / 2 + 50, y); y += lineHeight;
-    text("Total Incorrect Clicks: " + Stats.lifetime.get("incorrectClicks"), width / 2 + 50, y); y += lineHeight;
-    text("Total Alive Time: " + nf(Stats.lifetime.get("totalPlayTime"), 1, 2) + "s", width / 2 + 50, y); y += lineHeight;
-    text("Best Round: " + Stats.lifetime.get("bestRound"), width / 2 + 50, y); y += lineHeight;
-    text("Highest Combo: " + Stats.lifetime.get("highestCombo"), width / 2 + 50, y); y += lineHeight;
-    text("Average Find Time: " + nf(Stats.lifetime.get("averageFindTime"), 1, 2) + "s", width / 2 + 50, y); y += lineHeight;
+    const lifetimeX = width / 2;
+    text("Total Games Played: " + Stats.lifetime.get("totalGames"), lifetimeX, y); y += lineHeight;
+    text(
+        "Total Correct Clicks: " + correct + " (" + (correct / (correct + incorrect) * 100).toFixed(2) + "%)",
+        lifetimeX, y
+    ); y += lineHeight;
+    text("Total Incorrect Clicks: " + Stats.lifetime.get("incorrectClicks"), lifetimeX, y); y += lineHeight;
+    text("Total Alive Time: " + nf(Stats.lifetime.get("totalPlayTime"), 1, 2) + "s", lifetimeX, y); y += lineHeight;
+    text("Best Round: " + Stats.lifetime.get("bestRound"), lifetimeX, y); y += lineHeight;
+    text("Highest Combo: " + Stats.lifetime.get("highestCombo"), lifetimeX, y); y += lineHeight;
+    text("Average Find Time: " + nf(Stats.lifetime.get("averageFindTime"), 1, 2) + "s", lifetimeX, y); y += lineHeight;
+    pop();
 
-    // --- Back Button ---
+    // Cards
+    push();
+    drawBossCards();
+    pop();
+
+    // back
+    push();
     drawButton(backButton);
+    pop();
 }
 
 
@@ -497,10 +662,6 @@ function keyPressed() {
   if (key === 'w') triggerWarning(5000);
   if (key === 'z') triggerZombieEvent(5000);
   if (key === 'c') triggerPartyEvent(8000);
-  if (key === 'm') triggerMimicEvent(8000, 20);
-  if (key === 'n') triggerN1FormationEvent();
-  if (key === 'e') triggerEZFormationEvent();
-  if (key === 'l') triggerLOLFormationEvent();
 
   if (keyCode === ENTER && consoleInput.elt === document.activeElement) {
     const cmd = consoleInput.value().trim();
@@ -634,6 +795,22 @@ function stopMenuBGM(){
           AudioManager.stop('mainMenu');
   } else if (typeof mainMenu !== 'undefined' && mainMenu && typeof mainMenu.play === 'function') {
     mainMenu.stop('mainMenu');
+  }
+}
+
+function playBonusBGM(){
+  if (window.AudioManager && typeof AudioManager.play === 'function') {
+    AudioManager.play('bonusBGM', { vol: 0.35, loop:true }); // Play "bonusBGM" from the Audio Manager:
+  } else if (typeof bonusBGM !== 'undefined' && bonusBGM && typeof bonusBGM.play === 'function') {
+    bonusBGM.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
+  }
+}
+
+function stopBonusBGM(){
+  if (window.AudioManager && typeof AudioManager.play === 'function') {
+          AudioManager.stop('bonusBGM');
+  } else if (typeof bonusBGM !== 'undefined' && bonusBGM && typeof bonusBGM.play === 'function') {
+    bonusBGM.stop('bonusBGM');
   }
 }
 
@@ -1046,11 +1223,17 @@ function setup() {
 }
 
 //makes the shapes
-function playMode() {
+async function playMode() {
   background(50);
+
+
   for (const obj of combinedObjectList) {
-    obj.update()
+    obj.update();
   }
+  for (const boss of activeBosses) {
+    boss.drawUI();
+  }
+  
   for (const it of interactors) {
     it.update();  // runs movement + modifiers
     it.render();  // draws the object
@@ -1059,11 +1242,11 @@ function playMode() {
   events.update();
 }
 
+let isBonusRound = false;
 //add boss fights and round events here
 function nextRound(){
   triggerCurtains();
 
-  //wait, spawn new shapes, turn flashlight back on
   setTimeout(() => {
     clearInteractors();
     if (round%10==0){//boss fight every 10 rounds
@@ -1072,11 +1255,23 @@ function nextRound(){
       spawnBossInteractors();
       SpawnBoss(round);
     }
-    else{
+    else if(!isBonusRound){
+      stopBonusBGM();
       playHardBGM();
       stopBossBGM();
       spawnInteractors();
     }
+  }, 750);
+}
+
+function bonusRound(){
+  triggerCurtains();
+  clearInteractors();
+  setTimeout(() => {
+  stopBossBGM();
+  spawnBonusInteractors();
+  playBonusBGM();
+  
   }, 750);
 }
 
@@ -1116,10 +1311,11 @@ function startGame() {
 //draw loop
 function draw() {
   background(30); // dark gray background for contrast
-
+  push();
   if (gameState === "menu") {
     stopBossBGM();
     stopHardBGM();
+    stopBonusBGM();
     drawMenu();
   } else if (gameState === "game") {
     stopMenuBGM();
@@ -1135,7 +1331,9 @@ function draw() {
     drawBuilder();
   } else if (gameState === "stats") {
     drawStats();
+    drawBossCards();
   }
+  pop();
 
   if(gameState != "modes" && checkboxLight){
       checkboxLight.remove(); // completely deletes it from the DOM
@@ -1151,6 +1349,10 @@ function draw() {
     checkboxLamps.remove(); // completely deletes it from the DOM
     checkboxLamps = null;   // clear reference
   }
+  if(gameState != "modes" && checkboxLightning){
+      checkboxLightning.remove(); // completely deletes it from the DOM
+      checkboxLightning = null;   // clear reference
+  }
 
   updateScoreIndicators();
 }
@@ -1163,7 +1365,7 @@ function drawGame() {
 
   // compute time left based on the single startMillis
   // added totalPaused time so that it only counts time spent NOT pause
-  if (gameState !== "pause") {
+  if (gameState !== "pause" && !isBonusRound) {
   let elapsed = int((millis() - startMillis - totalPausedTime) / 1000);
   times = Timer - elapsed;
   }
@@ -1214,7 +1416,7 @@ function drawGame() {
   if (typeof threeLampsEnabled !== 'undefined' && threeLampsEnabled && typeof drawLampsOverlay === 'function') {
     drawLampsOverlay();
   } else {
-    drawFlashlightOverlay();
+    if (flashlightEnabled) drawFlashlightOverlay();
   }
 
   events.renderFront();
@@ -1241,7 +1443,7 @@ function drawGame() {
   
   UILayer.text("Round: " + round + " Combo: "+ combo + " Time: " + times, UILayer.width - 20, UILayer.height /2);
   image(UILayer, 0,0);
-  wantedObj.render();
+  if (wantedObj) wantedObj.render();
 
   // back button
   //drawBackButton();
@@ -1276,6 +1478,14 @@ function updateScoreIndicators() {
     bossKills[i].show();
     if (bossKills[i].isDead()) {
       bossKills.splice(i, 1);
+    }
+  }
+
+  for (let i = bonusStars.length - 1; i >= 0; i--) {
+    bonusStars[i].update();
+    bonusStars[i].show();
+    if (bonusStars[i].isDead()) {
+      bonusStars.splice(i, 1);
     }
   }
 }
@@ -1341,6 +1551,8 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
+
+
 
 
 

@@ -34,6 +34,9 @@ class InteractiveObject {
     this.randomColor = !!opts.randomColor;
     this.outline = !!opts.outline;
     this.isWanted = !!opts.wanted;
+    // Added to prevent conflict with new boss combinedobjects velocity
+    // (The velocityLimit of the mainObject was being set to 4 by default)
+    this.isCombined = false
 
     // Shape effects related variables.
     this.alpha = 255; // Full opacity by default
@@ -156,11 +159,13 @@ class InteractiveObject {
     
     // Ignore movement on this frame if Shape's state is 'frozen'
     if (this.state.frozen) return;
-    
 
-      if(!isBoss&&!isBonus){
-      if(slowMo){m.velocityLimit=1.5;}
-      else {m.velocityLimit=4;}
+
+
+      
+      if(!isBoss&&!isBonus&&!this.isCombined){
+        if(slowMo){m.velocityLimit=1.5;}
+        else {m.velocityLimit = 4;}
       }
       
       
@@ -220,6 +225,7 @@ class InteractiveObject {
     for (let e of this.events)
       gameEvents.Fire(e, this);
     if (gameState === "builder") return;
+    if (this.isCombined) return;
 
     try {
       const isWin = (this instanceof WinRect) || (this instanceof WinCircle) || (this instanceof WinTri);
@@ -289,7 +295,7 @@ if (window.FoundEffect && typeof window.FoundEffect.triggerFoundEffect === 'func
     this.alpha = map(sin(frameCount * 1.5), -1, 1, 180, 255);
 
     this.shiverTime--;
-
+    print(this.shiverTime)
     if (this.shiverTime <= 0) {
       this.deleteSelf();
       return;
@@ -807,7 +813,6 @@ class ScoreDownCircle extends ClickCircle {
   onClick() {
     super.onClick()
     Timer -= 5;
-    triggerEZFormationEvent();
 
     combo = 0;
   }
@@ -817,7 +822,6 @@ class ScoreDownRect extends ClickRect {
   onClick() {
     super.onClick()
     Timer -= 5;
-    triggerN1FormationEvent();
 
     combo = 0;
   }
@@ -827,7 +831,6 @@ class ScoreDownTri extends ClickTri {
   onClick() {
     super.onClick();
     Timer -= 5;
-    triggerLOLFormationEvent();
 
 
     combo = 0;
@@ -982,7 +985,7 @@ class TeleportModifier {
   }
 }
 
-function spawnInteractors() {
+async function spawnInteractors() {
   // Ensure lamps reset to default positions whenever a new set of interactors is spawned:
   if (typeof initLamps === 'function') initLamps();
   // rare nested function utility
@@ -1035,13 +1038,6 @@ function spawnInteractors() {
       new JitterModifier({ rate: 0.1 }),
       new TeleportModifier({ chance: 0.005 }),
     ];
-    mods.push(new FigureSkateModifier({
-      director: tauntDirector,
-      joinChance: 0,
-      strength: 0.20,
-      types: [],
-      minGapFrames: 0,
-    }));
     if (random() < 0.50 && !slowMoEnabled) {
       mods.push(new FigureSkateModifier({
         director: formationDirector,
@@ -1258,14 +1254,6 @@ function spawnBossInteractors() {
       new JitterModifier({ rate: 0.1 }),
       new TeleportModifier({ chance: 0.005 }),
     ];
-
-    mods.push(new FigureSkateModifier({
-      director: tauntDirector,
-      joinChance: 0,
-      strength: 0.20,
-      types: [],
-      minGapFrames: 0,
-    }));
     if (random() < 0.50 && !slowMoEnabled) {
       mods.push(new FigureSkateModifier({
         director: formationDirector,
@@ -1356,20 +1344,28 @@ function SpawnBoss(h){
     };
 
     if (difficulty === "easy") {
-    r = 65;        // bigger shapes
-  } else if (difficulty === "medium") {
-    r = 55;        // medium size & amount
-  } else if (difficulty === "hard") {
-    r = 35;        // smaller shapes
-  }
-    const x = random(r, width  - r);
-    const y = random(r, height - r);
-    let bossObj;
-    bossObj= new BossCircle(h, x, y, r, [0,0,0], {...opts});
-    interactors.push(bossObj);
-
-    const preview = makeStaticWantedFromBoss(bossObj);
-     if (preview) wantedObj = preview;
+      r = 65;        // bigger shapes
+    } else if (difficulty === "medium") {
+      r = 55;        // medium size & amount
+    } else if (difficulty === "hard") {
+      r = 35;        // smaller shapes
+    }
+    const randomBossChoice = random(1,5);
+    let preview
+    if (randomBossChoice === 1) {
+      const x = random(r, width  - r);
+      const y = random(r, height - r);
+      let bossObj;
+      bossObj= new BossCircle(h, x, y, r, [0,0,0], {...opts});
+      interactors.push(bossObj);
+      preview = makeStaticWantedFromBoss(bossObj);
+    } else {
+      let golagon = new Golagon_P2();
+      golagon.spawn();
+      wantedObj = null;
+      flashlightEnabled = false;
+    }
+    if (preview) wantedObj = preview;
 }
 
 //helpers
@@ -1498,6 +1494,7 @@ function setWinColor() {
   return palette[winColorChar];
 }
 
+
 function clearInteractors() {
   interactors.length = 0;
 }
@@ -1536,7 +1533,9 @@ function isUnderFlashlight(x, y, pad = 0) {
   const dy = y - fy;
   return (dx*dx)/(rx*rx) + (dy*dy)/(ry*ry) <= 1;
 }
+
 function clearInteractors() {
+  clearBosses()
   interactors.length = 0;
   wantedObj == null;
 }

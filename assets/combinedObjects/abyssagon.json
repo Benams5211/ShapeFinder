@@ -1,0 +1,287 @@
+{
+  "type": "combined",
+  "main": {
+    "type": "circle",
+    "x": 600,
+    "y": 480,
+    "r": 65,
+    "fillCol": [40, 0, 0],
+    "angle": 0,
+    "opts": {
+      "randomColor": false,
+      "deleteOnClick": false,
+      "stroke": { "enabled": true, "weight": 3, "color": [200, 0, 0] },
+      "movement": { "enabled": false, "lerpStrength": 0.08, "velocityLimit": 2, "switchRate": 60 },
+      "modifiers": [],
+      "events": ["dragStart", "select"]
+    }
+  },
+  "children": [
+    {
+      "shape": {
+        "type": "circle",
+        "x": 600,
+        "y": 480,
+        "r": 130,
+        "fillCol": [0, 0, 0, 0],
+        "opts": { "stroke": { "enabled": true, "weight": 3, "color": [255, 0, 0, 90] } }
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "circle",
+        "x": 600,
+        "y": 480,
+        "r": 100,
+        "fillCol": [80, 0, 0, 45],
+        "opts": { "stroke": { "enabled": true, "weight": 2, "color": [255, 50, 50, 100] } }
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 540,
+        "y": 380,
+        "size": 70,
+        "fillCol": [180, 0, 0, 220],
+        "angle": -0.5
+      },
+      "offsetX": -60,
+      "offsetY": -90
+    },
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 660,
+        "y": 380,
+        "size": 70,
+        "fillCol": [180, 0, 0, 220],
+        "angle": 0.5
+      },
+      "offsetX": 60,
+      "offsetY": -90
+    },
+
+    {
+      "shape": {
+        "type": "rect",
+        "x": 600,
+        "y": 480,
+        "w": 250,
+        "h": 10,
+        "radius": 3,
+        "fillCol": [255, 0, 0, 80],
+        "angle": 0.7854
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "rect",
+        "x": 600,
+        "y": 480,
+        "w": 250,
+        "h": 10,
+        "radius": 3,
+        "fillCol": [255, 0, 0, 80],
+        "angle": -0.7854
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 600,
+        "y": 480,
+        "size": 100,
+        "fillCol": [120, 0, 0, 160],
+        "angle": 0
+      },
+      "offsetX": 0,
+      "offsetY": -70
+    },
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 600,
+        "y": 480,
+        "size": 100,
+        "fillCol": [120, 0, 0, 160],
+        "angle": 3.1416
+      },
+      "offsetX": 0,
+      "offsetY": 70
+    },
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 600,
+        "y": 480,
+        "size": 120,
+        "fillCol": [100, 0, 0, 120],
+        "angle": 1.5708
+      },
+      "offsetX": -70,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 600,
+        "y": 480,
+        "size": 120,
+        "fillCol": [100, 0, 0, 120],
+        "angle": -1.5708
+      },
+      "offsetX": 70,
+      "offsetY": 0
+    },
+
+    {
+      "shape": {
+        "type": "circle",
+        "x": 600,
+        "y": 480,
+        "r": 40,
+        "fillCol": [255, 20, 20, 200]
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+
+    {
+      "shape": {
+        "type": "rect",
+        "x": 600,
+        "y": 590,
+        "w": 40,
+        "h": 90,
+        "radius": 5,
+        "fillCol": [255, 30, 30, 180]
+      },
+      "offsetX": 0,
+      "offsetY": 120
+    },
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 600,
+        "y": 640,
+        "size": 40,
+        "fillCol": [255, 100, 100, 180],
+        "angle": 3.1416
+      },
+      "offsetX": 0,
+      "offsetY": 160
+    },
+
+    {
+      "shape": {
+        "type": "circle",
+        "x": 600,
+        "y": 320,
+        "r": 40,
+        "fillCol": [255, 0, 0, 30],
+        "opts": { "stroke": { "enabled": true, "weight": 2, "color": [255, 50, 50, 100] } }
+      },
+      "offsetX": 0,
+      "offsetY": -160
+    },
+
+    {
+      "shape": {
+        "type": "circle",
+        "x": 570,
+        "y": 480,
+        "r": 8,
+        "fillCol": [255, 255, 255, 255]
+      },
+      "offsetX": -25,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "circle",
+        "x": 630,
+        "y": 480,
+        "r": 8,
+        "fillCol": [255, 255, 255, 255]
+      },
+      "offsetX": 25,
+      "offsetY": 0
+    },
+
+    {
+      "shape": {
+        "type": "rect",
+        "x": 600,
+        "y": 495,
+        "w": 25,
+        "h": 4,
+        "radius": 2,
+        "fillCol": [255, 0, 0]
+      },
+      "offsetX": 0,
+      "offsetY": 20
+    },
+
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 600,
+        "y": 480,
+        "size": 30,
+        "fillCol": [255, 0, 0, 160],
+        "angle": 0.7854
+      },
+      "offsetX": -40,
+      "offsetY": 60
+    },
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 600,
+        "y": 480,
+        "size": 30,
+        "fillCol": [255, 0, 0, 160],
+        "angle": -0.7854
+      },
+      "offsetX": 40,
+      "offsetY": 60
+    },
+
+    {
+      "shape": {
+        "type": "circle",
+        "x": 600,
+        "y": 480,
+        "r": 15,
+        "fillCol": [255, 50, 50, 200]
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "rect",
+        "x": 600,
+        "y": 480,
+        "w": 10,
+        "h": 50,
+        "radius": 2,
+        "fillCol": [255, 0, 0, 200],
+        "angle": 1.5708
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    }
+  ]
+}
