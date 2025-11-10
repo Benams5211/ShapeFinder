@@ -1,7 +1,18 @@
+// -----------------------------------------------------------------------------
+// event constants
+// -----------------------------------------------------------------------------
+const BOAT_EVENT = 'screen.BoatLine';
+const WARNING_EVENT = 'screen.Warning';
+const WARNING_BOAT_EVENT = 'screen.Warning_Boatline';
+const WIN_EVENT = 'game.Win';
+const BLACKHOLE_EVENT = 'screen.BlackHole';
+const SPLASH_EVENT = 'screen.Splash';
+const ZOMBIE_EVENT = 'screen.Zombie';
+const CURTAINS_EVENT = 'screen.Curtains';
+const PARTY_EVENT = 'screen.Party';
 
-// The idea is to have an event-driven system for the player-stats (or anything else)
-// for which we can define 'events' to listen to, separate from the
-// EventManager
+// event list in case we want to make something do a random event empty rn
+const EVENT_LIST = [BOAT_EVENT, BLACKHOLE_EVENT, ZOMBIE_EVENT, PARTY_EVENT];
 
 class EventListener {
     constructor() {
@@ -156,21 +167,6 @@ function setupGameEvents() {
   })
 }
 
-// -----------------------------------------------------------------------------
-// event constants
-// -----------------------------------------------------------------------------
-const BOAT_EVENT = 'screen.BoatLine';
-const WARNING_EVENT = 'screen.Warning';
-const WARNING_BOAT_EVENT = 'screen.Warning_Boatline';
-const WIN_EVENT = 'game.Win';
-const BLACKHOLE_EVENT = 'screen.BlackHole';
-const SPLASH_EVENT = 'screen.Splash';
-const ZOMBIE_EVENT = 'screen.Zombie';
-const CURTAINS_EVENT = 'screen.Curtains';
-
-// event list in case we want to make something do a random event empty rn
-const EVENT_LIST = [/* add add events that impact gameplay and are kinda standalone */];
-
 function triggerBlackHoleEvent(ms = 3000) {
   const freezeForever = new FreezeModifier({ chance: 1, duration: 1 }); // freeze the hole
 
@@ -188,6 +184,7 @@ function triggerBlackHoleEvent(ms = 3000) {
     randomColor: false,
     deleteOnClick: false,
     stroke: { enabled: false },
+    isWanted: true,
   };
   const BlackHole = new ClickCircle(random(width), random(height), 0, [0,10,0], bhOpts);
 
@@ -259,6 +256,63 @@ function triggerBlackHoleEvent(ms = 3000) {
 
       // Explosion animation on blackhole event finish
       spawnSplashEvent(BlackHole.x, BlackHole.y, 1000, 300, color(0,0,0));
+    }
+  });
+}
+
+function triggerPartyEvent(duration = 6000) {
+  const affected = [];
+
+  events.start(PARTY_EVENT, duration, {
+    onStart: () => {
+      console.log("PARTY_EVENT started!");
+
+      for (const obj of interactors) {
+        // skip wanted object so it behaves normally
+        if (obj.isWanted) continue;
+        if (!obj.movement) continue;
+
+        affected.push({
+          obj,
+          original: { ...obj.movement },
+        });
+
+        // temporarily disable their normal smooth movement
+        obj.movement.enabled = false;
+
+        // give strong random velocity
+        obj.vx = random(-12, 12);
+        obj.vy = random(-12, 12);
+      }
+    },
+
+    onUpdate: () => {
+      for (const obj of interactors) {
+        if (!obj.enabled) continue;
+        if (obj.isWanted) continue;
+
+        // move by velocity
+        obj.x += obj.vx;
+        obj.y += obj.vy;
+
+        // bounce off edges
+        if (obj.x < 0 || obj.x > width) obj.vx *= -1;
+        if (obj.y < 0 || obj.y > height) obj.vy *= -1;
+
+        // small random velocity changes for chaos
+        if (random() < 0.1) {
+          obj.vx += random(-2, 2);
+          obj.vy += random(-2, 2);
+        }
+      }
+    },
+
+    onEnd: () => {
+      console.log("PARTY_EVENT ended!");
+      // restore normal movement for affected shapes
+      for (const { obj, original } of affected) {
+        obj.movement = { ...original };
+      }
     }
   });
 }
@@ -539,7 +593,7 @@ function triggerBoatLines(ms = 10000) {
 
 function updateAndRenderWarning() {
   // message could be changed with parameters but im lazy
-  const msg = " WARNING INCOMING ";
+  const msg = "WARNING INCOMING ";
   // px per second
   const speed = 400;
   // verticle offset

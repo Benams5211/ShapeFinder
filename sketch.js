@@ -1,6 +1,7 @@
 /////////////////////////////////////////////////////
 //General project vars
 /////////////////////////////////////////////////////
+//sprint 9
 
 let gameOver = false;
 let round = 1;
@@ -18,6 +19,7 @@ let bgmHard = null;         // bgm
 let stars = [];             // shapes of +1 round indicator
 let circleBursts = [];      // shapes of -1 round indicator
 let bossKills = [];         // for boss kill indicator
+let bonusStars = [];         // for bonus shape indicator
 
 let difficulty = "medium";  // default difficulty
 const MENU_SHAPE_CAP=80; 
@@ -30,6 +32,9 @@ let builderButton0, builderButton1;
 let statsButton0, statsButton1;
 const optionsButtonScale = 5.5;
 
+//colorblind buttons
+let defaultColorBtn, protanopiaBtn, deuteranopiaBtn, tritanopiaBtn;
+
 // stuff for paused
 let pauseStartMillis = 0;
 let totalPausedTime = 0;
@@ -39,6 +44,12 @@ let flashlightFreeze = true;
 let slowMoEnabled = false;
 let checkboxLight;
 let checkboxSlow;
+// three lamps overlay option (created in modes screen)
+let checkboxLamps;
+let threeLampsEnabled = false;
+// lightning options
+let checkboxLightning;
+let lightningEnabled = false;
 
 //combo counter
 let combo = 0;
@@ -130,6 +141,10 @@ function preload() {
       { name: 'bgmHard', path: 'assets/audio/gameBGM.mp3' },
       { name: 'bgmBoss', path: 'assets/audio/bgmBoss.mp3' },
       { name: 'mainMenu', path: 'assets/audio/mainMenu.mp3' },
+      { name: 'rain_looping', path: 'assets/audio/rain_looping.mp3' },
+      { name: 'thunder1', path: 'assets/audio/thunder-1.mp3' },
+      { name: 'thunder2', path: 'assets/audio/thunder-2.mp3' },
+      { name: 'thunder3', path: 'assets/audio/thunder-3.mp3' },
     ]);
 
     if (AudioManager.sounds['sfxCorrect']) sfxCorrect = AudioManager.sounds['sfxCorrect'].obj;
@@ -266,12 +281,12 @@ function drawMenu() {
   // Title text or logo image
   if (logoImg) {
     imageMode(CENTER);
-    image(logoImg, width/2, height/2 - 350);
+    image(logoImg, width/2, height/2 - 280);
     fill(255); // white
     textAlign(CENTER, CENTER);
     textSize(width/35);
     textFont(pixelFont);
-    text("THAT TIME I GOT REINCARNATED INTO A NEW WORLD\nAND USED MY LEVEL 100 FLASHLIGHT SKILLS TO FIND THE WANTED SHAPE!", width/2, height/2 - 215);
+    text("THAT TIME I GOT REINCARNATED INTO A NEW WORLD\nAND USED MY LEVEL 100 FLASHLIGHT SKILLS TO FIND THE WANTED SHAPE!", width/2, height/2 - 155);
     imageMode(CORNER);
   } else {
     fill(255); // white
@@ -283,7 +298,6 @@ function drawMenu() {
   // Draw buttons
   drawButton(startButton);
   drawButton(modesButton);
-  drawButton(builderButton);
   drawButton(statsButton);
 }
 
@@ -385,6 +399,8 @@ function drawModes() {
   text("Select Modifiers", width/4, height/2 - 150);
   text("Flashlight Freeze", width/4-width/32, height/2+height/-(height*0.0282));
   text("Slow-Mo Enabled", width/4-width/32, height/2+height/(height*0.0169));
+  text("Three Lamps Mode", width/4-width/32, height/2+height/(height*0.0062));
+  text("Lightning Mode", width/4-width/32, height/4 + height * 0.57 + 8);
 
   if (!checkboxLight) {
     checkboxLight = createCheckbox("", flashlightFreeze);
@@ -398,13 +414,34 @@ function drawModes() {
     checkboxSlow.style("transform", "scale(5)");
   }
 
+  // Three Lamps overlay checkbox
+  if (!checkboxLamps) {
+    checkboxLamps = createCheckbox("", threeLampsEnabled);
+    checkboxLamps.position(width / 4 + width/10, height / 4 + height * 0.45);
+    checkboxLamps.style("transform", "scale(5)");
+  }
+
+  // Lightning Mode overlay checkbox 
+  if (!checkboxLightning) {
+    checkboxLightning = createCheckbox("", lightningEnabled);
+    checkboxLightning.position(width / 4 + width/10, height / 4 + height * 0.57);
+    checkboxLightning.style("transform", "scale(5)");
+  }
+
   if (checkboxSlow.checked()) {slowMoEnabled = true; } else {slowMoEnabled = false;}
 
   if (checkboxLight.checked()) {flashlightFreeze = true;} else {flashlightFreeze = false;}
 
+  if (checkboxLamps.checked()) { threeLampsEnabled = true; } else { threeLampsEnabled = false; }
+
+  if (checkboxLightning.checked()) { lightningEnabled = true; } else { lightningEnabled = false; }
+
 
   text("Select Color Scheme", width/4+width/2, height/2 - 150);
-
+  drawButton(defaultColorBtn);
+  drawButton(protanopiaBtn);
+  drawButton(deuteranopiaBtn);
+  drawButton(tritanopiaBtn);
 
   // place backToMenuButton in top-left for modes
   backToMenuButton.x = 20;
@@ -416,6 +453,13 @@ function drawModes() {
 
 function drawStats() {
     background(60); 
+
+
+    playModeMenu();
+
+    fill(0, 180);
+    noStroke();
+    rect(0, 0, width, height);
     fill(255);
     textAlign(CENTER, TOP);
     textSize(48);
@@ -465,11 +509,13 @@ function drawStats() {
     drawButton(backButton);
 }
 
+
 function keyPressed() {
   if (key === 'a') triggerBoatLines(15000);
   if (key === 'b') triggerBlackHoleEvent(3000);
   if (key === 'w') triggerWarning(5000);
   if (key === 'z') triggerZombieEvent(5000);
+  if (key === 'c') triggerPartyEvent(8000);
 
   if (keyCode === ENTER && consoleInput.elt === document.activeElement) {
     const cmd = consoleInput.value().trim();
@@ -482,6 +528,16 @@ function keyPressed() {
     slowMo = true;
     }
   }
+
+  if (gameState === "game" && (key === 'f' || key === 'F')) {
+  const col = [80, 200, 255];
+  FoundEffect.onCorrectShapeChosen(mouseX, mouseY, col, () => {
+    noStroke(); 
+    fill(col);
+    ellipse(0, 0, 90, 90);  // simple pulse so we can see it
+  });
+  return; // optional: stop further key handling for this press
+}
   
   if (gameState === "game" && key === 'p') {
     gameState = "pause";
@@ -491,6 +547,9 @@ function keyPressed() {
     gameState = "game";
     triggerCurtains();
     totalPausedTime += millis() - pauseStartMillis;
+  }
+  else if (gameState === "menu" && key === 'd'){
+    gameState = "builder";
   }
 }
 
@@ -512,6 +571,19 @@ function drawOverMenu() {
   drawBackButton();
 }
 
+/////////////////////////////
+// color scheme 
+/////////////////////////////
+function setColorScheme(scheme) {
+  currentPaletteMode = scheme;
+  console.log("Color scheme set to:", scheme);
+
+  if (gameState === "modes") {
+    clearInteractors();
+    spawnMenuShapes(); // your new function
+  }
+
+}
 
 ////////////////////////////////////
 //songs
@@ -704,8 +776,6 @@ function mousePressed() {
       startGame();
     } else if (mouseInside(modesButton)) {
       gameState = "modes";
-    } else if (mouseInside(builderButton)) {
-      gameState = "builder";
     } else if (mouseInside(statsButton)) {
       gameState = "stats";
     }
@@ -752,6 +822,21 @@ function mousePressed() {
       updateDifficultyVisuals("hard");
     }
 
+    //colorscheme buttons
+  if (mouseInside(defaultColorBtn)) {
+    playMenuSFX();
+    setColorScheme("default");
+  } else if (mouseInside(protanopiaBtn)) {
+    playMenuSFX();
+    setColorScheme("protanopia");
+  } else if (mouseInside(deuteranopiaBtn)) {
+    playMenuSFX();
+    setColorScheme("deuteranopia");
+  } else if (mouseInside(tritanopiaBtn)) {
+    playMenuSFX();
+    setColorScheme("tritanopia");
+  }
+
     // Start button now actually begins the game
     if (mouseInside(startGameButton)) {
       playMenuSFX();
@@ -774,8 +859,16 @@ function mousePressed() {
       playMenuSFX();
       gameState = "menu";
       gameEvents.Fire("gameOver", false);
+      //bug fix for pop up
+      if (finalRoundPopup && typeof finalRoundPopup.close === "function") {
+        finalRoundPopup.close();
+      }
       finalRoundPopupShown = false;
+      shownGameOverScreen = false;
+      gameOver = false;
+
       playMenuBGM();
+      gameState = "menu";
     }
   } else if (gameState === "builder") {
     if (mouseInside(backButton)) {
@@ -797,6 +890,7 @@ function mouseReleased() {
   }
 }
 
+
 // helper, checks if mouse is inside a rectangle button
 function mouseInside(btn) {
   if (!btn) return false;
@@ -811,6 +905,8 @@ function setup() {
   setupBuilder();
   createCanvas(windowWidth, windowHeight);
 
+  director = new Director(events, gameEvents);
+
   userStartAudio().then(() => {
     playMenuBGM();
   });
@@ -822,7 +918,7 @@ function setup() {
   
   startButton = {
     x: width / 2 - startBtnImg1.width * startButtonScale / 2,
-    y: height / 2 - startBtnImg1.height * startButtonScale / 2 - 75,
+    y: height / 2 - startBtnImg1.height * startButtonScale / 2 - 15,
     img: startBtnImg1,
     hoverImg: startBtnImg2,
     w: startBtnImg1.width * startButtonScale,
@@ -831,32 +927,23 @@ function setup() {
 
   modesButton = {
     x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2,
-    y: height / 2 - 30,
+    y: height / 2 + 40,
     img: optionsBtnImg1,
     hoverImg: optionsBtnImg2,
     w: optionsBtnImg1.width * optionsButtonScale,
     h: optionsBtnImg1.height * optionsButtonScale
   };
 
-  builderButton = { 
-    x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2, 
-    y: height/2 + 100, 
-    img: builderButton0, 
-    hoverImg: builderButton1, 
-    w: builderButton0.width * optionsButtonScale, 
-    h: builderButton0.height * optionsButtonScale, 
-
-  };
-
   statsButton = { 
-    x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2,
-    y: height/2 + 250, 
+    x: width / 2 - optionsBtnImg1.width * optionsButtonScale / 2, 
+    y: height/2 + 180, 
     img: statsButton0, 
     hoverImg: statsButton1, 
     w: builderButton0.width * optionsButtonScale, 
     h: builderButton0.height * optionsButtonScale, 
 
-   };
+  };
+
   backButton = { x: 30, y: 10, w: 200, h: 60, label: "BACK" };
 
   const buttonScale = 1.8; // adjust as needed
@@ -925,6 +1012,40 @@ function setup() {
     hoverImg: startBtnImg2
   };
   
+    // button set up for color scheme  
+  const btnWidth = 150;
+  const btnHeight = 50;
+  const baseX = width / 4 + width / 2;
+  const baseY = height / 2 - 100;
+
+  defaultColorBtn = {
+    x: baseX,
+    y: baseY + 50,
+    w: btnWidth,
+    h: btnHeight,
+    label: "Default"
+  };
+  protanopiaBtn = {
+    x: baseX,
+    y: baseY + 50 + 60,
+    w: btnWidth,
+    h: btnHeight,
+    label: "Protanopia"
+  };
+  deuteranopiaBtn = {
+    x: baseX,
+    y: baseY + 50 + 120,
+    w: btnWidth,
+    h: btnHeight,
+    label: "Deuteranopia"
+  };
+  tritanopiaBtn = {
+    x: baseX,
+    y: baseY + 50 + 180,
+    w: btnWidth,
+    h: btnHeight,
+    label: "Tritanopia"
+  };
 
 
   //gameplay ui business
@@ -953,11 +1074,11 @@ function playMode() {
   events.update();
 }
 
+let isBonusRound = false;
 //add boss fights and round events here
 function nextRound(){
   triggerCurtains();
 
-  //wait, spawn new shapes, turn flashlight back on
   setTimeout(() => {
     clearInteractors();
     if (round%10==0){//boss fight every 10 rounds
@@ -966,11 +1087,21 @@ function nextRound(){
       spawnBossInteractors();
       SpawnBoss(round);
     }
-    else{
+    else if(!isBonusRound){
       playHardBGM();
       stopBossBGM();
       spawnInteractors();
     }
+  }, 750);
+}
+
+function bonusRound(){
+  triggerCurtains();
+  clearInteractors();
+  setTimeout(() => {
+  stopBossBGM();
+  spawnBonusInteractors();
+  
   }, 750);
 }
 
@@ -999,6 +1130,8 @@ function startGame() {
   setTimeout(() => {
     blackout = false;
   }, 1000);
+  // Reset lamp positions to default at the start of the game:
+  if (typeof initLamps === 'function') initLamps();
   spawnInteractors();
   playMode();
 
@@ -1008,7 +1141,6 @@ function startGame() {
 //draw loop
 function draw() {
   background(30); // dark gray background for contrast
-
   if (gameState === "menu") {
     stopBossBGM();
     stopHardBGM();
@@ -1023,7 +1155,7 @@ function draw() {
   } else if (gameState === "pause") {
     drawGame();        // shows the frozen game
     drawPauseMenu();   // overlay pause menu
-  } else if (gameState === "builder") {
+    } else if (gameState === "builder") {
     drawBuilder();
   } else if (gameState === "stats") {
     drawStats();
@@ -1039,16 +1171,27 @@ function draw() {
       checkboxSlow = null;   // clear reference
   }
 
+  if(gameState != "modes" && checkboxLamps){
+    checkboxLamps.remove(); // completely deletes it from the DOM
+    checkboxLamps = null;   // clear reference
+  }
+  if(gameState != "modes" && checkboxLightning){
+      checkboxLightning.remove(); // completely deletes it from the DOM
+      checkboxLightning = null;   // clear reference
+  }
+
   updateScoreIndicators();
 }
 
 // GAME (placeholder)
 function drawGame() {
   fill(0);
+  if (window.FoundEffect) FoundEffect.applyCameraShakeIfActive();
+
 
   // compute time left based on the single startMillis
   // added totalPaused time so that it only counts time spent NOT pause
-  if (gameState !== "pause") {
+  if (gameState !== "pause" && !isBonusRound) {
   let elapsed = int((millis() - startMillis - totalPausedTime) / 1000);
   times = Timer - elapsed;
   }
@@ -1077,6 +1220,10 @@ function drawGame() {
     // gameState = "over";
   }
 
+  if (director && gameState === "game") {
+    director.update();
+  }
+
   // play mode only while not gameOver
   if (!gameOver && gameState !== "pause") {
     playMode();
@@ -1091,7 +1238,12 @@ function drawGame() {
   const dx = fx - coverW / 2;
   const dy = fy - coverH / 2;
   //image(darkness, dx, dy);
-  drawFlashlightOverlay();
+  // Choose between the flashlight or the three-lamps overlay
+  if (typeof threeLampsEnabled !== 'undefined' && threeLampsEnabled && typeof drawLampsOverlay === 'function') {
+    drawLampsOverlay();
+  } else {
+    drawFlashlightOverlay();
+  }
 
   events.renderFront();
 
@@ -1102,6 +1254,19 @@ function drawGame() {
   UILayer.textAlign(RIGHT, CENTER);
   UILayer.fill('black');
   UILayer.textFont(pixelFont);
+
+  let blinkAlpha = 255;
+
+    // Check if time is in the last 10 seconds
+  if (times < 10 && times > 0) {
+    // Blink every half a second
+    let blinkSpeed = 500; // milliseconds
+    blinkAlpha = (millis() % (blinkSpeed * 2) < blinkSpeed) ? 255 : 50; 
+  }
+
+  // Apply blinking color
+  UILayer.fill(0, 0, 0, blinkAlpha);
+  
   UILayer.text("Round: " + round + " Combo: "+ combo + " Time: " + times, UILayer.width - 20, UILayer.height /2);
   image(UILayer, 0,0);
   wantedObj.render();
@@ -1109,6 +1274,8 @@ function drawGame() {
   // back button
   //drawBackButton();
   drawButton(pauseButton);
+  // overlay LAST so it renders above darkness/UI
+if (window.FoundEffect) FoundEffect.renderFoundEffectOverlay();
 
 }
 
@@ -1137,6 +1304,14 @@ function updateScoreIndicators() {
     bossKills[i].show();
     if (bossKills[i].isDead()) {
       bossKills.splice(i, 1);
+    }
+  }
+
+  for (let i = bonusStars.length - 1; i >= 0; i--) {
+    bonusStars[i].update();
+    bonusStars[i].show();
+    if (bonusStars[i].isDead()) {
+      bonusStars.splice(i, 1);
     }
   }
 }
@@ -1202,3 +1377,8 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
+
+
+
+
+

@@ -144,3 +144,51 @@ class BossKillIndicator extends ScoreIndicator {
 
 }
 
+// -----------------------------------------------------------------------------
+// indicating +1 timer bonus
+// ---------------------------------------------------------------
+class BonusIndicator extends ScoreIndicator {
+  show() { 
+    push();
+    translate(this.x, this.y);
+    
+    // glowing star
+    noStroke();
+    fill(255, 200, 0, this.alpha);
+    this.drawStar(0, 0, 5, this.radius, this.inner);
+    
+    // outline
+    stroke(255, this.alpha * 0.8);
+    strokeWeight(2);
+    noFill();
+    this.drawStar(0, 0, 5, this.radius, this.inner);
+
+    pop();
+
+    // "+1" in the middle
+    push();
+    translate(this.x, this.y);
+    textAlign(CENTER, CENTER);
+    fill(255, this.alpha);
+    stroke(0, this.alpha * 0.6);
+    strokeWeight(2);
+    textSize(this.radius * 0.8);
+
+    let middle = "+1 sec";
+
+    text(middle, 0, 0);
+    pop();
+  }
+
+  drawStar(x, y, points, outerR, innerR) {
+    beginShape();
+    for (let i = 0; i < points * 2; i++) {
+      let angle = i * PI / points - HALF_PI;
+      let r = (i % 2 === 0) ? outerR : innerR;
+      let sx = x + cos(angle) * r;
+      let sy = y + sin(angle) * r;
+      vertex(sx, sy);
+    }
+    endShape(CLOSE);
+  }
+}
