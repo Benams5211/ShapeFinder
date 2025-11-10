@@ -3,6 +3,14 @@ let wantedObj = null;
 let interactors = [];
 let winColorChar = 'a';
 
+// Type of effects apply on the shapes when OnClick event occured.
+const ShapeEffects = {
+  FADEOUT: 'fade-out',
+  SHIVER: 'shiver',
+  BLAST: 'blast',
+  DEFAULT: 'default'
+};
+
 // abstract clickable class definition
 // -----------------------------------------------------------------------------
 class InteractiveObject {
@@ -26,6 +34,15 @@ class InteractiveObject {
     this.randomColor = !!opts.randomColor;
     this.outline = !!opts.outline;
     this.isWanted = !!opts.wanted;
+
+    // Shape effects related variables.
+    this.alpha = 255; // Full opacity by default
+    this.shiverTime = 0; // frames to shiver before deleting
+    this.shiverIntensity = 2; // small, subtle movement
+    this.blastScale = 1; // The Scale of enlargement of blast effect.
+    this.blastEnlargingTimes = this.getRandomInt(25, 35); // blastScale need to be multiplied by this for the shapes except the Circle.
+    this.blastTime = 0; // frames to blast before deleting
+    this.isEffectStarting = false; // Flag of starting an effect.
     
     // click behavior
     this.deleteOnClick = !!opts.deleteOnClick;
@@ -69,6 +86,14 @@ class InteractiveObject {
       this.targetVx = random(-this.movement.velocityLimit, this.movement.velocityLimit);
       this.targetVy = random(-this.movement.velocityLimit, this.movement.velocityLimit);
     }
+
+    // randomly pick an effect
+    this.effect = random([
+      ShapeEffects.FADEOUT, 
+      ShapeEffects.SHIVER, 
+      ShapeEffects.BLAST, 
+      ShapeEffects.DEFAULT
+    ]);
   }
 
   // to be implemented by subclasses
@@ -89,11 +114,28 @@ class InteractiveObject {
       return; // skip movement entirely
     }
 
+    if (this.isEffectStarting) {
+      switch (this.effect) {
+        case ShapeEffects.FADEOUT:
+          this.startFadeOut();
+          break;
+        case ShapeEffects.SHIVER:
+          this.startShiver();
+          break;
+        case ShapeEffects.BLAST:
+          this.startBlast()
+          break;
+        default:
+          this.deleteSelf();
+      }
+    }
+
   if (this.movement.enabled) this.updatePos();
   }
   
   updatePos() {
     const isBoss =  (this instanceof BossCircle);
+    const isBonus = (this instanceof BonusCircle);
     if (intensity == 1 && gameState == 'game' && !isBoss && flashlightFreeze) {
     const dx = this.x - mouseX;
     const dy = this.y - mouseY;
@@ -116,7 +158,7 @@ class InteractiveObject {
     if (this.state.frozen) return;
     
 
-      if(!isBoss){
+      if(!isBoss&&!isBonus){
       if(slowMo){m.velocityLimit=1.5;}
       else {m.velocityLimit=4;}
       }
@@ -158,7 +200,21 @@ class InteractiveObject {
   // because the deletion on click is handled in the base class be sure to call
   // the parent (super) onClick function in child classes when developing additional objects
   onClick() {
-    if (this.deleteOnClick) this.deleteSelf();
+    if (this.deleteOnClick) {
+      this.isEffectStarting = true;
+      switch (this.effect) {
+        case ShapeEffects.FADEOUT:
+          break;
+        case ShapeEffects.SHIVER:
+          this.shiverTime = 30;
+          break;
+        case ShapeEffects.BLAST:
+          this.blastTime = 30;
+          break;
+        default:
+          this.deleteSelf();
+      }
+    }
 
     // On click, fire the attached event connections
     for (let e of this.events)
@@ -168,10 +224,18 @@ class InteractiveObject {
     try {
       const isWin = (this instanceof WinRect) || (this instanceof WinCircle) || (this instanceof WinTri);
       const isBoss =  (this instanceof BossCircle);
+      const isBonus = (this instanceof BonusCircle);
       if(isBoss) {
         playBossKill();
         bossKills.push(new BossKillIndicator(mouseX, mouseY));
       }
+      else if(isBonus){
+        if (window.AudioManager && typeof AudioManager.play === 'function') {
+          AudioManager.play('sfxCorrect', { vol: 1.0 }); // Play "sfxCorrect" from the Audio Manager:
+        } else if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') {
+          sfxCorrect.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
+        }
+        bonusStars.push(new BonusIndicator(mouseX, mouseY));}
       else if (!isWin) { // If "isWin" was not one of the "Win" shapes:
         if (window.AudioManager && typeof AudioManager.play === 'function') {
           AudioManager.play('sfxIncorrect', { vol: 1.0 }); // Play "sfxIncorrect" from the Audio Manager:
@@ -192,7 +256,7 @@ if (window.FoundEffect && typeof window.FoundEffect.triggerFoundEffect === 'func
   const col = Array.isArray(this.fillCol) ? this.fillCol : [255, 215, 0];
   window.FoundEffect.triggerFoundEffect(this.x, this.y, col);
 }
-
+        
       }
       gameEvents.Fire("Clicked", isWin);
     } catch (e) {
@@ -203,6 +267,54 @@ if (window.FoundEffect && typeof window.FoundEffect.triggerFoundEffect === 'func
   deleteSelf() {
     const i = interactors.indexOf(this);
     if (i !== -1) interactors.splice(i, 1);
+  }
+
+  startFadeOut() {
+    this.alpha -= 10; // controls fade speed; smaller = slower fade
+    if (this.alpha <= 0) {
+      this.deleteSelf();
+      return;
+    }
+  }
+
+  startShiver() {
+    const progress = 1 - this.shiverTime / 40;
+
+    // gradually increase speed and intensity a bit
+    const intensity = lerp(this.shiverIntensity, this.shiverIntensity * 20, progress);
+
+    this.x = this.x + sin(frameCount * 15) * random(-intensity, intensity);
+    this.y = this.y + cos(frameCount * 20) * random(-intensity, intensity);
+
+    this.alpha = map(sin(frameCount * 1.5), -1, 1, 180, 255);
+
+    this.shiverTime--;
+
+    if (this.shiverTime <= 0) {
+      this.deleteSelf();
+      return;
+    }
+  }
+
+  startBlast() {
+    const progress = 1 - this.blastTime / 30;
+
+    // Scale up like an expanding explosion
+    this.blastScale = 1 + progress * 2.5; // grows 2.5x size
+    this.alpha = this.alpha * (1 - progress); // fades out
+
+    this.blastTime--;
+
+    if (this.blastTime <= 0) {
+      this.deleteSelf();
+      return;
+    }
+  }
+
+  getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 }
 
@@ -232,6 +344,7 @@ class ClickRect extends InteractiveObject {
   getBoundsRadius() { return Math.max(this.w, this.h) / 2; }
   render() {
     if (!this.visible) return;
+    const offsetScale = this.isEffectStarting && this.effect == ShapeEffects.BLAST ? this.blastScale * 25 : 0;
     push();
     rectMode(CENTER);
     if (this.stroke?.enabled) {
@@ -241,12 +354,13 @@ class ClickRect extends InteractiveObject {
       noStroke();
     }
 
-    fill(...this.fillCol);
-    rect(this.x, this.y, this.w, this.h, this.radius);
+    fill(this.fillCol[0], this.fillCol[1], this.fillCol[2], this.alpha);
+    rect(this.x - offsetScale, this.y + offsetScale, this.w + offsetScale, this.h + offsetScale, this.radius);
+
     if(this.outline){
       stroke('black');
       strokeWeight(2);
-      rect(this.x, this.y, this.w, this.h, this.radius);
+      rect(this.x - offsetScale, this.y + offsetScale, this.w + offsetScale, this.h + offsetScale, this.radius);
     }
     pop();
   }
@@ -330,11 +444,13 @@ class ClickCircle extends InteractiveObject {
     } else {
       noStroke();
     }
-    fill(...this.fillCol);
+    fill(this.fillCol[0], this.fillCol[1], this.fillCol[2], this.alpha);
+    scale(this.blastScale); // apply scaling if blasting
     circle(0, 0, this.r*2);
     if(this.outline){
       stroke('black');
       strokeWeight(2);
+      scale(this.blastScale); // apply scaling if blasting
       circle(0, 0, this.r*2);
     }
 
@@ -419,6 +535,7 @@ class ClickTri extends InteractiveObject {
   render() {
     if (!this.visible) return;
     const [A, B, C] = this.vertices();
+    const offsetScale = this.isEffectStarting && this.effect == ShapeEffects.BLAST ? this.blastScale * 25 : 0;
     push();
 
     // uniform stroke handling
@@ -429,12 +546,13 @@ class ClickTri extends InteractiveObject {
       noStroke();
     }
 
-    fill(...this.fillCol);
-    triangle(A[0], A[1], B[0], B[1], C[0], C[1]);
+    fill(this.fillCol[0], this.fillCol[1], this.fillCol[2], this.alpha);
+    triangle(A[0] - offsetScale, A[1] - offsetScale, B[0] + offsetScale, B[1] + offsetScale, C[0] + offsetScale, C[1] - offsetScale);
+
     if(this.outline){
       stroke('black');
       strokeWeight(2);
-      triangle(A[0], A[1], B[0], B[1], C[0], C[1]);
+      triangle(A[0] - offsetScale, A[1] - offsetScale, B[0], B[1] + offsetScale, C[0] + offsetScale, C[1] - offsetScale);
     }
     pop();
   }
@@ -503,9 +621,9 @@ class BossCircle extends ClickCircle {
     }, 100);
     if(this.health==0) {
       super.onClick();
-      ++round;
+      isBonusRound=true;
       Timer += this.timeAdd;
-      nextRound();
+      bonusRound();
     }
   }
 }
@@ -513,8 +631,8 @@ class BossCircle extends ClickCircle {
 class ScoreDownCircle extends ClickCircle {
   onClick() {
     super.onClick()
-    triggerEZFormationEvent();
     Timer -= 5;
+
     combo = 0;
   }
 }
@@ -522,8 +640,8 @@ class ScoreDownCircle extends ClickCircle {
 class ScoreDownRect extends ClickRect {
   onClick() {
     super.onClick()
-    triggerN1FormationEvent();
     Timer -= 5;
+
     combo = 0;
   }
 }
@@ -531,8 +649,9 @@ class ScoreDownRect extends ClickRect {
 class ScoreDownTri extends ClickTri {
   onClick() {
     super.onClick();
-    triggerLOLFormationEvent();
     Timer -= 5;
+
+
     combo = 0;
   }
 }
@@ -598,20 +717,13 @@ class WinTri extends ClickTri {
 }
 
 //special circle 
-// class WhiteCircle extends ClickCircle {
-//   onClick(){
-//     super.onClick();
+class BonusCircle extends ClickCircle {
+  onClick(){
+    super.onClick();
 
-//     if(combo > 9) score += 10;
-//     else if(combo > 19) score += 15;
-//     else if(combo > 29) score += 20;
-//     else if(combo > 39) score += 25;
-//     else if (combo > 49) score += 30;
-//     else score+=5;
-
-//     Timer += 10;
-//   }
-// }
+    Timer += 1;
+  }
+}
 
 
 class BoatCircle extends ClickCircle {
@@ -745,19 +857,12 @@ function spawnInteractors() {
       new JitterModifier({ rate: 0.1 }),
       new TeleportModifier({ chance: 0.005 }),
     ];
-    mods.push(new FigureSkateModifier({
-      director: tauntDirector,
-      joinChance: 0,
-      strength: 0.20,
-      types: [],
-      minGapFrames: 0,
-    }));
     if (random() < 0.50 && !slowMoEnabled) {
       mods.push(new FigureSkateModifier({
         director: formationDirector,
         joinChance: 0.005,
         strength: 0.20,
-        types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare',],
+        types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare'],
         minGapFrames: 180,
       }));
     }
@@ -885,6 +990,53 @@ function spawnInteractors() {
     
     interactors.push(obj);
   }
+ 
+        
+}
+
+function spawnBonusInteractors(){
+  let size, count;
+  size = 50;
+  count = 25;
+  preview = null;
+  for (let i = 0; i < count; i++) {
+
+    const movement = {
+      enabled: true,
+      lerpStrength: 0.1,
+      velocityLimit: 20,
+      switchRate: 60,
+    };
+
+    const mods = [
+      new JitterModifier({ rate: 0.1 }),
+      new TeleportModifier({ chance: 0.005 }),
+    ];
+
+    const opts = {
+      movement, modifiers: mods,
+      deleteOnClick: true,
+      randomColor: true,
+      outline: true,
+      stroke: { enabled: true, weight: 9, color: [255,255,255] },
+    };
+
+    let obj;
+    
+      const r = size;
+      const x = random(r, width  - r);
+      const y = random(r, height - r);
+      obj = new BonusCircle(x, y, r, randomColor(),  {...opts, randomColor: false});
+    
+    
+    interactors.push(obj);
+  }
+  setTimeout(() => {
+    isBonusRound = false;
+    ++round;
+    nextRound();
+  }, 10000);
+
 }
 
 function spawnBossInteractors() {
@@ -913,19 +1065,12 @@ function spawnBossInteractors() {
       new JitterModifier({ rate: 0.1 }),
       new TeleportModifier({ chance: 0.005 }),
     ];
-    mods.push(new FigureSkateModifier({
-      director: tauntDirector,
-      joinChance: 0,
-      strength: 0.20,
-      types: [],
-      minGapFrames: 0,
-    }));
     if (random() < 0.50 && !slowMoEnabled) {
       mods.push(new FigureSkateModifier({
         director: formationDirector,
         joinChance: 0.005,
         strength: 0.20,
-        types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare',],
+        types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare'],
         minGapFrames: 180,
       }));
     }
@@ -1048,23 +1193,23 @@ const colorPalettes = {
     g: [129, 236, 128],   // green
     b: [116, 185, 255],   // blue
   },
-  protanopia: {
-    r: [0, 128, 255],     // blue
-    y: [255, 255, 102],   // yellow
-    g: [0, 255, 255],     // cyan
-    b: [128, 0, 128],     // purple
+ protanopia: {
+    r: [36, 123, 160],    // muted blue
+    y: [242, 202, 25],    // yellow
+    g: [112, 193, 179],   // aqua green
+    b: [204, 51, 63],     // brick red
   },
   deuteranopia: {
-    r: [255, 165, 0],     // orange
-    y: [255, 255, 102],   // yellow
-    g: [0, 128, 255],     // blue
-    b: [128, 0, 128],     // purple
+    r: [230, 97, 1],      // orange
+    y: [253, 184, 19],    // golden
+    g: [86, 180, 233],    // sky blue
+    b: [204, 121, 167],   // pinkie/magenta
   },
   tritanopia: {
-    r: [255, 105, 180],   // pink
-    y: [144, 238, 144],   // green
-    g: [255, 165, 0],     // orange
-    b: [128, 0, 128],     // purple
+    r: [213, 94, 0],      // orange
+    y: [0, 158, 115],     // teal green
+    g: [240, 228, 66],    // yellow
+    b: [86, 180, 233],    // light blue
   }
 };
 
@@ -1194,7 +1339,6 @@ function clearInteractors() {
   interactors.length = 0;
   wantedObj == null;
 }
-
 
 
 
