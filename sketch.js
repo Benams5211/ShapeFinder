@@ -1,6 +1,7 @@
 /////////////////////////////////////////////////////
 //General project vars
 /////////////////////////////////////////////////////
+//sprint 9
 
 let gameOver = false;
 let round = 1;
@@ -18,6 +19,7 @@ let bgmHard = null;         // bgm
 let stars = [];             // shapes of +1 round indicator
 let circleBursts = [];      // shapes of -1 round indicator
 let bossKills = [];         // for boss kill indicator
+let bonusStars = [];         // for bonus shape indicator
 
 let difficulty = "medium";  // default difficulty
 const MENU_SHAPE_CAP=80; 
@@ -45,6 +47,9 @@ let checkboxSlow;
 // three lamps overlay option (created in modes screen)
 let checkboxLamps;
 let threeLampsEnabled = false;
+// lightning options
+let checkboxLightning;
+let lightningEnabled = false;
 
 //combo counter
 let combo = 0;
@@ -136,6 +141,11 @@ function preload() {
       { name: 'bgmHard', path: 'assets/audio/gameBGM.mp3' },
       { name: 'bgmBoss', path: 'assets/audio/bgmBoss.mp3' },
       { name: 'mainMenu', path: 'assets/audio/mainMenu.mp3' },
+      { name: 'rain_looping', path: 'assets/audio/rain_looping.mp3' },
+      { name: 'thunder1', path: 'assets/audio/thunder-1.mp3' },
+      { name: 'thunder2', path: 'assets/audio/thunder-2.mp3' },
+      { name: 'thunder3', path: 'assets/audio/thunder-3.mp3' },
+      { name: 'bonusBGM', path: 'assets/audio/bonusBGM.mp3' },
     ]);
 
     if (AudioManager.sounds['sfxCorrect']) sfxCorrect = AudioManager.sounds['sfxCorrect'].obj;
@@ -146,6 +156,7 @@ function preload() {
     if (AudioManager.sounds['bgmHard']) bgmHard = AudioManager.sounds['bgmHard'].obj;
     if (AudioManager.sounds['bgmBoss']) bgmBoss = AudioManager.sounds['bgmBoss'].obj;
     if (AudioManager.sounds['mainMenu']) bgmBoss = AudioManager.sounds['mainMenu'].obj;
+        if (AudioManager.sounds['bonusBGM']) bonusBGM = AudioManager.sounds['bonusBGM'].obj;
   } else if (typeof loadSound === 'function') { // If the Audio Manager can't be loaded properly, then just load the sound effects like from previous iteration (with "loadSound()"):
     try {
       sfxCorrect = loadSound('assets/audio/correct.mp3');
@@ -194,6 +205,12 @@ function preload() {
     } catch (e) {
       bossHit = null;
       console.warn('Failed to preload "mainMenu.mp3!"' );
+    }
+    try {
+      bonusBGM = loadSound('assets/audio/bonusBGM.mp3');
+    } catch (e) {
+      bonusBGM = null;
+      console.warn('Failed to preload "bonusBGM.mp3!"' );
     }
   }
 
@@ -246,6 +263,12 @@ function preload() {
     } catch (e) {
       bossHit = null;
       console.warn('Failed to preload "mainMenu.mp3!"' );
+    }
+    try {
+      bonusBGM = loadSound('assets/audio/bonusBGM.mp3');
+    } catch (e) {
+      bonusBGM = null;
+      console.warn('Failed to preload "bonusBGM.mp3!"' );
     }
   }
 
@@ -302,7 +325,7 @@ function spawnMenuShape() {
       director: formationDirector,
       joinChance: 0.001,
       strength: 0.20,
-      types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare',],
+        types: ['circle','orbit','figure8','line','sinWave','triangle','orbitTriangle','square','orbitSquare'],
       minGapFrames: 180,
     }));
   }
@@ -391,6 +414,7 @@ function drawModes() {
   text("Flashlight Freeze", width/4-width/32, height/2+height/-(height*0.0282));
   text("Slow-Mo Enabled", width/4-width/32, height/2+height/(height*0.0169));
   text("Three Lamps Mode", width/4-width/32, height/2+height/(height*0.0062));
+  text("Lightning Mode", width/4-width/32, height/4 + height * 0.57 + 8);
 
   if (!checkboxLight) {
     checkboxLight = createCheckbox("", flashlightFreeze);
@@ -411,11 +435,20 @@ function drawModes() {
     checkboxLamps.style("transform", "scale(5)");
   }
 
+  // Lightning Mode overlay checkbox 
+  if (!checkboxLightning) {
+    checkboxLightning = createCheckbox("", lightningEnabled);
+    checkboxLightning.position(width / 4 + width/10, height / 4 + height * 0.57);
+    checkboxLightning.style("transform", "scale(5)");
+  }
+
   if (checkboxSlow.checked()) {slowMoEnabled = true; } else {slowMoEnabled = false;}
 
   if (checkboxLight.checked()) {flashlightFreeze = true;} else {flashlightFreeze = false;}
 
   if (checkboxLamps.checked()) { threeLampsEnabled = true; } else { threeLampsEnabled = false; }
+
+  if (checkboxLightning.checked()) { lightningEnabled = true; } else { lightningEnabled = false; }
 
 
   text("Select Color Scheme", width/4+width/2, height/2 - 150);
@@ -634,6 +667,22 @@ function stopMenuBGM(){
           AudioManager.stop('mainMenu');
   } else if (typeof mainMenu !== 'undefined' && mainMenu && typeof mainMenu.play === 'function') {
     mainMenu.stop('mainMenu');
+  }
+}
+
+function playBonusBGM(){
+  if (window.AudioManager && typeof AudioManager.play === 'function') {
+    AudioManager.play('bonusBGM', { vol: 0.35, loop:true }); // Play "bonusBGM" from the Audio Manager:
+  } else if (typeof bonusBGM !== 'undefined' && bonusBGM && typeof bonusBGM.play === 'function') {
+    bonusBGM.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
+  }
+}
+
+function stopBonusBGM(){
+  if (window.AudioManager && typeof AudioManager.play === 'function') {
+          AudioManager.stop('bonusBGM');
+  } else if (typeof bonusBGM !== 'undefined' && bonusBGM && typeof bonusBGM.play === 'function') {
+    bonusBGM.stop('bonusBGM');
   }
 }
 
@@ -1059,11 +1108,11 @@ function playMode() {
   events.update();
 }
 
+let isBonusRound = false;
 //add boss fights and round events here
 function nextRound(){
   triggerCurtains();
 
-  //wait, spawn new shapes, turn flashlight back on
   setTimeout(() => {
     clearInteractors();
     if (round%10==0){//boss fight every 10 rounds
@@ -1072,11 +1121,24 @@ function nextRound(){
       spawnBossInteractors();
       SpawnBoss(round);
     }
-    else{
+    else if(!isBonusRound){
+      stopBonusBGM();
       playHardBGM();
       stopBossBGM();
       spawnInteractors();
     }
+  }, 750);
+}
+
+function bonusRound(){
+  triggerCurtains();
+  clearInteractors();
+
+  setTimeout(() => {
+  playBonusBGM();
+  stopBossBGM();
+  spawnBonusInteractors();
+  
   }, 750);
 }
 
@@ -1091,7 +1153,7 @@ function startGame() {
   blackout = true;
   gameOver = false;
   gameState = "game";
-  round = 1;
+  round =1;
   combo = 0;
 
   Stats = new StatTracker();
@@ -1116,8 +1178,8 @@ function startGame() {
 //draw loop
 function draw() {
   background(30); // dark gray background for contrast
-
   if (gameState === "menu") {
+    stopBonusBGM();
     stopBossBGM();
     stopHardBGM();
     drawMenu();
@@ -1151,6 +1213,10 @@ function draw() {
     checkboxLamps.remove(); // completely deletes it from the DOM
     checkboxLamps = null;   // clear reference
   }
+  if(gameState != "modes" && checkboxLightning){
+      checkboxLightning.remove(); // completely deletes it from the DOM
+      checkboxLightning = null;   // clear reference
+  }
 
   updateScoreIndicators();
 }
@@ -1163,7 +1229,7 @@ function drawGame() {
 
   // compute time left based on the single startMillis
   // added totalPaused time so that it only counts time spent NOT pause
-  if (gameState !== "pause") {
+  if (gameState !== "pause" && !isBonusRound) {
   let elapsed = int((millis() - startMillis - totalPausedTime) / 1000);
   times = Timer - elapsed;
   }
@@ -1278,6 +1344,14 @@ function updateScoreIndicators() {
       bossKills.splice(i, 1);
     }
   }
+
+  for (let i = bonusStars.length - 1; i >= 0; i--) {
+    bonusStars[i].update();
+    bonusStars[i].show();
+    if (bonusStars[i].isDead()) {
+      bonusStars.splice(i, 1);
+    }
+  }
 }
 
 function drawPauseMenu() {
@@ -1341,6 +1415,7 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
+
 
 
 

@@ -405,7 +405,6 @@ function triggerEZFormationEvent(totalDuration = 6000) {
   });
 }
 
-
 function triggerPartyEvent(duration = 6000) {
   const affected = [];
 

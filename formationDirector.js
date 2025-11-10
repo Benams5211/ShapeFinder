@@ -25,6 +25,7 @@ class FormationDirector {
     useAll = true,
     maxCount = Infinity,
   } = {}) {
+
     if (this.active) return;
     if (!interactors?.length) return;
 
@@ -109,6 +110,7 @@ class FormationDirector {
     this.active = false;
     this.frames = 0;
   }
+
   targetFor(shape) {
     if (!this.active) return null;
     const shapeIndex = this.assignments.get(shape);
@@ -585,7 +587,5 @@ class FigureSkateModifier {
   }
 }
 
-// global formation director I made just for you :)
-// dont make two I dont know what will happen you might die
 const formationDirector = new FormationDirector();
 const tauntDirector = new FormationDirector();

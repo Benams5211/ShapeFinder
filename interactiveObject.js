@@ -3,6 +3,7 @@ let wantedObj = null;
 let interactors = [];
 let winColorChar = 'a';
 
+
 // Type of effects apply on the shapes when OnClick event occured.
 const ShapeEffects = {
   FADEOUT: 'fade-out',
@@ -224,7 +225,7 @@ class InteractiveObject {
     try {
       const isWin = (this instanceof WinRect) || (this instanceof WinCircle) || (this instanceof WinTri);
       const isBoss =  (this instanceof BossCircle);
-      const isBonus = (this instanceof Pentagon) ||  (this instanceof Hexagon) || (this instanceof Octogon);
+      const isBonus = (this instanceof Pentagon) || (this instanceof Hexagon) || (this instanceof Octogon);
       if(isBoss) {
         playBossKill();
         bossKills.push(new BossKillIndicator(mouseX, mouseY));
@@ -498,7 +499,6 @@ class ClickCircle extends InteractiveObject {
     return copy;
   }
 }
-
   // 
   // Polygons for Bonus Rounds that reuse 'ClickCircle' hitbox:
   // 
@@ -670,9 +670,6 @@ class ClickCircle extends InteractiveObject {
     }
   }
 
-// 
-// 
-// 
 
 class ClickTri extends InteractiveObject {
   constructor(x, y, size, fillCol = [255, 210, 90], opts = {}) {
@@ -805,9 +802,10 @@ class BossCircle extends ClickCircle {
 
 class ScoreDownCircle extends ClickCircle {
   onClick() {
-    super.onClick()
-    Timer -= 5;
+    super.onClick();
     triggerEZFormationEvent();
+    Timer -= 5;
+    
 
     combo = 0;
   }
@@ -815,9 +813,10 @@ class ScoreDownCircle extends ClickCircle {
 
 class ScoreDownRect extends ClickRect {
   onClick() {
-    super.onClick()
-    Timer -= 5;
+    super.onClick();
     triggerN1FormationEvent();
+    Timer -= 5;
+    
 
     combo = 0;
   }
@@ -826,9 +825,9 @@ class ScoreDownRect extends ClickRect {
 class ScoreDownTri extends ClickTri {
   onClick() {
     super.onClick();
-    Timer -= 5;
+    
     triggerLOLFormationEvent();
-
+    Timer -= 5;
 
     combo = 0;
   }
@@ -1211,7 +1210,6 @@ function spawnBonusInteractors(){
       const r = size;
       const x = random(r, width  - r);
       const y = random(r, height - r);
-
       // Randomly spawn Bonus Polygons for the bonus round:
       const polyChoice = random(['pentagon','hexagon','octogon']);
       if (polyChoice === 'pentagon') {
@@ -1258,7 +1256,6 @@ function spawnBossInteractors() {
       new JitterModifier({ rate: 0.1 }),
       new TeleportModifier({ chance: 0.005 }),
     ];
-
     mods.push(new FigureSkateModifier({
       director: tauntDirector,
       joinChance: 0,
