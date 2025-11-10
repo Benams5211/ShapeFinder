@@ -1,6 +1,6 @@
-// Unit tests for localstorageManager.js
+// Unit tests for LocalStorageManager.js
 // Run by: 
-// node localstorageManager-test.js
+// node LocalStorageManager-test.js
 // Model is with P5.js dependencies!
 
 require('./setup.js');
@@ -104,7 +104,7 @@ describe('LocalStorageRoundManager with Mock Storage', function() {
     global.round = 75;
     manager.storeRound();
     
-    const rounds = manager.getArrayObject(localstorageRoundObjectsKey);
+    const rounds = manager.getArrayObject(localStorageRoundObjectsKey);
     expect(rounds).to.have.lengthOf(3);
     expect(rounds[0].id).to.equal(1);
     expect(rounds[1].id).to.equal(2);
@@ -119,7 +119,7 @@ describe('LocalStorageRoundManager with Mock Storage', function() {
     
     manager.storeRound();
     
-    const rounds = manager.getArrayObject(localstorageRoundObjectsKey);
+    const rounds = manager.getArrayObject(localStorageRoundObjectsKey);
     expect(rounds).to.have.lengthOf(1);
     expect(rounds[0].id).to.equal(1);
     expect(rounds[0].value).to.equal(100);
