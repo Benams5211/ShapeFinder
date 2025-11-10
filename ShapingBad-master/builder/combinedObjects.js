@@ -102,44 +102,6 @@ class CombinedObjects {
     }
 }
 
-// Will re-factor later to inherit CombinedObjects and its update
-// so animations can be created as well for each individual part
-// todo: key identifier for children shapes?
-class Alien {
-    constructor() {
-        this.object = null;
-    }
-    async spawn() {
-        this.object = await loadCombinedObjectFromFile("/ShapingBad/assets/combinedObjects/alien.json");
-        combinedObjectList.push(this.object);
 
-        interactors.push(this.object.mainObject);
-        for (const child of this.object.objectList) interactors.push(child.Shape);   
-    }
-}
 
-class Cloud {
-    constructor() {
-        this.object = null;
-    }
-    async spawn() {
-        this.object = await loadCombinedObjectFromFile("/ShapingBad/assets/combinedObjects/cloud.json");
-        combinedObjectList.push(this.object);
 
-        interactors.push(this.object.mainObject);
-        for (const child of this.object.objectList) interactors.push(child.Shape);
-    }
-}
-
-class Angel {
-    constructor() {
-        this.object = null;
-    }
-    async spawn() {
-        this.object = await loadCombinedObjectFromFile("/ShapingBad/assets/combinedObjects/angel.json");
-        combinedObjectList.push(this.object);
-
-        interactors.push(this.object.mainObject);
-        for (const child of this.object.objectList) interactors.push(child.Shape);
-    }
-}

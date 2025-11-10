@@ -150,7 +150,7 @@ class Golagon_P1 extends BaseBoss {
     constructor() {
         super(
             "The Rainbow Crystalline Golagon's Minion",
-            "assets/combinedObjects/golagon_phase1.json",
+            "./assets/combinedObjects/golagon_phase1.json",
             150, // maxHealth
         );
         gameEvents.OnEvent("bodyHit", (shape) => {
@@ -170,7 +170,7 @@ class Golagon_P2 extends BaseBoss {
     constructor() {
         super(
             "The Rainbow Crystalline Golagon",
-            "assets/combinedObjects/golagon_phase2.json",
+            "./assets/combinedObjects/golagon_phase2.json",
             1000, // maxHealth
         );
         const handleHit = (event, dmg) => {
@@ -222,7 +222,7 @@ class RainbowGem extends BaseBoss {
     constructor() {
         super(
             "Rainbow Gem",
-            "assets/combinedObjects/rainbow_gem.json",
+            "./assets/combinedObjects/rainbow_gem.json",
             2, // maxHealth
             100,
             6,
