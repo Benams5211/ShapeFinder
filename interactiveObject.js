@@ -499,6 +499,181 @@ class ClickCircle extends InteractiveObject {
   }
 }
 
+  // 
+  // Polygons for Bonus Rounds that reuse 'ClickCircle' hitbox:
+  // 
+  // These use very similar logic for each shape, with the only real difference being in how many sides each
+  // polygon is drawn with It seems like p5 doesn't have any kind of built-in functions for drawing complex
+  // polygons, so this is the best I had found for implementing any kind of n-sided polygon!
+  // 
+  class Pentagon extends ClickCircle {
+    constructor(x, y, r, fillCol = [200,160,255], opts = {}) {
+      super(x, y, r, fillCol, opts);
+      this.sides = 5;
+
+      this.spinSpeed = (opts && typeof opts.spinSpeed === 'number') ? opts.spinSpeed : 0.2; // Spin speed, adjust as needed!
+    }
+
+    // Same logic as the test "BonusCircle" - We can make these do whatever we want:
+    onClick() {
+      super.onClick();
+
+      Timer += 1;
+    }
+
+    update() {
+      if (typeof super.update === 'function') super.update();
+
+      this.angle = (this.angle || 0) + this.spinSpeed;
+    }
+
+    // Primary logic for making n-sided polygons (This gets reused for the other two special shapes, but just takes the right number of sides!)""
+    render() {
+      if (!this.visible) return;
+      push();
+      translate(this.x, this.y);
+      rotate(this.angle);
+
+      if (this.stroke?.enabled) {
+        stroke(...this.stroke.color);
+        strokeWeight(this.stroke.weight);
+      } else {
+        noStroke();
+      }
+      fill(this.fillCol[0], this.fillCol[1], this.fillCol[2], this.alpha);
+      scale(this.blastScale);
+
+      beginShape();
+      for (let i = 0; i < this.sides; i++) {
+        const a = TWO_PI * i / this.sides - HALF_PI;
+        const vx = cos(a) * this.r;
+        const vy = sin(a) * this.r;
+        vertex(vx, vy);
+      }
+      endShape(CLOSE);
+
+      if (this.outline) {
+        noFill();
+        stroke('black');
+        strokeWeight(2);
+        beginShape();
+        for (let i = 0; i < this.sides; i++) {
+          const a = TWO_PI * i / this.sides - HALF_PI;
+          vertex(cos(a) * this.r, sin(a) * this.r);
+        }
+        endShape(CLOSE);
+      }
+
+      pop();
+    }
+  }
+
+  class Hexagon extends ClickCircle {
+    constructor(x, y, r, fillCol = [160,220,255], opts = {}) {
+      super(x, y, r, fillCol, opts);
+      this.sides = 6;
+
+      this.spinSpeed = (opts && typeof opts.spinSpeed === 'number') ? opts.spinSpeed : 0.2;
+    }
+    onClick() {
+      super.onClick();
+
+      Timer += 1;
+    }
+    update() {
+      if (typeof super.update === 'function') super.update();
+
+      this.angle = (this.angle || 0) + this.spinSpeed;
+    }
+    render() {
+      if (!this.visible) return;
+      push();
+      translate(this.x, this.y);
+      rotate(this.angle);
+
+      if (this.stroke?.enabled) {
+        stroke(...this.stroke.color);
+        strokeWeight(this.stroke.weight);
+      } else {
+        noStroke();
+      }
+      fill(this.fillCol[0], this.fillCol[1], this.fillCol[2], this.alpha);
+      scale(this.blastScale);
+
+      beginShape();
+      for (let i = 0; i < this.sides; i++) {
+        const a = TWO_PI * i / this.sides - HALF_PI;
+        vertex(cos(a) * this.r, sin(a) * this.r);
+      }
+      endShape(CLOSE);
+
+      if (this.outline) {
+        noFill();
+        stroke('black');
+        strokeWeight(2);
+        beginShape();
+        for (let i = 0; i < this.sides; i++) vertex(cos(TWO_PI * i / this.sides - HALF_PI) * this.r, sin(TWO_PI * i / this.sides - HALF_PI) * this.r);
+        endShape(CLOSE);
+      }
+
+      pop();
+    }
+  }
+
+  class Octogon extends ClickCircle {
+    constructor(x, y, r, fillCol = [220,200,160], opts = {}) {
+      super(x, y, r, fillCol, opts);
+      this.sides = 8;
+
+      // Spin speed:
+      this.spinSpeed = (opts && typeof opts.spinSpeed === 'number') ? opts.spinSpeed : 0.2;
+    }
+    onClick() {
+      super.onClick();
+
+      Timer += 1;
+    }
+    update() {
+      if (typeof super.update === 'function') super.update();
+
+      this.angle = (this.angle || 0) + this.spinSpeed;
+    }
+    render() {
+      if (!this.visible) return;
+      push();
+      translate(this.x, this.y);
+      rotate(this.angle);
+
+      if (this.stroke?.enabled) {
+        stroke(...this.stroke.color);
+        strokeWeight(this.stroke.weight);
+      } else {
+        noStroke();
+      }
+      fill(this.fillCol[0], this.fillCol[1], this.fillCol[2], this.alpha);
+      scale(this.blastScale);
+
+      beginShape();
+      for (let i = 0; i < this.sides; i++) vertex(cos(TWO_PI * i / this.sides - HALF_PI) * this.r, sin(TWO_PI * i / this.sides - HALF_PI) * this.r);
+      endShape(CLOSE);
+
+      if (this.outline) {
+        noFill();
+        stroke('black');
+        strokeWeight(2);
+        beginShape();
+        for (let i = 0; i < this.sides; i++) vertex(cos(TWO_PI * i / this.sides - HALF_PI) * this.r, sin(TWO_PI * i / this.sides - HALF_PI) * this.r);
+        endShape(CLOSE);
+      }
+
+      pop();
+    }
+  }
+
+// 
+// 
+// 
+
 class ClickTri extends InteractiveObject {
   constructor(x, y, size, fillCol = [255, 210, 90], opts = {}) {
     super(x, y, opts);
@@ -1026,8 +1201,16 @@ function spawnBonusInteractors(){
       const r = size;
       const x = random(r, width  - r);
       const y = random(r, height - r);
-      obj = new BonusCircle(x, y, r, randomColor(),  {...opts, randomColor: false});
-    
+
+      // Randomly spawn Bonus Polygons for the bonus round:
+      const polyChoice = random(['pentagon','hexagon','octogon']);
+      if (polyChoice === 'pentagon') {
+        obj = new Pentagon(x, y, r, randomColor(), {...opts, randomColor: false});
+      } else if (polyChoice === 'hexagon') {
+        obj = new Hexagon(x, y, r, randomColor(), {...opts, randomColor: false});
+      } else if (polyChoice === 'octogon') {
+        obj = new Octogon(x, y, r, randomColor(), {...opts, randomColor: false});
+      }
     
     interactors.push(obj);
   }
