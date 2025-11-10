@@ -1,0 +1,31 @@
+{
+  "name": "shapefinder",
+  "version": "1.0.0",
+  "description": "The deployment branch for our project",
+  "type": "commonjs",
+  "main": "audioManager.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "mocha 'tests/*-test.js'",
+    "test:cucumber": "cucumber-js",
+    "test:all": "npm test && npm run test:cucumber"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Benams5211/ShapeFinder.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Benams5211/ShapeFinder/issues"
+  },
+  "homepage": "https://github.com/Benams5211/ShapeFinder#readme",
+  "devDependencies": {
+    "@cucumber/cucumber": "^12.2.0",
+    "chai": "^6.2.0",
+    "mocha": "^11.7.5"
+  }
+}
