@@ -12,7 +12,6 @@ class FormationDirector {
     this.assignments = new Map(); // shape -> index in formation
     this.order = [];              // stable list of shapes in this routine
     this.lastUpdateFrame = -1;
-    
   }
 
   // Call occasionally to begin a new routine
@@ -26,9 +25,7 @@ class FormationDirector {
     useAll = true,
     maxCount = Infinity,
   } = {}) {
-
     if (this.active) return;
-
     if (!interactors?.length) return;
 
     this.type = type;
@@ -265,7 +262,7 @@ class FormationDirector {
         break;
       }
       case 'sinWave': {
-        // horizontal spacing
+        // horizontal spacing (like line)
         const leftX = centerX - radius;
         const rightX = centerX + radius;
         const normalizedIndex = totalShapes === 1 ? 0.5 : shapeIndex / (totalShapes - 1);
@@ -283,6 +280,7 @@ class FormationDirector {
         targetY = centerY + Math.sin(phase) * amplitude;
         break;
       }
+
       case 'letterL': {
         const leftX   = centerX - radius;
         const rightX  = centerX + radius;
@@ -482,6 +480,7 @@ class FormationDirector {
         break;
       }
 
+
       default: {
         const angle = baseAngle;
         targetX = centerX + radius * Math.cos(angle);
@@ -586,5 +585,7 @@ class FigureSkateModifier {
   }
 }
 
+// global formation director I made just for you :)
+// dont make two I dont know what will happen you might die
 const formationDirector = new FormationDirector();
 const tauntDirector = new FormationDirector();

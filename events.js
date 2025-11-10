@@ -15,6 +15,7 @@ const N1_FORMATION_EVENT = 'screen.N1Formation';
 const EZ_FORMATION_EVENT = 'screen.EZFormation';
 const LOL_FORMATION_EVENT = 'screen.LOLFormation';
 
+// event list in case we want to make something do a random event empty rn
 const EVENT_LIST = [BOAT_EVENT, BLACKHOLE_EVENT, ZOMBIE_EVENT, PARTY_EVENT];
 
 class EventListener {
@@ -404,12 +405,13 @@ function triggerEZFormationEvent(totalDuration = 6000) {
   });
 }
 
+
 function triggerPartyEvent(duration = 6000) {
   const affected = [];
 
   events.start(PARTY_EVENT, duration, {
     onStart: () => {
-      console.log("PARTY_EVENT started");
+      console.log("PARTY_EVENT started!");
 
       for (const obj of interactors) {
         // skip wanted object so it behaves normally
@@ -452,7 +454,7 @@ function triggerPartyEvent(duration = 6000) {
     },
 
     onEnd: () => {
-      console.log("PARTY_EVENT ended");
+      console.log("PARTY_EVENT ended!");
       // restore normal movement for affected shapes
       for (const { obj, original } of affected) {
         obj.movement = { ...original };
