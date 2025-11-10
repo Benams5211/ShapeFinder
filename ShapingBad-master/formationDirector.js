@@ -313,6 +313,7 @@ class FormationDirector {
         targetY = segY;
         break;
       }
+      
       case 'letterN': {
         const leftX   = centerX - radius;
         const rightX  = centerX + radius;
