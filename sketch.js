@@ -145,6 +145,7 @@ function preload() {
       { name: 'thunder1', path: 'assets/audio/thunder-1.mp3' },
       { name: 'thunder2', path: 'assets/audio/thunder-2.mp3' },
       { name: 'thunder3', path: 'assets/audio/thunder-3.mp3' },
+      { name: 'bonusBGM', path: 'assets/audio/bonusBGM.mp3' },
     ]);
 
     if (AudioManager.sounds['sfxCorrect']) sfxCorrect = AudioManager.sounds['sfxCorrect'].obj;
@@ -155,6 +156,7 @@ function preload() {
     if (AudioManager.sounds['bgmHard']) bgmHard = AudioManager.sounds['bgmHard'].obj;
     if (AudioManager.sounds['bgmBoss']) bgmBoss = AudioManager.sounds['bgmBoss'].obj;
     if (AudioManager.sounds['mainMenu']) bgmBoss = AudioManager.sounds['mainMenu'].obj;
+    if (AudioManager.sounds['bonusBGM']) bonusBGM = AudioManager.sounds['bonusBGM'].obj;
   } else if (typeof loadSound === 'function') { // If the Audio Manager can't be loaded properly, then just load the sound effects like from previous iteration (with "loadSound()"):
     try {
       sfxCorrect = loadSound('assets/audio/correct.mp3');
@@ -203,6 +205,12 @@ function preload() {
     } catch (e) {
       bossHit = null;
       console.warn('Failed to preload "mainMenu.mp3!"' );
+    }
+    try {
+      bonusBGM = loadSound('assets/audio/bonusBGM.mp3');
+    } catch (e) {
+      bonusBGM = null;
+      console.warn('Failed to preload "bonusBGM.mp3!"' );
     }
   }
 
@@ -255,6 +263,12 @@ function preload() {
     } catch (e) {
       bossHit = null;
       console.warn('Failed to preload "mainMenu.mp3!"' );
+    }
+    try {
+      bonusBGM = loadSound('assets/audio/bonusBGM.mp3');
+    } catch (e) {
+      bonusBGM = null;
+      console.warn('Failed to preload "bonusBGM.mp3!"' );
     }
   }
 
@@ -649,6 +663,22 @@ function stopMenuBGM(){
           AudioManager.stop('mainMenu');
   } else if (typeof mainMenu !== 'undefined' && mainMenu && typeof mainMenu.play === 'function') {
     mainMenu.stop('mainMenu');
+  }
+}
+
+function playBonusBGM(){
+  if (window.AudioManager && typeof AudioManager.play === 'function') {
+    AudioManager.play('bonusBGM', { vol: 0.35, loop:true }); // Play "bonusBGM" from the Audio Manager:
+  } else if (typeof bonusBGM !== 'undefined' && bonusBGM && typeof bonusBGM.play === 'function') {
+    bonusBGM.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
+  }
+}
+
+function stopBonusBGM(){
+  if (window.AudioManager && typeof AudioManager.play === 'function') {
+          AudioManager.stop('bonusBGM');
+  } else if (typeof bonusBGM !== 'undefined' && bonusBGM && typeof bonusBGM.play === 'function') {
+    bonusBGM.stop('bonusBGM');
   }
 }
 
@@ -1088,6 +1118,7 @@ function nextRound(){
       SpawnBoss(round);
     }
     else if(!isBonusRound){
+      stopBonusBGM();
       playHardBGM();
       stopBossBGM();
       spawnInteractors();
@@ -1101,6 +1132,7 @@ function bonusRound(){
   setTimeout(() => {
   stopBossBGM();
   spawnBonusInteractors();
+  playBonusBGM();
   
   }, 750);
 }
@@ -1144,6 +1176,7 @@ function draw() {
   if (gameState === "menu") {
     stopBossBGM();
     stopHardBGM();
+    stopBonusBGM();
     drawMenu();
   } else if (gameState === "game") {
     stopMenuBGM();
