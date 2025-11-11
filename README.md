@@ -18,3 +18,7 @@ The deployment branch for our project
 -menu music added
 
 -difficulty selection menu updated
+
+-Unit Test
+
+Please execute 'npm install' command to have the node_modules. Then execute 'npm install --save-dev chai' and 'npm install --save-dev mocha' since we are using 'Chai' and 'Mocha' libraries. You can execute the test cases by executing the commands 'npm test' and 'npm run test:cucumber'.
