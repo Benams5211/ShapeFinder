@@ -40,14 +40,23 @@ class FinalRoundPopup {
             this.firstGameView() 
         }
 
-        const bottomButton = document.createElement('button');
-        bottomButton.className = 'play-again-button';
-        bottomButton.innerHTML = 'Play Again';
-        bottomButton.addEventListener('click', () => {
+        const playAgainButton = document.createElement('button');
+        playAgainButton.className = 'bottom-button';
+        playAgainButton.innerHTML = 'Play Again';
+        playAgainButton.addEventListener('click', () => {
             this.close();
             this.playAgain()
         });
-        this.container.appendChild(bottomButton);
+        this.container.appendChild(playAgainButton);
+
+        const gotoHomeButton = document.createElement('button');
+        gotoHomeButton.className = 'bottom-button';
+        gotoHomeButton.innerHTML = 'Go To Home';
+        gotoHomeButton.addEventListener('click', () => {
+            this.close();
+            this.gotoHome()
+        });
+        this.container.appendChild(gotoHomeButton);
     }
 
     close() {
@@ -64,6 +73,10 @@ class FinalRoundPopup {
         stopHardBGM();
         stopBossBGM();
         startGame();
+    }
+
+    gotoHome() {
+        gameState = "menu"; 
     }
 
     getDateTime(dateString) {
@@ -116,6 +129,31 @@ class FinalRoundPopup {
         }
 
         this.topRoundsListView(sortedTopRounds);
+
+        // --- Expandable section of more stats (dynamic content) ---
+        const expandContainer = document.createElement('div');
+        expandContainer.className = "expand-panel collapsed";
+
+        const inner = document.createElement('div');
+        inner.className = "expand-inner";
+        inner.innerHTML = this.getDetailedSummaryHTML();
+        expandContainer.appendChild(inner);
+
+        this.container.appendChild(expandContainer);
+
+        const showMoreTitle = "Show More Stats";
+        const showLessTitle = "Show Less Stats";
+
+        // Toggle button
+        const expandBtn = document.createElement("button");
+        expandBtn.className = "expand-btn";
+        expandBtn.textContent = showMoreTitle;
+        expandBtn.onclick = () => {
+            expandContainer.classList.toggle("collapsed");
+            expandBtn.textContent = expandContainer.classList.contains("collapsed")
+                ? showMoreTitle : showLessTitle;
+        };
+        this.container.appendChild(expandBtn);
     }
 
     generalSummaryView() {
@@ -185,5 +223,37 @@ class FinalRoundPopup {
         celebrationEmoji.className = 'info-large-emoji';
         celebrationEmoji.innerHTML = emojiName;
         this.container.appendChild(celebrationEmoji);        
+    }
+
+    getDetailedSummaryHTML() {
+        const correct = Stats.lifetime.get("correctClicks");
+        const incorrect = Stats.lifetime.get("incorrectClicks");
+
+        return `
+            <div class="stats-scroll">
+                <div class="stats-grid">
+
+                    <div class="stats-column">
+                        <div class="details-title">Last Game Stats</div>
+                        <div class="details-line"><strong>Correct Clicks: </strong> ${Stats.session.get("correctClicks")}</div>
+                        <div class="details-line"><strong>Incorrect Clicks: </strong> ${Stats.session.get("incorrectClicks")}</div>
+                        <div class="details-line"><strong>Highest Combo: </strong> ${Stats.session.get("highestCombo")}</div>
+                        <div class="details-line"><strong>Average Find Time: </strong> ${nf(Stats.session.get("averageFindTime") / 1000, 1, 2)}s</div>
+                        <div class="details-line"><strong>Difficulty: </strong> ${Stats.session.get("difficulty")}</div>
+                    </div>
+
+                    <div class="stats-column">
+                        <div class="details-title">Lifetime Stats</div>
+                        <div class="details-line"><strong>Total Games Played: </strong> ${Stats.lifetime.get("totalGames")}</div>
+                        <div class="details-line"><strong>Total Correct Clicks: </strong> ${correct} (${(correct/(correct+incorrect) * 100).toFixed(2)}%)</div>
+                        <div class="details-line"><strong>Total Incorrect Clicks: </strong> ${Stats.lifetime.get("incorrectClicks")}</div>
+                        <div class="details-line"><strong>Total Alive Time: </strong> ${nf(Stats.lifetime.get("totalPlayTime"), 1, 2)}s</div>
+                        <div class="details-line"><strong>Highest Combo: </strong> ${Stats.lifetime.get("highestCombo")}</div>
+                        <div class="details-line"><strong>Average Find Time: </strong> ${nf(Stats.lifetime.get("averageFindTime"), 1, 2)}s</div>
+                    </div>
+
+                </div>
+            </div>
+        `;
     }
 }
