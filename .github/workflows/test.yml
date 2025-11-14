@@ -2,7 +2,9 @@ name: Shaping Bad Test Workflow
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   unit_test_workflow:
@@ -16,4 +18,11 @@ jobs:
         with:
           node-version: 'lts/*'
 
-      # Put actual test steps starting from here!
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Run unit tests
+        run: npm test
+      
+      - name: Run Cucumber tests
+        run: npm run test:cucumber
