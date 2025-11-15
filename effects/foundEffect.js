@@ -193,30 +193,31 @@ drawingContext.shadowOffsetY = 0;
 
 const s = foundFX.sizeHint;
 
-noFill();
-stroke(...foundFX.color);
-strokeWeight(12);
+// FILLED shape + outline so it looks like the real shape
+fill(foundFX.color[0], foundFX.color[1], foundFX.color[2], 230); // solid body
+stroke(255);                  // white outline
+strokeWeight(4);
 
+switch (foundFX.shapeType) {
+  case 'rect':
+    rectMode(CENTER);
+    rect(0, 0, s * 2, s * 2, 6);
+    break;
 
-    switch (foundFX.shapeType) {
-      case 'rect':
-        rectMode(CENTER);
-        rect(0, 0, s * 2, s * 2, 6);
-        break;
+  case 'tri': {
+    const R = s;
+    const ax = 0,        ay = -R;
+    const bx = -R * Math.cos(Math.PI / 6), by =  R * Math.sin(Math.PI / 6);
+    const cx =  R * Math.cos(Math.PI / 6), cy =  R * Math.sin(Math.PI / 6);
+    triangle(ax, ay, bx, by, cx, cy);
+    break;
+  }
 
-      case 'tri': {
-        const R = s;
-        const ax = 0,        ay = -R;
-        const bx = -R * Math.cos(Math.PI / 6), by =  R * Math.sin(Math.PI / 6);
-        const cx =  R * Math.cos(Math.PI / 6), cy =  R * Math.sin(Math.PI / 6);
-        triangle(ax, ay, bx, by, cx, cy);
-        break;
-      }
+  default: // circle
+    circle(0, 0, s * 2);
+    break;
+}
 
-      default: // circle
-        circle(0, 0, s * 2);
-        break;
-    }
 
     pop();
 
