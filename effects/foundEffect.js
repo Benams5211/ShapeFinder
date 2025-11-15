@@ -6,7 +6,8 @@
     x: 0,
     y: 0,
     startTime: 0,
-    duration: 600,      // ms for the hero pulse
+      duration: 1200,     // ms for the hero pulse (made longer so growth is obvious)
+
     particles: [],
     rings: [],
     flashAlpha: 0,
@@ -177,11 +178,12 @@
     push();
     translate(foundFX.x, foundFX.y);
 
-// Make it grow bigger before the explosion
-const scaleAmt = lerp(1.0, 1.8, easeOut);  // grows up to 1.8x size
-const rotAmt = lerp(0, 0.15, easeOut);
+// Make it grow MUCH bigger before the explosion
+const scaleAmt = lerp(0.7, 3.0, easeOut);  // from 70% size up to 300%
+const rotAmt   = lerp(0, 0.15, easeOut);
 rotate(rotAmt);
 scale(scaleAmt);
+
 
 
     drawingContext.shadowColor = color(
