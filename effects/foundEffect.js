@@ -6,7 +6,7 @@
     x: 0,
     y: 0,
     startTime: 0,
-      duration: 1200,     // ms for the hero pulse (made longer so growth is obvious)
+      duration: 2000,     // ms for the hero pulse (made longer so growth is obvious)
 
     particles: [],
     rings: [],
@@ -169,35 +169,34 @@
       return alive;
     });
 
-       // hero pulse
-    const t = millis() - foundFX.startTime;
-    const norm = constrain(t / foundFX.duration, 0, 1);
-    const easeOut = 1 - pow(1 - norm, 3);
+// hero pulse (VERY exaggerated so we can see it)
+const t = millis() - foundFX.startTime;
+const norm = constrain(t / foundFX.duration, 0, 1);
+const easeOut = 1 - pow(1 - norm, 3);
 
-    // Draw the hero shape based on the snapshot
-    push();
-    translate(foundFX.x, foundFX.y);
+// Draw the hero shape based on the snapshot
+push();
+translate(foundFX.x, foundFX.y);
 
-// Make it grow MUCH bigger before the explosion
-const scaleAmt = lerp(0.7, 3.0, easeOut);  // from 70% size up to 300%
-const rotAmt   = lerp(0, 0.15, easeOut);
-rotate(rotAmt);
+// SUPER big + slower for debugging
+const scaleAmt = 0.3 + 6.0 * easeOut;   // from 30% size up to 630%
+const rotAmt   = 0;                     // no rotation so it’s easier to see
 scale(scaleAmt);
 
+// temporary debug styling
+drawingContext.shadowColor = color(
+  foundFX.color[0], foundFX.color[1], foundFX.color[2], 255
+);
+drawingContext.shadowBlur = 0;
+drawingContext.shadowOffsetX = 0;
+drawingContext.shadowOffsetY = 0;
 
+const s = foundFX.sizeHint;
 
-    drawingContext.shadowColor = color(
-      foundFX.color[0], foundFX.color[1], foundFX.color[2], 200
-    );
-    drawingContext.shadowBlur = 40;
-    drawingContext.shadowOffsetX = 0;
-    drawingContext.shadowOffsetY = 0;
+noFill();
+stroke(...foundFX.color);
+strokeWeight(12);
 
-    const s = foundFX.sizeHint;
-
-    noFill();
-    stroke(...foundFX.color);
-    strokeWeight(6);
 
     switch (foundFX.shapeType) {
       case 'rect':
