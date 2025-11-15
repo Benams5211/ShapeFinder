@@ -177,13 +177,12 @@
     push();
     translate(foundFX.x, foundFX.y);
 
-    // Make it grow bigger before the explosion
-    const scaleAmt =
-      lerp(1.0, 1.4, easeOut) *    
-      lerp(1.25, 1.0, max(0, norm - 0.5) * 2);
-    const rotAmt = lerp(0, 0.15, easeOut);
-    rotate(rotAmt);
-    scale(scaleAmt);
+// Make it grow bigger before the explosion
+const scaleAmt = lerp(1.0, 1.8, easeOut);  // grows up to 1.8x size
+const rotAmt = lerp(0, 0.15, easeOut);
+rotate(rotAmt);
+scale(scaleAmt);
+
 
     drawingContext.shadowColor = color(
       foundFX.color[0], foundFX.color[1], foundFX.color[2], 200
