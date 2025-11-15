@@ -97,7 +97,7 @@
     }
   }
 
-  // --- API internals ---
+  // API internals 
   function triggerFoundEffect(
   x,
   y,
@@ -168,56 +168,58 @@
       return alive;
     });
 
-    // hero pulse
+       // hero pulse
     const t = millis() - foundFX.startTime;
     const norm = constrain(t / foundFX.duration, 0, 1);
     const easeOut = 1 - pow(1 - norm, 3);
 
-    if (foundFX.drawShapeFn) {
-      push();
-      translate(foundFX.x, foundFX.y);
+    // Draw the hero shape based on the snapshot
+    push();
+    translate(foundFX.x, foundFX.y);
 
-      const scaleAmt = lerp(1.0, 1.25, easeOut) *
-                       lerp(1.25, 1.0, max(0, norm - 0.5) * 2);
-      const rotAmt   = lerp(0, 0.15, easeOut);
-      rotate(rotAmt);
-      scale(scaleAmt);
+    // Make it grow bigger before the explosion
+    const scaleAmt =
+      lerp(1.0, 1.4, easeOut) *    
+      lerp(1.25, 1.0, max(0, norm - 0.5) * 2);
+    const rotAmt = lerp(0, 0.15, easeOut);
+    rotate(rotAmt);
+    scale(scaleAmt);
 
-      drawingContext.shadowColor = color(
-        foundFX.color[0], foundFX.color[1], foundFX.color[2], 200
-      );
-      drawingContext.shadowBlur = 40;
-      drawingContext.shadowOffsetX = 0;
-      drawingContext.shadowOffsetY = 0;
-      const s = foundFX.sizeHint;
+    drawingContext.shadowColor = color(
+      foundFX.color[0], foundFX.color[1], foundFX.color[2], 200
+    );
+    drawingContext.shadowBlur = 40;
+    drawingContext.shadowOffsetX = 0;
+    drawingContext.shadowOffsetY = 0;
 
-noFill();
-stroke(...foundFX.color);
-strokeWeight(6);
+    const s = foundFX.sizeHint;
 
-switch (foundFX.shapeType) {
-  case 'rect':
-    rectMode(CENTER);
-    rect(0, 0, s * 2, s * 2, 6);
-    break;
+    noFill();
+    stroke(...foundFX.color);
+    strokeWeight(6);
 
-  case 'tri': {
-    const R = s;
-    const ax = 0,        ay = -R;
-    const bx = -R * Math.cos(Math.PI / 6), by =  R * Math.sin(Math.PI / 6);
-    const cx =  R * Math.cos(Math.PI / 6), cy =  R * Math.sin(Math.PI / 6);
-    triangle(ax, ay, bx, by, cx, cy);
-    break;
-  }
+    switch (foundFX.shapeType) {
+      case 'rect':
+        rectMode(CENTER);
+        rect(0, 0, s * 2, s * 2, 6);
+        break;
 
-  default: // circle
-    circle(0, 0, s * 2);
-    break;
-}
+      case 'tri': {
+        const R = s;
+        const ax = 0,        ay = -R;
+        const bx = -R * Math.cos(Math.PI / 6), by =  R * Math.sin(Math.PI / 6);
+        const cx =  R * Math.cos(Math.PI / 6), cy =  R * Math.sin(Math.PI / 6);
+        triangle(ax, ay, bx, by, cx, cy);
+        break;
+      }
 
-      foundFX.drawShapeFn();
-      pop();
+      default: // circle
+        circle(0, 0, s * 2);
+        break;
     }
+
+    pop();
+
 
     // finish when visuals are done
     if (
