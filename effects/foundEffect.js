@@ -6,7 +6,7 @@
     x: 0,
     y: 0,
     startTime: 0,
-    duration: 2000,     // ms for the hero pulse (longer so growth is obvious)
+    duration: 800,     // ms for the hero pulse (longer so growth is obvious)
     particles: [],
     flashAlpha: 0,
     shakeAmt: 0,
@@ -142,7 +142,7 @@
     translate(foundFX.x, foundFX.y);
 
     // grows from normal size → ~3x size
-    const scaleAmt = lerp(1.0, 3.0, easeOut);
+    const scaleAmt = lerp(1.0, 1.8, easeOut);
     const rotAmt   = lerp(0, 0.15, easeOut);
     rotate(rotAmt);
     scale(scaleAmt);
