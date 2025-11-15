@@ -6,15 +6,13 @@
     x: 0,
     y: 0,
     startTime: 0,
-      duration: 2000,     // ms for the hero pulse (made longer so growth is obvious)
-
+    duration: 2000,     // ms for the hero pulse (longer so growth is obvious)
     particles: [],
-    rings: [],
     flashAlpha: 0,
     shakeAmt: 0,
     color: [255, 215, 0],
-     shapeType: 'circle',
-     sizeHint: 30,
+    shapeType: 'circle',
+    sizeHint: 30,
     drawShapeFn: null
   };
 
@@ -72,61 +70,33 @@
     }
   }
 
-  class Ring {
-    constructor(x, y, col) {
-      this.x = x;
-      this.y = y;
-      this.r = 8;
-      this.thick = 12;
-      this.col = col;
-      this.birth = millis();
-      this.life = 500; // ms
-    }
-    update() {
-      const t = millis() - this.birth;
-      this.r = map(t, 0, this.life, 8, 140, true);
-      this.thick = map(t, 0, this.life, 12, 1, true);
-      return t < this.life;
-    }
-    draw() {
-      push();
-      noFill();
-      stroke(this.col[0], this.col[1], this.col[2], 220);
-      strokeWeight(this.thick);
-      circle(this.x, this.y, this.r * 2);
-      pop();
-    }
-  }
-
-  // API internals 
+  // --- API internals ---
   function triggerFoundEffect(
-  x,
-  y,
-  col = [255, 215, 0],
-  shapeType = 'circle',
-  sizeHint  = 30,
-  drawShapeFn = null   // keep old arg last for backward-compat
-) {
-
+    x,
+    y,
+    col = [255, 215, 0],
+    shapeType = 'circle',
+    sizeHint  = 30,
+    drawShapeFn = null   // kept for backward-compat
+  ) {
     foundFX.active = true;
     foundFX.x = x;
     foundFX.y = y;
     foundFX.startTime = millis();
     foundFX.color = col;
-    // NEW: snapshot shape + size so overlay matches the clicked object
+
+    // snapshot the shape so overlay matches the clicked object
     foundFX.shapeType = shapeType;
     foundFX.sizeHint  = sizeHint;
-    console.log('[FoundFX snapshot]', { x, y, col, shapeType, sizeHint });
-
     foundFX.drawShapeFn = drawShapeFn;
-    console.log('[FoundFX snapshot]', { x, y, col, shapeType, sizeHint });
 
+    // confetti
     foundFX.particles.length = 0;
-    for (let i = 0; i < 60; i++) foundFX.particles.push(new Particle(x, y, col));
+    for (let i = 0; i < 60; i++) {
+      foundFX.particles.push(new Particle(x, y, col));
+    }
 
-    foundFX.rings.length = 0;
-    foundFX.rings.push(new Ring(x, y, col));
-
+    // flash + shake
     foundFX.flashAlpha = 200;
     foundFX.shakeAmt = 10;
   }
@@ -155,13 +125,6 @@
       pop();
     }
 
-    // shockwave rings
-    foundFX.rings = foundFX.rings.filter(r => {
-      const alive = r.update();
-      r.draw();
-      return alive;
-    });
-
     // confetti
     foundFX.particles = foundFX.particles.filter(p => {
       const alive = p.update();
@@ -169,64 +132,54 @@
       return alive;
     });
 
-// hero pulse (VERY exaggerated so we can see it)
-const t = millis() - foundFX.startTime;
-const norm = constrain(t / foundFX.duration, 0, 1);
-const easeOut = 1 - pow(1 - norm, 3);
+    // hero pulse (the big main shape)
+    const t = millis() - foundFX.startTime;
+    const norm = constrain(t / foundFX.duration, 0, 1);
+    const easeOut = 1 - pow(1 - norm, 3);
 
-// Draw the hero shape based on the snapshot
-push();
-translate(foundFX.x, foundFX.y);
+    // draw the chosen shape, growing really big
+    push();
+    translate(foundFX.x, foundFX.y);
 
-// SUPER big + slower for debugging
-const scaleAmt = 0.3 + 6.0 * easeOut;   // from 30% size up to 630%
-const rotAmt   = 0;                     // no rotation so it’s easier to see
-scale(scaleAmt);
+    // grows from normal size → ~3x size
+    const scaleAmt = lerp(1.0, 3.0, easeOut);
+    const rotAmt   = lerp(0, 0.15, easeOut);
+    rotate(rotAmt);
+    scale(scaleAmt);
 
-// temporary debug styling
-drawingContext.shadowColor = color(
-  foundFX.color[0], foundFX.color[1], foundFX.color[2], 255
-);
-drawingContext.shadowBlur = 0;
-drawingContext.shadowOffsetX = 0;
-drawingContext.shadowOffsetY = 0;
+    const s = foundFX.sizeHint;
 
-const s = foundFX.sizeHint;
+    // solid fill in the chosen color + a bright outline
+    fill(foundFX.color[0], foundFX.color[1], foundFX.color[2], 240);
+    stroke(255);
+    strokeWeight(4);
 
-// FILLED shape + outline so it looks like the real shape
-fill(foundFX.color[0], foundFX.color[1], foundFX.color[2], 230); // solid body
-stroke(255);                  // white outline
-strokeWeight(4);
+    switch (foundFX.shapeType) {
+      case 'rect':
+        rectMode(CENTER);
+        rect(0, 0, s * 2, s * 2, 6);
+        break;
 
-switch (foundFX.shapeType) {
-  case 'rect':
-    rectMode(CENTER);
-    rect(0, 0, s * 2, s * 2, 6);
-    break;
+      case 'tri': {
+        const R = s;
+        const ax = 0,        ay = -R;
+        const bx = -R * Math.cos(Math.PI / 6), by =  R * Math.sin(Math.PI / 6);
+        const cx =  R * Math.cos(Math.PI / 6), cy =  R * Math.sin(Math.PI / 6);
+        triangle(ax, ay, bx, by, cx, cy);
+        break;
+      }
 
-  case 'tri': {
-    const R = s;
-    const ax = 0,        ay = -R;
-    const bx = -R * Math.cos(Math.PI / 6), by =  R * Math.sin(Math.PI / 6);
-    const cx =  R * Math.cos(Math.PI / 6), cy =  R * Math.sin(Math.PI / 6);
-    triangle(ax, ay, bx, by, cx, cy);
-    break;
-  }
-
-  default: // circle
-    circle(0, 0, s * 2);
-    break;
-}
-
+      default: // circle
+        circle(0, 0, s * 2);
+        break;
+    }
 
     pop();
-
 
     // finish when visuals are done
     if (
       t > foundFX.duration &&
       foundFX.particles.length === 0 &&
-      foundFX.rings.length === 0 &&
       foundFX.flashAlpha <= 0.5
     ) {
       foundFX.active = false;
@@ -239,7 +192,8 @@ switch (foundFX.shapeType) {
     } else if (window.sfxCorrect && typeof sfxCorrect.play === 'function') {
       sfxCorrect.play();
     }
-    triggerFoundEffect(cx, cy, colArray || [80, 200, 255], drawShapeFn);
+    // colArray should be the exact color of the clicked win shape
+    triggerFoundEffect(cx, cy, colArray || [80, 200, 255], 'circle', 30, drawShapeFn);
   }
 
   // expose minimal API
