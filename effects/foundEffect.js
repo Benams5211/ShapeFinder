@@ -6,7 +6,7 @@
     x: 0,
     y: 0,
     startTime: 0,
-    duration: 800,     // ms for the hero pulse (longer so growth is obvious)
+    duration: 600,     // ms for the hero pulse 
     particles: [],
     flashAlpha: 0,
     shakeAmt: 0,
