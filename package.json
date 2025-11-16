@@ -7,7 +7,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node brick-out-model-test.js",
+    "test:cucumber": "cucumber-js",
+    "test:all": "npm test && npm run test:cucumber"
   },
   "author": "",
   "license": "ISC"
