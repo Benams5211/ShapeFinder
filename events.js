@@ -1,7 +1,22 @@
+// -----------------------------------------------------------------------------
+// event constants
+// -----------------------------------------------------------------------------
+const BOAT_EVENT = 'screen.BoatLine';
+const WARNING_EVENT = 'screen.Warning';
+const WARNING_BOAT_EVENT = 'screen.Warning_Boatline';
+const WIN_EVENT = 'game.Win';
+const BLACKHOLE_EVENT = 'screen.BlackHole';
+const SPLASH_EVENT = 'screen.Splash';
+const ZOMBIE_EVENT = 'screen.Zombie';
+const CURTAINS_EVENT = 'screen.Curtains';
+const PARTY_EVENT = 'screen.Party';
+const MIMIC_EVENT = 'screen.Mimic';
+const N1_FORMATION_EVENT = 'screen.N1Formation';
+const EZ_FORMATION_EVENT = 'screen.EZFormation';
+const LOL_FORMATION_EVENT = 'screen.LOLFormation';
 
-// The idea is to have an event-driven system for the player-stats (or anything else)
-// for which we can define 'events' to listen to, separate from the
-// EventManager
+// event list in case we want to make something do a random event empty rn
+const EVENT_LIST = [BOAT_EVENT, BLACKHOLE_EVENT, ZOMBIE_EVENT, PARTY_EVENT];
 
 class EventListener {
     constructor() {
@@ -156,21 +171,6 @@ function setupGameEvents() {
   })
 }
 
-// -----------------------------------------------------------------------------
-// event constants
-// -----------------------------------------------------------------------------
-const BOAT_EVENT = 'screen.BoatLine';
-const WARNING_EVENT = 'screen.Warning';
-const WARNING_BOAT_EVENT = 'screen.Warning_Boatline';
-const WIN_EVENT = 'game.Win';
-const BLACKHOLE_EVENT = 'screen.BlackHole';
-const SPLASH_EVENT = 'screen.Splash';
-const ZOMBIE_EVENT = 'screen.Zombie';
-const CURTAINS_EVENT = 'screen.Curtains';
-
-// event list in case we want to make something do a random event empty rn
-const EVENT_LIST = [/* add add events that impact gameplay and are kinda standalone */];
-
 function triggerBlackHoleEvent(ms = 3000) {
   const freezeForever = new FreezeModifier({ chance: 1, duration: 1 }); // freeze the hole
 
@@ -188,6 +188,7 @@ function triggerBlackHoleEvent(ms = 3000) {
     randomColor: false,
     deleteOnClick: false,
     stroke: { enabled: false },
+    isWanted: true,
   };
   const BlackHole = new ClickCircle(random(width), random(height), 0, [0,10,0], bhOpts);
 
@@ -259,6 +260,204 @@ function triggerBlackHoleEvent(ms = 3000) {
 
       // Explosion animation on blackhole event finish
       spawnSplashEvent(BlackHole.x, BlackHole.y, 1000, 300, color(0,0,0));
+    }
+  });
+}
+
+function triggerN1FormationEvent(totalDuration = 6000) {
+  if (formationDirector.active) formationDirector.cancel();
+
+  events.start(N1_FORMATION_EVENT, totalDuration, {
+    onStart: () => {
+      console.log("N1_FORMATION_EVENT started");
+      formationDirector.formationLocked = true;
+
+      if (formationDirector.active) formationDirector.cancel();
+      tauntDirector.start(interactors, {
+        type: 'letterN',
+        center: { x: width / 2, y: height / 2 },
+        radius: Math.min(width, height) * 0.3,
+        holdFrames: 180,
+        easeIn: 20,
+        easeOut: 20,
+        useAll: true
+      });
+
+      setTimeout(() => {
+        if (tauntDirector.active) tauntDirector.cancel();
+        tauntDirector.start(interactors, {
+          type: 'number1',
+          center: { x: width / 2, y: height / 2 },
+          radius: Math.min(width, height) * 0.3,
+          holdFrames: 180,
+          easeIn: 20,
+          easeOut: 20,
+          useAll: true
+        });
+      }, totalDuration / 2);
+    },
+
+    onEnd: () => {
+      console.log("N1_FORMATION_EVENT ended");
+      tauntDirector.cancel();
+      formationDirector.formationLocked = false;
+    }
+  });
+}
+
+
+function triggerLOLFormationEvent(totalDuration = 9000) {
+  if (formationDirector.active) formationDirector.cancel();
+
+  events.start(LOL_FORMATION_EVENT, totalDuration, {
+    onStart: () => {
+      console.log("LOL_FORMATION_EVENT started");
+      formationDirector.formationLocked = true;
+
+      const center = { x: width / 2, y: height / 2 };
+      const radius = Math.min(width, height) * 0.25;
+
+
+      formationDirector.cancel();
+      tauntDirector.start(interactors, {
+        type: 'letterL',
+        center,
+        radius,
+        holdFrames: 180,
+        easeIn: 20,
+        easeOut: 20,
+        useAll: true
+      });
+
+      setTimeout(() => {
+        tauntDirector.cancel();
+        tauntDirector.start(interactors, {
+          type: 'circle',
+          center,
+          radius,
+          holdFrames: 180,
+          easeIn: 20,
+          easeOut: 20,
+          useAll: true
+        });
+      }, totalDuration / 3);
+
+      setTimeout(() => {
+        tauntDirector.cancel();
+        tauntDirector.start(interactors, {
+          type: 'letterL',
+          center,
+          radius,
+          holdFrames: 180,
+          easeIn: 20,
+          easeOut: 20,
+          useAll: true
+        });
+      }, (2 * totalDuration) / 3);
+    },
+
+    onEnd: () => {
+      console.log("LOL_FORMATION_EVENT ended");
+      tauntDirector.cancel();
+      formationDirector.formationLocked = false;
+    }
+  });
+}
+
+
+function triggerEZFormationEvent(totalDuration = 6000) {
+  if (formationDirector.active) formationDirector.cancel();
+  events.start(EZ_FORMATION_EVENT, totalDuration, {
+    onStart: () => {
+      console.log("EZ_FORMATION_EVENT started");
+      formationDirector.formationLocked = true;
+      
+      if (formationDirector.active) formationDirector.cancel();
+      tauntDirector.start(interactors, {
+        type: 'letterE',
+        center: { x: width / 2, y: height / 2 },
+        radius: Math.min(width, height) * 0.3,
+        holdFrames: 180,
+        easeIn: 20,
+        easeOut: 20,
+        useAll: true
+      });
+
+      setTimeout(() => {
+        if (tauntDirector.active) tauntDirector.cancel();
+        tauntDirector.start(interactors, {
+          type: 'letterZ',
+          center: { x: width / 2, y: height / 2 },
+          radius: Math.min(width, height) * 0.3,
+          holdFrames: 180,
+          easeIn: 20,
+          easeOut: 20,
+          useAll: true
+        });
+      }, totalDuration / 2);
+    },
+
+    onEnd: () => {
+      console.log("EZ_FORMATION_EVENT ended");
+      tauntDirector.cancel();
+      formationDirector.formationLocked = false;
+    }
+  });
+}
+
+function triggerPartyEvent(duration = 6000) {
+  const affected = [];
+
+  events.start(PARTY_EVENT, duration, {
+    onStart: () => {
+      console.log("PARTY_EVENT started!");
+
+      for (const obj of interactors) {
+        // skip wanted object so it behaves normally
+        if (obj.isWanted) continue;
+        if (!obj.movement) continue;
+
+        affected.push({
+          obj,
+          original: { ...obj.movement },
+        });
+
+        // temporarily disable their normal smooth movement
+        obj.movement.enabled = false;
+
+        // give strong random velocity
+        obj.vx = random(-12, 12);
+        obj.vy = random(-12, 12);
+      }
+    },
+
+    onUpdate: () => {
+      for (const obj of interactors) {
+        if (!obj.enabled) continue;
+        if (obj.isWanted) continue;
+
+        // move by velocity
+        obj.x += obj.vx;
+        obj.y += obj.vy;
+
+        // bounce off edges
+        if (obj.x < 0 || obj.x > width) obj.vx *= -1;
+        if (obj.y < 0 || obj.y > height) obj.vy *= -1;
+
+        // small random velocity changes for chaos
+        if (random() < 0.1) {
+          obj.vx += random(-2, 2);
+          obj.vy += random(-2, 2);
+        }
+      }
+    },
+
+    onEnd: () => {
+      console.log("PARTY_EVENT ended!");
+      // restore normal movement for affected shapes
+      for (const { obj, original } of affected) {
+        obj.movement = { ...original };
+      }
     }
   });
 }
@@ -441,6 +640,83 @@ function triggerCurtains(ms = 1500) {
   });
 }
 
+function triggerMimicEvent(duration = 8000, cloneCount = 8) {
+  const clones = [];
+
+  events.start(MIMIC_EVENT, duration, {
+    onStart: () => {
+      console.log("MIMIC_EVENT started");
+
+      if (!wantedObj) {
+        console.warn("No wantedObj to clone");
+        return;
+      }
+
+      const col = Array.isArray(wantedObj.fillCol) ? [...wantedObj.fillCol] : [255,255,255];
+
+      const baseMove = wantedObj.movement ? { ...wantedObj.movement } : {};
+      const mimicMovement = {
+        enabled: true,
+        lerpStrength: typeof baseMove.lerpStrength === 'number' ? baseMove.lerpStrength : 0.12,
+        velocityLimit: Math.max( (baseMove.velocityLimit ?? 2) * 2.0, 3.5),
+        switchRate: Math.max(10, (baseMove.switchRate ?? 60) / 2)
+      };
+
+      for (let i = 0; i < cloneCount; i++) {
+
+        const pad = 40;
+        const cx = random(pad, width - pad);
+        const topPad = (windowHeight * 0.1) + pad;
+        const cy = random(topPad, height - pad);
+
+        const opts = {
+          movement: mimicMovement,
+          randomColor: false,
+          outline: true,
+          stroke: { enabled: true, weight: 6, color: [255, 255, 255] },
+          deleteOnClick: true,
+          wanted: false
+        };
+
+        let mimic = null;
+
+        if (wantedObj instanceof ClickCircle) {
+          const r = Math.max(8, wantedObj.r || 30);
+          mimic = new ClickCircle(cx, cy, r, col, opts);
+        } else if (wantedObj instanceof ClickRect) {
+          const w = Math.max(12, wantedObj.w || 45);
+          const h = Math.max(12, wantedObj.h || 45);
+          const rad = wantedObj.radius || 8;
+          mimic = new ClickRect(cx, cy, w, h, col, rad, opts);
+        } else if (wantedObj instanceof ClickTri) {
+          const s = Math.max(20, wantedObj.size || 60);
+          const triOpts = { ...opts, angle: (typeof wantedObj.angle === 'number' ? wantedObj.angle : 0) };
+          mimic = new ClickTri(cx, cy, s, col, triOpts);
+        } else {
+          continue;
+        }
+
+        // make sure they’re enabled and move immediately
+        mimic.enabled = true;
+        mimic.isMimic = true;
+        mimic.vx = random(-mimicMovement.velocityLimit, mimicMovement.velocityLimit);
+        mimic.vy = random(-mimicMovement.velocityLimit, mimicMovement.velocityLimit);
+
+        clones.push(mimic);
+        interactors.push(mimic);
+      }
+    },
+    onEnd: () => {
+      console.log("MIMIC_EVENT ended");
+      // remove only the clones this event made
+      for (const c of clones) {
+        const idx = interactors.indexOf(c);
+        if (idx !== -1) interactors.splice(idx, 1);
+      }
+    }
+  });
+}
+
 function triggerWarning(ms = 2000) {
   events.start(WARNING_EVENT, ms, {
     onStart: () => {
@@ -539,7 +815,7 @@ function triggerBoatLines(ms = 10000) {
 
 function updateAndRenderWarning() {
   // message could be changed with parameters but im lazy
-  const msg = " WARNING INCOMING ";
+  const msg = "WARNING INCOMING ";
   // px per second
   const speed = 400;
   // verticle offset

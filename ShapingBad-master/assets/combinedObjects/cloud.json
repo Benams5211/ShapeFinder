@@ -1,0 +1,87 @@
+{
+  "type": "combined",
+  "main": {
+    "type": "circle",
+    "x": 400,
+    "y": 300,
+    "r": 50,
+    "fillCol": [255, 255, 255, 220],
+    "angle": 0,
+    "opts": {
+      "randomColor": false,
+      "deleteOnClick": false,
+      "events": ["dragStart", "select"],
+      "movement": {
+        "enabled": true,
+        "lerpStrength": 0.05,
+        "velocityLimit": 0.5,
+        "switchRate": 180
+      },
+      "stroke": { "enabled": false },
+      "modifiers": [],
+      "angle": 0
+    }
+  },
+  "children": [
+    {
+      "shape": {
+        "type": "circle",
+        "x": 0,
+        "y": 0,
+        "r": 40,
+        "fillCol": [245, 245, 245, 200],
+        "angle": 0
+      },
+      "offsetX": -40,
+      "offsetY": 5
+    },
+    {
+      "shape": {
+        "type": "circle",
+        "x": 0,
+        "y": 0,
+        "r": 45,
+        "fillCol": [250, 250, 250, 180],
+        "angle": 0
+      },
+      "offsetX": 35,
+      "offsetY": 10
+    },
+    {
+      "shape": {
+        "type": "circle",
+        "x": 0,
+        "y": 0,
+        "r": 35,
+        "fillCol": [230, 230, 230, 160],
+        "angle": 0
+      },
+      "offsetX": -10,
+      "offsetY": 25
+    },
+    {
+      "shape": {
+        "type": "circle",
+        "x": 0,
+        "y": 0,
+        "r": 25,
+        "fillCol": [255, 255, 255, 150],
+        "angle": 0
+      },
+      "offsetX": 60,
+      "offsetY": -10
+    },
+    {
+      "shape": {
+        "type": "circle",
+        "x": 0,
+        "y": 0,
+        "r": 30,
+        "fillCol": [200, 200, 200, 100],
+        "angle": 0
+      },
+      "offsetX": -60,
+      "offsetY": 0
+    }
+  ]
+}

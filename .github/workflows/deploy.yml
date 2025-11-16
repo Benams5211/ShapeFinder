@@ -1,0 +1,52 @@
+name: Cassini Time
+
+on: 
+  workflow_dispatch:
+
+env:
+  HOST: cassini.cs.kent.edu
+  USER: mulch
+  TARGET: shapingbad@cassini.cs.kent.edu
+  RUN: ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no shapingbad@cassini.cs.kent.edu
+  COPY: scp -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+
+    
+jobs:
+  example_workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get our files
+        uses: actions/checkout@v2
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.ID_ED25519 }}
+          name: id_ed25519
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+      - name: Check out the VM
+        run: |
+          echo $ ls -la
+          ls -la
+          echo $ whoami
+          whoami 
+      - name: Check out cassini
+        run: |
+          echo $RUN ls -la
+          $RUN ls -la
+
+          echo $ ssh shapingbad@cassini.cs.kent.edu ls -la
+          ssh shapingbad@cassini.cs.kent.edu ls -la 
+          echo $ ssh shapingbad@cassini.cs.kent.edu whoami
+          ssh shapingbad@cassini.cs.kent.edu whoami 
+          echo $ ssh shapingbad@cassini.cs.kent.edu hostname
+          ssh shapingbad@cassini.cs.kent.edu hostname
+          echo $ ssh shapingbad@cassini.cs.kent.edu mkdir -p ./web
+          ssh shapingbad@cassini.cs.kent.edu mkdir -p ./web
+
+          echo $ scp index.html shapingbad@cassini.cs.kent.edu:./web
+          scp index.html shapingbad@cassini.cs.kent.edu:./web
+
+          echo $COPY index.html $TARGET:./web
+          $COPY index.html $TARGET:./web
+
+      

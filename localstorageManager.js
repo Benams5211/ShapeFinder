@@ -40,7 +40,6 @@ class LocalStorageRoundManager extends LocalStorageManager {
      * Store the final round of the user in the localstorage.
      */
     storeRound() {
-        print("called");
         let sortedExistingRounds = this.getArrayObject(localstorageRoundObjectsKey).sort((a, b) => a[localstorageIDKey] - b[localstorageIDKey]);
         let latestID = 0;
         if (sortedExistingRounds.length > 0) {

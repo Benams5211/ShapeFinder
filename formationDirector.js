@@ -1,6 +1,7 @@
 class FormationDirector {
   constructor() {
     this.active = false;
+    this.formationLocked = false;
     this.type = 'circle';
     this.center = { x: 0, y: 0 }; // center of the formation can be anywhere
     this.radius = 100;
@@ -24,6 +25,8 @@ class FormationDirector {
     useAll = true,
     maxCount = Infinity,
   } = {}) {
+
+    if (this.active) return;
     if (!interactors?.length) return;
 
     this.type = type;
@@ -72,6 +75,39 @@ class FormationDirector {
     this.active = true;
     this.order.length = 0;
     this.assignments.clear();
+    this.frames = 0;
+  }
+  cancel() {
+    if (!this.active) return;
+
+    // immediately restore states
+    for (const s of this.order) {
+      if (!s || !s.state) continue;
+
+      s.state.inFormation = false;
+
+      // restore movement config if boosted
+      if (s.state.lBoosted) {
+        s.movement.lerpStrength = s.origLerp ?? s.movement.lerpStrength;
+        s.origLerp = null;
+        s.state.lBoosted = false;
+      }
+
+      // re-enable teleports if they were disabled
+      if (s.teleportDisabled) {
+        for (const m of s.modifierList) {
+          if (m instanceof TeleportModifier && m.wasDisabled !== undefined) {
+            m.chance = m.wasDisabled;
+          }
+        }
+        delete s.teleportDisabled;
+      }
+    }
+
+    // reset internal state
+    this.assignments.clear();
+    this.order.length = 0;
+    this.active = false;
     this.frames = 0;
   }
 
@@ -247,6 +283,205 @@ class FormationDirector {
         break;
       }
 
+      case 'letterL': {
+        const leftX   = centerX - radius;
+        const rightX  = centerX + radius;
+        const topY    = centerY - radius;
+        const bottomY = centerY + radius;
+
+        const lenVertical = Math.abs(bottomY - topY);
+        const lenBottom   = Math.abs(rightX - leftX);
+        const totalLen    = lenVertical + lenBottom;
+
+        const normIndex = totalShapes === 1 ? 0.5 : shapeIndex / (totalShapes - 1);
+        const posAlong  = normIndex * totalLen;
+
+        let segX = centerX;
+        let segY = centerY;
+
+        if (posAlong <= lenVertical) {
+          const f = posAlong / lenVertical;
+          segX = leftX;
+          segY = lerp(topY, bottomY, f);
+        } else {
+          const f = (posAlong - lenVertical) / lenBottom;
+          segX = lerp(leftX, rightX, f);
+          segY = bottomY;
+        }
+
+        targetX = segX;
+        targetY = segY;
+        break;
+      }
+      
+      case 'letterN': {
+        const leftX   = centerX - radius;
+        const rightX  = centerX + radius;
+        const topY    = centerY - radius;
+        const bottomY = centerY + radius;
+
+        const lenLeft  = Math.abs(bottomY - topY);
+        const lenDiag  = Math.hypot(rightX - leftX, bottomY - topY);
+        const lenRight = Math.abs(bottomY - topY);
+        const totalLen = lenLeft + lenDiag + lenRight;
+
+        const normIndex = totalShapes === 1 ? 0.5 : shapeIndex / (totalShapes - 1);
+        const posAlong = normIndex * totalLen;
+
+        let segX = centerX;
+        let segY = centerY;
+
+        if (posAlong <= lenLeft) {
+          const f = posAlong / lenLeft;
+          segX = leftX;
+          segY = lerp(topY, bottomY, f);
+        } 
+        else if (posAlong <= lenLeft + lenDiag) {
+          const f = (posAlong - lenLeft) / lenDiag;
+          const xA = rightX;
+          const yA = bottomY;
+          const xB = leftX;
+          const yB = topY;
+          segX = lerp(xA, xB, f);
+          segY = lerp(yA, yB, f);
+        } 
+        else {
+          const f = (posAlong - lenLeft - lenDiag) / lenRight;
+          segX = rightX;
+          segY = lerp(topY, bottomY, f);
+        }
+
+        targetX = segX;
+        targetY = segY;
+        break;
+      }
+
+      case 'number1': {
+        const topY = centerY - radius;
+        const bottomY = centerY + radius;
+        const stemX = centerX;
+
+        const slantStartX = centerX - radius * 0.3;
+        const slantStartY = topY - radius * 0.15;
+        const slantEndX   = centerX;
+        const slantEndY   = topY;
+
+        const baseLeft  = centerX - radius * 0.25;
+        const baseRight = centerX + radius * 0.25;
+        const baseY     = bottomY;
+
+        const lenSlant = dist(slantStartX, slantStartY, slantEndX, slantEndY);
+        const lenStem  = Math.abs(bottomY - topY);
+        const lenBase  = Math.abs(baseRight - baseLeft);
+        const totalLen = lenSlant + lenStem + lenBase;
+
+        const normIndex = totalShapes === 1 ? 0.5 : shapeIndex / (totalShapes - 1);
+        const posAlong  = normIndex * totalLen;
+
+        let segX = centerX;
+        let segY = centerY;
+
+        if (posAlong <= lenSlant) {
+          const f = posAlong / lenSlant;
+          segX = lerp(slantStartX, slantEndX, f);
+          segY = lerp(slantStartY, slantEndY, f);
+        } else if (posAlong <= lenSlant + lenStem) {
+          const f = (posAlong - lenSlant) / lenStem;
+          segX = stemX;
+          segY = lerp(topY, bottomY, f);
+        } else {
+          const f = (posAlong - lenSlant - lenStem) / lenBase;
+          segX = lerp(baseLeft, baseRight, f);
+          segY = baseY;
+        }
+        targetX = segX;
+        targetY = segY;
+        break;
+      }
+
+      case 'letterE': {
+        const leftX   = centerX - radius;
+        const rightX  = centerX + radius;
+        const topY    = centerY - radius;
+        const bottomY = centerY + radius;
+        const midY    = (topY + bottomY) / 2;
+
+        const lenLeft   = Math.abs(bottomY - topY);
+        const lenTop    = Math.abs(rightX - leftX);
+        const lenMid    = Math.abs(rightX - (leftX + radius * 0.55));
+        const lenBottom = Math.abs(rightX - leftX);
+        const totalLen  = lenLeft + lenTop + lenMid + lenBottom;
+
+        const normIndex = totalShapes === 1 ? 0.5 : shapeIndex / (totalShapes - 1);
+        const posAlong  = normIndex * totalLen;
+
+        let segX = centerX;
+        let segY = centerY;
+
+        if (posAlong <= lenLeft) {
+          const f = posAlong / lenLeft;
+          segX = leftX;
+          segY = lerp(topY, bottomY, f);
+        } 
+        else if (posAlong <= lenLeft + lenTop) {
+          const f = (posAlong - lenLeft) / lenTop;
+          segX = lerp(leftX, rightX, f);
+          segY = topY;
+        } 
+        else if (posAlong <= lenLeft + lenTop + lenMid) {
+          const f = (posAlong - lenLeft - lenTop) / lenMid;
+          segX = lerp(leftX, leftX + radius * 1.25, f);
+          segY = midY;
+        } 
+        else {
+          const f = (posAlong - lenLeft - lenTop - lenMid) / lenBottom;
+          segX = lerp(leftX, rightX, f);
+          segY = bottomY;
+        }
+
+        targetX = segX;
+        targetY = segY;
+        break;
+      }
+
+      case 'letterZ': {
+        const leftX   = centerX - radius;
+        const rightX  = centerX + radius;
+        const topY    = centerY - radius;
+        const bottomY = centerY + radius;
+
+        const lenTop  = Math.abs(rightX - leftX);
+        const lenDiag = Math.hypot(rightX - leftX, bottomY - topY);
+        const lenBot  = Math.abs(rightX - leftX);
+        const totalLen = lenTop + lenDiag + lenBot;
+
+        const normIndex = totalShapes === 1 ? 0.5 : shapeIndex / (totalShapes - 1);
+        const posAlong = normIndex * totalLen;
+
+        let segX = centerX;
+        let segY = centerY;
+
+        if (posAlong <= lenTop) {
+          const f = posAlong / lenTop;
+          segX = lerp(leftX, rightX, f);
+          segY = topY;
+        } 
+        else if (posAlong <= lenTop + lenDiag) {
+          const f = (posAlong - lenTop) / lenDiag;
+          segX = lerp(rightX, leftX, f);
+          segY = lerp(topY, bottomY, f);
+        } 
+        else {
+          const f = (posAlong - lenTop - lenDiag) / lenBot;
+          segX = lerp(leftX, rightX, f);
+          segY = bottomY;
+        }
+
+        targetX = segX;
+        targetY = segY;
+        break;
+      }
+
 
       default: {
         const angle = baseAngle;
@@ -283,6 +518,7 @@ class FigureSkateModifier {
 
   maybeStart(interactors) {
     if (!this.director || this.director.active) return;
+    if (this.director.formationLocked) return;
     if (frameCount - this.lastEndedAt < this.minGapFrames) return;
     if (random() < this.joinChance) {
       const type = random(this.types);
@@ -351,6 +587,5 @@ class FigureSkateModifier {
   }
 }
 
-// global formation director I made just for you :)
-// dont make two I dont know what will happen you might die
 const formationDirector = new FormationDirector();
+const tauntDirector = new FormationDirector();
