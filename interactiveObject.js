@@ -252,11 +252,26 @@ class InteractiveObject {
           sfxCorrect.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
         }
        // stars.push(new StarScoreIndicator(mouseX, mouseY));
-        // Celebrate the correct shape (color-matched)
+       // Celebrate the correct shape (color-matched)
 if (window.FoundEffect && typeof window.FoundEffect.triggerFoundEffect === 'function') {
+  // exact RGB the shape is using
   const col = Array.isArray(this.fillCol) ? this.fillCol : [255, 215, 0];
-  window.FoundEffect.triggerFoundEffect(this.x, this.y, col);
+
+  // which win-shape class are we?
+  const shapeType =
+    (this instanceof WinCircle) ? 'circle' :
+    (this instanceof WinRect)  ? 'rect'   :
+    (this instanceof WinTri)   ? 'tri'    :
+    'circle';
+
+  // a size hint so the overlay can scale nicely
+  const sizeHint =
+    (typeof this.getBoundsRadius === 'function') ? this.getBoundsRadius() : 30;
+
+  // send (x, y, color, shapeType, sizeHint) to the overlay system
+  window.FoundEffect.triggerFoundEffect(this.x, this.y, col, shapeType, sizeHint);
 }
+
         
       }
       gameEvents.Fire("Clicked", isWin);
@@ -1537,6 +1552,7 @@ function clearInteractors() {
   interactors.length = 0;
   wantedObj == null;
 }
+
 
 
 
