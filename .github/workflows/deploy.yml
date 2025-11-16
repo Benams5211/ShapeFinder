@@ -43,8 +43,8 @@ jobs:
           echo $ ssh shapingbad@cassini.cs.kent.edu mkdir -p ./web
           ssh shapingbad@cassini.cs.kent.edu mkdir -p ./web
 
-          echo $ scp index.html shapingbad@cassini.cs.kent.edu:./web
-          scp index.html shapingbad@cassini.cs.kent.edu:./web
+          echo $ scp -r ./ shapingbad@cassini.cs.kent.edu:./web
+          scp -r ./ shapingbad@cassini.cs.kent.edu:./web
 
           echo $COPY index.html $TARGET:./web
           $COPY index.html $TARGET:./web
