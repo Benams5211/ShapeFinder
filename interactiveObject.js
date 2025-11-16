@@ -252,25 +252,27 @@ class InteractiveObject {
           sfxCorrect.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
         }
        // stars.push(new StarScoreIndicator(mouseX, mouseY));
-       // Celebrate the correct shape (color-matched)
+      // Celebrate the correct shape (color + geometry)
 if (window.FoundEffect && typeof window.FoundEffect.triggerFoundEffect === 'function') {
-  // exact RGB the shape is using
   const col = Array.isArray(this.fillCol) ? this.fillCol : [255, 215, 0];
 
-  // which win-shape class are we?
-  const shapeType =
-    (this instanceof WinCircle) ? 'circle' :
-    (this instanceof WinRect)  ? 'rect'   :
-    (this instanceof WinTri)   ? 'tri'    :
-    'circle';
+  // Guess shape type from the class name of the clicked object
+  const ctorName = (this.constructor && this.constructor.name) || '';
+  let shapeType = 'circle';
+  if (ctorName.includes('Rect')) {
+    shapeType = 'rect';
+  } else if (ctorName.includes('Tri')) {
+    shapeType = 'tri';
+  }
 
-  // a size hint so the overlay can scale nicely
-  const sizeHint =
-    (typeof this.getBoundsRadius === 'function') ? this.getBoundsRadius() : 30;
+  // Size hint so the overlay matches the shape size
+  const sizeHint = (typeof this.getBoundsRadius === 'function')
+    ? this.getBoundsRadius()
+    : 30;
 
-  // send (x, y, color, shapeType, sizeHint) to the overlay system
   window.FoundEffect.triggerFoundEffect(this.x, this.y, col, shapeType, sizeHint);
 }
+
 
         
       }
@@ -1552,6 +1554,7 @@ function clearInteractors() {
   interactors.length = 0;
   wantedObj == null;
 }
+
 
 
 
