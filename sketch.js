@@ -1053,7 +1053,7 @@ function setup() {
     // button set up for color scheme  
   const btnWidth = 150;
   const btnHeight = 50;
-  const baseX = width / 4 + width / 2;
+  const baseX = (width / 4 + width / 2)-btnWidth/2;
   const baseY = height / 2 - 100;
 
   defaultColorBtn = {
@@ -1419,6 +1419,7 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
+
 
 
 
