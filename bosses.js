@@ -742,6 +742,8 @@ class Ant extends BaseBoss {
             const idx = activeBosses.indexOf(this);
             if (idx !== -1) activeBosses.splice(idx, 1);
         }, 2000);
+        bonusStars.push(new BonusIndicator(pos.x, pos.y, 1));
+        Timer += 1;
     }
 }
 
