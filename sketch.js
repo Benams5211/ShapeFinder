@@ -978,6 +978,8 @@ function mousePressed() {
       playMenuSFX();
       stopHardBGM();
       playMenuBGM();
+      clearBosses();
+      clearInteractors();
       gameState = "menu";
       //gameEvents.Fire("gameOver", false);
     }
@@ -1304,12 +1306,14 @@ function startGame() {
   gameState = "game";
   round =1;
   combo = 0;
+  flashlightEnabled = true;
 
   Stats = new StatTracker();
 
   stopBossBGM();
   playHardBGM();
 
+  clearBosses();
   clearInteractors();
 
   triggerCurtains();
