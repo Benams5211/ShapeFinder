@@ -8,7 +8,7 @@ import {
 
 import {
     TestRunner
-} from '/testClass.js';
+} from './testClass.js';
 
 const runner = new TestRunner();
 
