@@ -1,6 +1,6 @@
 // global list of clickable objects 
 let wantedObj = null;
-let interactors = [];
+window.interactors = []; //"window" for module purposes
 let winColorChar = 'a';
 
 
@@ -1558,6 +1558,7 @@ export {
   InteractiveObject,
   // include other classes as needed
 };
+
 
 
 
