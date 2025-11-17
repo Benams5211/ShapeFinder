@@ -409,12 +409,14 @@ function drawModes() {
 
   // Draw the Start button (reuse main menu art)
   drawButton(startGameButton);
-
+  
   text("Select Modifiers", width/4, height/2 - 150);
+  textFont('Arial');
   text("Flashlight Freeze", width/4-width/32, height/2+height/-(height*0.0282));
   text("Slow-Mo Enabled", width/4-width/32, height/2+height/(height*0.0169));
   text("Three Lamps Mode", width/4-width/32, height/2+height/(height*0.0062));
   text("Lightning Mode", width/4-width/32, height/4 + height * 0.57 + 8);
+  textFont(pixelFont);
 
   if (!checkboxLight) {
     checkboxLight = createCheckbox("", flashlightFreeze);
@@ -452,10 +454,12 @@ function drawModes() {
 
 
   text("Select Color Scheme", width/4+width/2, height/2 - 150);
+  textFont('Arial');
   drawButton(defaultColorBtn);
   drawButton(protanopiaBtn);
   drawButton(deuteranopiaBtn);
   drawButton(tritanopiaBtn);
+  textFont(pixelFont);
 
   // place backToMenuButton in top-left for modes
   backToMenuButton.x = 20;
@@ -1415,6 +1419,7 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
+
 
 
 
