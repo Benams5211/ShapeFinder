@@ -53,3 +53,7 @@ class TestRunner {
         return this.failed === 0;
     }
 }
+
+export {
+  TestRunner,
+};
