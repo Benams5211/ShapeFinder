@@ -1,6 +1,6 @@
 // global list of clickable objects 
 let wantedObj = null;
-window.interactors = []; //"window" for module purposes
+let interactors = []; //"window" for module purposes
 let winColorChar = 'a';
 
 
@@ -1551,13 +1551,6 @@ function clearInteractors() {
   wantedObj == null;
 }
 
-export {
-  ClickCircle,
-  ClickRect,
-  ClickTri,
-  InteractiveObject,
-  // include other classes as needed
-};
 
 
 
