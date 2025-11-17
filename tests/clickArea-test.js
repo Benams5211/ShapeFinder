@@ -1,13 +1,12 @@
 //makes sure the formula for clicking on an object is sound
 
-
-const runner = new TestRunner();
-
 import { 
     ClickRect,
     ClickCircle,
     ClickTri
 } from '../interactiveObject.js';
+
+const runner = new TestRunner();
 
 runner.test('We can properly click inside a rectangle ', function() {
     const rect = new ClickRect(0,0,10,10);
