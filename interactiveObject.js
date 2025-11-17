@@ -1512,10 +1512,6 @@ function setWinColor() {
   return palette[winColorChar];
 }
 
-function clearInteractors() {
-  interactors.length = 0;
-}
-
 // http://www.lighthouse3d.com/tutorials/maths/ray-triangle-intersection/
 // this has brought me places I never wanted to be
 function pointInTriangle(px, py, ax, ay, bx, by, cx, cy) {
@@ -1554,6 +1550,7 @@ function clearInteractors() {
   interactors.length = 0;
   wantedObj == null;
 }
+
 
 
 
