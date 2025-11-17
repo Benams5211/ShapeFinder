@@ -1,0 +1,319 @@
+{
+  "type": "combined",
+  "main": {
+    "type": "rect",
+    "x": 1066.5,
+    "y": 525,
+    "w": 40,
+    "h": 40,
+    "radius": 6,
+    "fillCol": [
+      255,
+      255,
+      255,
+      60
+    ],
+    "opts": {
+      "randomColor": false,
+      "deleteOnClick": false,
+      "stroke": {
+        "enabled": false,
+        "weight": 2,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "randomColor": false
+      },
+      "movement": {
+        "enabled": false,
+        "lerpStrength": 0.1,
+        "velocityLimit": 4,
+        "switchRate": 10
+      },
+      "modifiers": [],
+      "events": [
+        "rainbowGem"
+      ]
+    }
+  },
+  "children": [
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 1066.5,
+        "y": 525,
+        "size": 90,
+        "fillCol": [
+          255,
+          90,
+          120,
+          160
+        ],
+        "angle": 0.2,
+        "opts": {
+          "randomColor": false,
+          "deleteOnClick": false,
+          "movement": {
+            "enabled": false,
+            "lerpStrength": 0.1,
+            "velocityLimit": 4,
+            "switchRate": 10
+          },
+          "modifiers": [],
+          "events": [
+            "rainbowGem"
+          ],
+          "angle": 0.2
+        }
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 1066.5,
+        "y": 525,
+        "size": 90,
+        "fillCol": [
+          255,
+          200,
+          80,
+          160
+        ],
+        "angle": 1.9,
+        "opts": {
+          "randomColor": false,
+          "deleteOnClick": false,
+          "movement": {
+            "enabled": false,
+            "lerpStrength": 0.1,
+            "velocityLimit": 4,
+            "switchRate": 10
+          },
+          "modifiers": [],
+          "events": [
+            "rainbowGem"
+          ],
+          "angle": 1.9
+        }
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 1066.5,
+        "y": 525,
+        "size": 90,
+        "fillCol": [
+          120,
+          255,
+          180,
+          160
+        ],
+        "angle": -1.8,
+        "opts": {
+          "randomColor": false,
+          "deleteOnClick": false,
+          "movement": {
+            "enabled": false,
+            "lerpStrength": 0.1,
+            "velocityLimit": 4,
+            "switchRate": 10
+          },
+          "modifiers": [],
+          "events": [
+            "rainbowGem"
+          ],
+          "angle": -1.8
+        }
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 1066.5,
+        "y": 525,
+        "size": 80,
+        "fillCol": [
+          100,
+          180,
+          255,
+          150
+        ],
+        "angle": 3,
+        "opts": {
+          "randomColor": false,
+          "deleteOnClick": false,
+          "movement": {
+            "enabled": false,
+            "lerpStrength": 0.1,
+            "velocityLimit": 4,
+            "switchRate": 10
+          },
+          "modifiers": [],
+          "events": [
+            "rainbowGem"
+          ],
+          "angle": 3
+        }
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "rect",
+        "x": 1066.5,
+        "y": 525,
+        "w": 30,
+        "h": 30,
+        "radius": 4,
+        "fillCol": [
+          255,
+          255,
+          255,
+          140
+        ],
+        "opts": {
+          "randomColor": false,
+          "deleteOnClick": false,
+          "stroke": {
+            "enabled": false,
+            "weight": 2,
+            "color": [
+              0,
+              0,
+              0
+            ],
+            "randomColor": false
+          },
+          "movement": {
+            "enabled": false,
+            "lerpStrength": 0.1,
+            "velocityLimit": 4,
+            "switchRate": 10
+          },
+          "modifiers": [],
+          "events": [
+            "rainbowGem"
+          ]
+        }
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "rect",
+        "x": 1066.5,
+        "y": 525,
+        "w": 18,
+        "h": 18,
+        "radius": 3,
+        "fillCol": [
+          255,
+          255,
+          200,
+          180
+        ],
+        "opts": {
+          "randomColor": false,
+          "deleteOnClick": false,
+          "stroke": {
+            "enabled": false,
+            "weight": 2,
+            "color": [
+              0,
+              0,
+              0
+            ],
+            "randomColor": false
+          },
+          "movement": {
+            "enabled": false,
+            "lerpStrength": 0.1,
+            "velocityLimit": 4,
+            "switchRate": 10
+          },
+          "modifiers": [],
+          "events": [
+            "rainbowGem"
+          ]
+        }
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 1066.5,
+        "y": 525,
+        "size": 70,
+        "fillCol": [
+          220,
+          120,
+          255,
+          160
+        ],
+        "angle": -0.6,
+        "opts": {
+          "randomColor": false,
+          "deleteOnClick": false,
+          "movement": {
+            "enabled": false,
+            "lerpStrength": 0.1,
+            "velocityLimit": 4,
+            "switchRate": 10
+          },
+          "modifiers": [],
+          "events": [
+            "rainbowGem"
+          ],
+          "angle": -0.6
+        }
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 1066.5,
+        "y": 525,
+        "size": 70,
+        "fillCol": [
+          255,
+          150,
+          220,
+          140
+        ],
+        "angle": 0.8,
+        "opts": {
+          "randomColor": false,
+          "deleteOnClick": false,
+          "movement": {
+            "enabled": false,
+            "lerpStrength": 0.1,
+            "velocityLimit": 4,
+            "switchRate": 10
+          },
+          "modifiers": [],
+          "events": [
+            "rainbowGem"
+          ],
+          "angle": 0.8
+        }
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    }
+  ]
+}

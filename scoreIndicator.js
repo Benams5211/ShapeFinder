@@ -131,6 +131,10 @@ class BossKillIndicator extends ScoreIndicator {
 // indicating +1 timer bonus
 // ---------------------------------------------------------------
 class BonusIndicator extends ScoreIndicator {
+  constructor(x, y, timeAdded = 1) {
+    super(x, y);
+    this.timeAdded = timeAdded;
+  }
   show() { 
     push();
     translate(this.x, this.y);
@@ -157,7 +161,7 @@ class BonusIndicator extends ScoreIndicator {
     strokeWeight(2);
     textSize(this.radius * 0.8);
 
-    let middle = "+1 sec";
+    let middle = "+ "+ this.timeAdded +"sec";
 
     text(middle, 0, 0);
     pop();

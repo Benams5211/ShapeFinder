@@ -90,6 +90,7 @@ class SessionStats {
             highestCombo: 0,
             round: 0,
             findTimes: [],
+            defeatedBosses: [],
         }
     }
 
@@ -101,6 +102,11 @@ class SessionStats {
 
     add(stat, amount = 1) {
         if (this.data[stat] !== undefined) this.data[stat] += amount;
+    }
+    addDefeatedBoss(bossKey) {
+        if (!this.data.defeatedBosses.includes(bossKey)) {
+            this.data.defeatedBosses.push(bossKey);
+        }
     }
 
     set(stat, value) {
@@ -136,6 +142,7 @@ class LifetimeStats {
             incorrectClicks: 0,
             totalGames: 0,
             totalPlayTime: 0,
+            defeatedBosses: [],
         }
 
         //const saved = storage.getArrayObject("lifetimeStats")[0] || {};
@@ -178,6 +185,12 @@ class LifetimeStats {
 
         if (session.get("round") > this.data.bestRound)           { this.set("bestRound", session.get("round")) }
         if (session.get("highestCombo") > this.data.highestCombo) { this.set("highestCombo", session.get("highestCombo")) }
+
+        for (const bossKey of session.data.defeatedBosses) {
+            if (!this.data.defeatedBosses.includes(bossKey)) {
+                this.data.defeatedBosses.push(bossKey);
+            }
+        }
 
         this.save();
     }
@@ -230,6 +243,8 @@ class StatTracker {
             this.session.set("round", to);
         })
         gameEvents.OnEvent("gameOver", () => { this.onGameEnd() })
+
+        gameEvents.OnEvent("bossDefeated", (bossKey) => {this.session.addDefeatedBoss(bossKey);})
 
     }
 
