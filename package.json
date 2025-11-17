@@ -8,7 +8,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "mocha 'tests/*-test.js'",
+    "test": "mocha 'tests/*-test.{js,cjs}'",
     "test:cucumber": "cucumber-js",
     "test:all": "npm test && npm run test:cucumber"
   },
