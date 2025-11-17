@@ -79,6 +79,11 @@
     sizeHint  = 30,
     drawShapeFn = null   // kept for backward-compat
   ) {
+        // If p5 isn't available (like in Node test environment), skip visuals
+    if (typeof random === 'undefined') {
+      return;
+    }
+
     foundFX.active = true;
     foundFX.x = x;
     foundFX.y = y;
