@@ -41,7 +41,6 @@ let totalPausedTime = 0;
 
 //checkbox business
 let flashlightFreeze = true;
-let flashlightEnabled = true;
 let slowMoEnabled = false;
 let checkboxLight;
 let checkboxSlow;
@@ -51,6 +50,10 @@ let threeLampsEnabled = false;
 // lightning options
 let checkboxLightning;
 let lightningEnabled = false;
+
+// Fireplace mode
+let checkboxFireplace;
+let fireplaceModeEnabled = false;
 
 //combo counter
 let combo = 0;
@@ -66,9 +69,6 @@ let shownGameOverScreen = false;
 let consoleInput;
 let consoleMessages = [];
 let fileInput;
-//Boss Stats
-let bossImages = {}
-let delozierMode = false;
 
 //////////////////////////////////////////////////
 //Classes and stuff for menu
@@ -127,17 +127,6 @@ function preload() {
   statsButton0 = loadImage("assets/images/statsButton0.png");
   statsButton1 = loadImage("assets/images/statsButton1.png");
 
-  bossImages = {
-          golagon: loadImage("assets/images/golagon.png"),
-          tsunoctagon: loadImage("assets/images/tsunoctagon.png"),
-          abyssagon: loadImage("assets/images/abyssagon.png"),
-          flaregon: loadImage("assets/images/flaregon.png"),
-          heartagon: loadImage("assets/images/heartagon.png"),
-          nullshape: loadImage("assets/images/nullshape.png"),
-          rotangle: loadImage("assets/images/rotangle.png"),
-          delozier: loadImage("assets/images/delozier.png"),
-          perfect: loadImage("assets/images/perfect.png"),
-      };
 
   // Load font
   pixelFont = loadFont("assets/fonts/pixelFont.ttf");
@@ -161,6 +150,7 @@ function preload() {
       { name: 'thunder2', path: 'assets/audio/thunder-2.mp3' },
       { name: 'thunder3', path: 'assets/audio/thunder-3.mp3' },
       { name: 'bonusBGM', path: 'assets/audio/bonusBGM.mp3' },
+      { name: 'fireplace_loop', path: 'assets/audio/fireplace_loop.mp3' },
     ]);
 
     if (AudioManager.sounds['sfxCorrect']) sfxCorrect = AudioManager.sounds['sfxCorrect'].obj;
@@ -424,248 +414,157 @@ function drawModes() {
 
   // Draw the Start button (reuse main menu art)
   drawButton(startGameButton);
-  
-  text("Select Modifiers", width/4, height/2 - 150);
-  textFont('Arial');
-  text("Flashlight Freeze", width/4-width/32, height/2+height/-(height*0.0282));
-  text("Slow-Mo Enabled", width/4-width/32, height/2+height/(height*0.0169));
-  text("Three Lamps Mode", width/4-width/32, height/2+height/(height*0.0062));
-  text("Lightning Mode", width/4-width/32, height/4 + height * 0.57 + 8);
-  textFont(pixelFont);
 
-  if (!checkboxLight) {
-    checkboxLight = createCheckbox("", flashlightFreeze);
-    checkboxLight.position(width / 4 + width/10, height / 4 + height / 5);
-    checkboxLight.style("transform", "scale(5)");
-  }
+  // (checkboxes are created and managed below in a unified layout)
+  // Color scheme column (right side)
+  const rightColX = width * 0.62;
+  const colorTitleY = height / 2 - 150;
+  textAlign(LEFT, CENTER);
+  text("Select Color Scheme", rightColX, colorTitleY);
 
-  if (!checkboxSlow) {
-    checkboxSlow = createCheckbox("", slowMoEnabled);
-    checkboxSlow.position(width / 4 + width/10, height / 4 + height / 3);
-    checkboxSlow.style("transform", "scale(5)");
-  }
-
-  // Three Lamps overlay checkbox
-  if (!checkboxLamps) {
-    checkboxLamps = createCheckbox("", threeLampsEnabled);
-    checkboxLamps.position(width / 4 + width/10, height / 4 + height * 0.45);
-    checkboxLamps.style("transform", "scale(5)");
-  }
-
-  // Lightning Mode overlay checkbox 
-  if (!checkboxLightning) {
-    checkboxLightning = createCheckbox("", lightningEnabled);
-    checkboxLightning.position(width / 4 + width/10, height / 4 + height * 0.57);
-    checkboxLightning.style("transform", "scale(5)");
-  }
-
-  if (checkboxSlow.checked()) {slowMoEnabled = true; } else {slowMoEnabled = false;}
-
-  if (checkboxLight.checked()) {flashlightFreeze = true;} else {flashlightFreeze = false;}
-
-  if (checkboxLamps.checked()) { threeLampsEnabled = true; } else { threeLampsEnabled = false; }
-
-  if (checkboxLightning.checked()) { lightningEnabled = true; } else { lightningEnabled = false; }
-
-
-  text("Select Color Scheme", width/4+width/2, height/2 - 150);
-  textFont('Arial');
+  // Place color scheme buttons in a neat column
+  const colorBtnYStart = colorTitleY + 40;
+  defaultColorBtn.x = rightColX;
+  defaultColorBtn.y = colorBtnYStart;
+  protanopiaBtn.x = rightColX;
+  protanopiaBtn.y = colorBtnYStart + 64;
+  deuteranopiaBtn.x = rightColX;
+  deuteranopiaBtn.y = colorBtnYStart + 128;
+  tritanopiaBtn.x = rightColX;
+  tritanopiaBtn.y = colorBtnYStart + 192;
   drawButton(defaultColorBtn);
   drawButton(protanopiaBtn);
   drawButton(deuteranopiaBtn);
   drawButton(tritanopiaBtn);
-  textFont(pixelFont);
+
+
+  // Layout constants for modes/options
+  const leftColX = width * 0.22;
+  const checkboxX = leftColX + Math.min(240, width * 0.18);
+  const modifiersTitleY = height / 2 - 150;
+  const rowStartY = modifiersTitleY + 40;
+  const rowH = 56;
+
+  textSize(24);
+  textAlign(LEFT, CENTER);
+  text("Select Modifiers", leftColX, modifiersTitleY);
+
+  // Labels for modifiers
+  const labels = [
+    { key: 'flashlightFreeze', text: 'Flashlight Freeze', value: flashlightFreeze },
+    { key: 'slowMoEnabled', text: 'Slow-Mo Enabled', value: slowMoEnabled },
+    { key: 'threeLampsEnabled', text: 'Three Lamps Mode', value: threeLampsEnabled },
+    { key: 'lightningEnabled', text: 'Lightning Mode', value: lightningEnabled },
+    { key: 'fireplaceModeEnabled', text: 'Fireplace Mode', value: fireplaceModeEnabled }
+  ];
+
+  // Ensure checkboxes exist and are positioned consistently
+  for (let i = 0; i < labels.length; i++) {
+    const y = rowStartY + i * rowH;
+    text(labels[i].text, leftColX, y);
+    // Map keys to checkbox variables
+    if (labels[i].key === 'flashlightFreeze') {
+      if (!checkboxLight) checkboxLight = createCheckbox("", flashlightFreeze);
+      checkboxLight.position(checkboxX, y - 12);
+      checkboxLight.style("transform", "scale(3.2)");
+    } else if (labels[i].key === 'slowMoEnabled') {
+      if (!checkboxSlow) checkboxSlow = createCheckbox("", slowMoEnabled);
+      checkboxSlow.position(checkboxX, y - 12);
+      checkboxSlow.style("transform", "scale(3.2)");
+    } else if (labels[i].key === 'threeLampsEnabled') {
+      if (!checkboxLamps) checkboxLamps = createCheckbox("", threeLampsEnabled);
+      checkboxLamps.position(checkboxX, y - 12);
+      checkboxLamps.style("transform", "scale(3.2)");
+    } else if (labels[i].key === 'lightningEnabled') {
+      if (!checkboxLightning) checkboxLightning = createCheckbox("", lightningEnabled);
+      checkboxLightning.position(checkboxX, y - 12);
+      checkboxLightning.style("transform", "scale(3.2)");
+    } else if (labels[i].key === 'fireplaceModeEnabled') {
+      if (!checkboxFireplace) checkboxFireplace = createCheckbox("", fireplaceModeEnabled);
+      checkboxFireplace.position(checkboxX, y - 12);
+      checkboxFireplace.style("transform", "scale(3.2)");
+    }
+  }
+
+  // Read checkbox states and trigger effects
+  slowMoEnabled = checkboxSlow && checkboxSlow.checked();
+  flashlightFreeze = checkboxLight && checkboxLight.checked();
+  threeLampsEnabled = checkboxLamps && checkboxLamps.checked();
+  lightningEnabled = checkboxLightning && checkboxLightning.checked();
+  if (checkboxFireplace && checkboxFireplace.checked()) {
+    if (!fireplaceModeEnabled) {
+      fireplaceModeEnabled = true;
+      if (typeof startFireplaceEffect === 'function') startFireplaceEffect();
+    }
+  } else {
+    if (fireplaceModeEnabled) {
+      fireplaceModeEnabled = false;
+      if (typeof stopFireplaceEffect === 'function') stopFireplaceEffect();
+    }
+  }
 
   // place backToMenuButton in top-left for modes
   backToMenuButton.x = 20;
   backToMenuButton.y = 20;
-
   drawButton(backToMenuButton);
 }
-// helper for a single card
-function drawBossCard(x, y, w, h, boss) {
-    push();
-    const bossKey = boss["key"];
-    const defeated = Stats.lifetime.get("defeatedBosses")
 
-    // Card frame
-    fill(40, 40, 60, 240);
-    stroke(defeated.includes(bossKey) ? color(100, 255, 150) : color(120));
-    rect(x, y, w, h, 10);
-
-    // Inner preview area
-    noStroke();
-    fill(80, 80, 130, 180);
-    const innerW = w - 30;
-    const innerH = h - 80;
-    const innerY = y - 20;
-    rect(x, innerY, innerW, innerH, 8);
-
-    // Draw boss image
-    const img = bossImages[boss.key];
-    if (img) {
-        const aspect = img.width / img.height;
-        let displayW = innerW - 10;
-        let displayH = displayW / aspect;
-
-        if (displayH > innerH - 10) {
-            displayH = innerH - 10;
-            displayW = displayH * aspect;
-        }
-
-        imageMode(CENTER);
-        image(img, x, innerY, displayW, displayH);
-    }
-
-    // Boss text
-    fill(255);
-    textSize(13);
-    text(boss.name, x, y + h / 2 - 30);
-
-    textSize(12);
-    fill(defeated.includes(bossKey) ? color(100, 255, 150) : color(255, 100, 100));
-    text(defeated.includes(bossKey) ? "Defeated" : "Undefeated", x, y + h / 2 - 12);
-
-    pop();
-}
-
-function drawBossCards() {
-    const cardWidth = 160;
-    const cardHeight = 200;
-    const paddingX = 30;
-    const paddingY = 30;
-
-    const totalTop = 4;
-    const totalBottom = 4;
-
-    const galleryTopY = height - 360; 
-    const galleryCenterX = width / 2;
-
-    const bosses = [
-        { name: "The Rainbow Crystalline Golagon", key: "golagon", defeated: false },
-        { name: "The Flaregon", key: "flaregon", defeated: false },
-        { name: "The Tsunoctagon", key: "tsunoctagon",defeated: false },
-        { name: "The Heartagon", key: "heartagon",defeated: false },
-        { name: "The Delozier", key: "delozier",defeated: false },
-        { name: "The Perfect Cell", key: "perfect",defeated: false },
-        { name: "The Rotangle", key: "rotangle",defeated: false },
-        { name: "The Abyssagon",key: "abyssagon", defeated: false },
-        
-        
-
-    ];
-
-    rectMode(CENTER);
-    textAlign(CENTER, CENTER);
-    imageMode(CENTER);
-    textSize(14);
-    strokeWeight(2);
-
-    // Top row
-    const topRowWidth = totalTop * cardWidth + (totalTop - 1) * paddingX;
-    const topStartX = galleryCenterX - topRowWidth / 2;
-
-    for (let i = 0; i < totalTop; i++) {
-        const boss = bosses[i];
-        const x = topStartX + i * (cardWidth + paddingX);
-        const y = galleryTopY;
-
-        drawBossCard(x, y, cardWidth, cardHeight, boss);
-    }
-
-    // Bottom row
-    const bottomRowWidth = totalBottom * cardWidth + (totalBottom - 1) * paddingX;
-    const bottomStartX = galleryCenterX - bottomRowWidth / 2;
-    const bottomY = galleryTopY + cardHeight + paddingY;
-
-    for (let i = 0; i < totalBottom; i++) {
-        const boss = bosses[i + totalTop];
-        const x = bottomStartX + i * (cardWidth + paddingX);
-        drawBossCard(x, bottomY, cardWidth, cardHeight, boss);
-    }
-}
-
-
-
+// Stats screen (separated from modes)
 function drawStats() {
     background(60);
     playModeMenu();
 
-    // --- Overall backdrop ---
-    push();
     fill(0, 180);
     noStroke();
-    rectMode(CORNER);
     rect(0, 0, width, height);
-    pop();
-
-    // --- Title ---
-    push();
     fill(255);
     textAlign(CENTER, TOP);
     textSize(48);
     text("Player Stats", width / 2, 20);
-    pop();
 
     // --- Session Stats ---
-    push();
     textSize(32);
     textAlign(LEFT, TOP);
     fill(200);
-    text("Last Game", width / 4, 100);
-    const lastGameX = width / 4;
+    text("Last Game", 50, 100);
 
     if (!Stats) Stats = new StatTracker();
 
     textSize(24);
     fill(255);
-    let y = 140;
+    let y = 140; // starting y
     const lineHeight = 30;
     const correct = Stats.lifetime.get("correctClicks");
-    const incorrect = Stats.lifetime.get("incorrectClicks");
+    const incorrect = Stats.lifetime.get("incorrectClicks")
 
-    text("Final Round: " + Stats.session.get("round"), lastGameX, y); y += lineHeight;
-    text("Correct Clicks: " + Stats.session.get("correctClicks"), lastGameX, y); y += lineHeight;
-    text("Incorrect Clicks: " + Stats.session.get("incorrectClicks"), lastGameX, y); y += lineHeight;
-    text("Highest Combo: " + Stats.session.get("highestCombo"), lastGameX, y); y += lineHeight;
-    text("Time Alive: " + nf(Stats.session.get("timeAlive"), 1, 2) + "s", lastGameX, y); y += lineHeight;
-    text("Average Find Time: " + nf(Stats.session.get("averageFindTime") / 1000, 1, 2) + "s", lastGameX, y); y += lineHeight;
-    text("Difficulty: " + Stats.session.get("difficulty"), lastGameX, y);
-    pop();
+    text("Final Round: " + Stats.session.get("round"), 50, y); y += lineHeight;
+    text("Correct Clicks: " + Stats.session.get("correctClicks"), 50, y); y += lineHeight;
+    text("Incorrect Clicks: " + Stats.session.get("incorrectClicks"), 50, y); y += lineHeight;
+    text("Highest Combo: " + Stats.session.get("highestCombo"), 50, y); y += lineHeight;
+    text("Time Alive: " + nf(Stats.session.get("timeAlive"), 1, 2) + "s", 50, y); y += lineHeight;
+    text("Average Find Time: " + nf(Stats.session.get("averageFindTime") / 1000, 1, 2) + "s", 50, y); y += lineHeight;
+    text("Difficulty: " + Stats.session.get("difficulty"), 50, y); y += lineHeight;
 
     // --- Lifetime Stats ---
-    push();
     textSize(32);
     fill(200);
     textAlign(LEFT, TOP);
-    text("Lifetime Stats", width / 2, 100);
+    text("Lifetime Stats", width / 2 + 50, 100);
 
     textSize(24);
     fill(255);
     y = 140;
-    const lifetimeX = width / 2;
-    text("Total Games Played: " + Stats.lifetime.get("totalGames"), lifetimeX, y); y += lineHeight;
-    text(
-        "Total Correct Clicks: " + correct + " (" + (correct / (correct + incorrect) * 100).toFixed(2) + "%)",
-        lifetimeX, y
-    ); y += lineHeight;
-    text("Total Incorrect Clicks: " + Stats.lifetime.get("incorrectClicks"), lifetimeX, y); y += lineHeight;
-    text("Total Alive Time: " + nf(Stats.lifetime.get("totalPlayTime"), 1, 2) + "s", lifetimeX, y); y += lineHeight;
-    text("Best Round: " + Stats.lifetime.get("bestRound"), lifetimeX, y); y += lineHeight;
-    text("Highest Combo: " + Stats.lifetime.get("highestCombo"), lifetimeX, y); y += lineHeight;
-    text("Average Find Time: " + nf(Stats.lifetime.get("averageFindTime"), 1, 2) + "s", lifetimeX, y); y += lineHeight;
-    pop();
+    text("Total Games Played: " + Stats.lifetime.get("totalGames"), width / 2 + 50, y); y += lineHeight;
+    text("Total Correct Clicks: " + correct + " (" + (correct/(correct+incorrect) * 100).toFixed(2) + "%)", width / 2 + 50, y); y += lineHeight;
+    text("Total Incorrect Clicks: " + Stats.lifetime.get("incorrectClicks"), width / 2 + 50, y); y += lineHeight;
+    text("Total Alive Time: " + nf(Stats.lifetime.get("totalPlayTime"), 1, 2) + "s", width / 2 + 50, y); y += lineHeight;
+    text("Best Round: " + Stats.lifetime.get("bestRound"), width / 2 + 50, y); y += lineHeight;
+    text("Highest Combo: " + Stats.lifetime.get("highestCombo"), width / 2 + 50, y); y += lineHeight;
+    text("Average Find Time: " + nf(Stats.lifetime.get("averageFindTime"), 1, 2) + "s", width / 2 + 50, y); y += lineHeight;
 
-    // Cards
-    push();
-    drawBossCards();
-    pop();
-
-    // back
-    push();
+    // --- Back Button ---
     drawButton(backButton);
-    pop();
-}
+  }
 
 
 function keyPressed() {
@@ -678,8 +577,6 @@ function keyPressed() {
   if (key === 'n') triggerN1FormationEvent();
   if (key === 'e') triggerEZFormationEvent();
   if (key === 'l') triggerLOLFormationEvent();
-  if (key === 't') delozierMode = true;
-  if (key === ',') round=9;
 
   if (keyCode === ENTER && consoleInput.elt === document.activeElement) {
     const cmd = consoleInput.value().trim();
@@ -982,8 +879,6 @@ function mousePressed() {
       playMenuSFX();
       stopHardBGM();
       playMenuBGM();
-      clearBosses();
-      clearInteractors();
       gameState = "menu";
       //gameEvents.Fire("gameOver", false);
     }
@@ -1197,7 +1092,7 @@ function setup() {
     // button set up for color scheme  
   const btnWidth = 150;
   const btnHeight = 50;
-  const baseX = (width / 4 + width / 2)-btnWidth/2;
+  const baseX = width / 4 + width / 2;
   const baseY = height / 2 - 100;
 
   defaultColorBtn = {
@@ -1245,18 +1140,14 @@ function setup() {
 //makes the shapes
 function playMode() {
   background(50);
-  
+  for (const obj of combinedObjectList) {
+    obj.update()
+  }
   for (const it of interactors) {
     it.update();  // runs movement + modifiers
     it.render();  // draws the object
   }
-  for (const obj of combinedObjectList) {
-    obj.update()
-  }
-  for (const boss of activeBosses) {
-    console.log("Drawing:", boss.name, boss.alive);
-    boss.drawUI();
-  }
+
   events.update();
 }
 
@@ -1268,15 +1159,12 @@ function nextRound(){
   setTimeout(() => {
     clearInteractors();
     if (round%10==0){//boss fight every 10 rounds
-      flashlightEnabled = false;
-      wantedObj = null;
       stopHardBGM();
       playBossBGM();
-      //spawnBossInteractors();
+      spawnBossInteractors();
       SpawnBoss(round);
     }
     else if(!isBonusRound){
-      flashlightEnabled = true;
       stopBonusBGM();
       playHardBGM();
       stopBossBGM();
@@ -1310,14 +1198,12 @@ function startGame() {
   gameState = "game";
   round =1;
   combo = 0;
-  flashlightEnabled = true;
 
   Stats = new StatTracker();
 
   stopBossBGM();
   playHardBGM();
 
-  clearBosses();
   clearInteractors();
 
   triggerCurtains();
@@ -1356,25 +1242,29 @@ function draw() {
     drawStats();
   }
 
-  if(gameState != "modes" && checkboxLight){
+    if(gameState != "modes" && checkboxLight){
       checkboxLight.remove(); // completely deletes it from the DOM
       checkboxLight = null;   // clear reference
-  }
-
-  if(gameState != "modes" && checkboxSlow){
+    }
+    if(gameState != "modes" && checkboxSlow){
       checkboxSlow.remove(); // completely deletes it from the DOM
       checkboxSlow = null;   // clear reference
-  }
-
-  if(gameState != "modes" && checkboxLamps){
+    }
+    if(gameState != "modes" && checkboxLamps){
     checkboxLamps.remove(); // completely deletes it from the DOM
     checkboxLamps = null;   // clear reference
-  }
-  if(gameState != "modes" && checkboxLightning){
+    }
+    if(gameState != "modes" && checkboxLightning){
       checkboxLightning.remove(); // completely deletes it from the DOM
       checkboxLightning = null;   // clear reference
-  }
+    }
+    if(gameState != "modes" && checkboxFireplace){
+      checkboxFireplace.remove(); // completely deletes it from the DOM
+      checkboxFireplace = null;   // clear reference
+    }
 
+  // Update fireplace effect if active
+  if (typeof updateFireplaceEffect === 'function') updateFireplaceEffect();
   updateScoreIndicators();
 }
 
@@ -1437,7 +1327,7 @@ function drawGame() {
   if (typeof threeLampsEnabled !== 'undefined' && threeLampsEnabled && typeof drawLampsOverlay === 'function') {
     drawLampsOverlay();
   } else {
-    if (flashlightEnabled) drawFlashlightOverlay();
+    drawFlashlightOverlay();
   }
 
   events.renderFront();
@@ -1464,7 +1354,7 @@ function drawGame() {
   
   UILayer.text("Round: " + round + " Combo: "+ combo + " Time: " + times, UILayer.width - 20, UILayer.height /2);
   image(UILayer, 0,0);
-  if (wantedObj) wantedObj.render();
+  wantedObj.render();
 
   // back button
   //drawBackButton();
@@ -1572,8 +1462,6 @@ function windowResized() {
     backToMenuButton.y = height / 2 + 80;
   }
 }
-
-
 
 
 

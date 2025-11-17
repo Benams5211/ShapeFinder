@@ -1,3 +1,82 @@
+// Fireplace effect state
+let fireplaceActive = false;
+let fireplaceStartTime = 0;
+let fireplaceSoundName = 'fireplace_loop'; 
+
+function startFireplaceEffect() {
+  fireplaceActive = true;
+  fireplaceStartTime = millis();
+  // Play fire sound (looping)
+  if (window.AudioManager && typeof AudioManager.play === 'function') {
+    try { AudioManager.play(fireplaceSoundName, { vol: 0.85, loop: true }); } catch (e) {}
+  } else {
+    // Fallback to HTMLAudio for browsers without AudioManager
+    try {
+      if (typeof fireplaceAudio === 'undefined' || !fireplaceAudio) {
+        fireplaceAudio = new Audio('assets/audio/fireplace_loop.mp3');
+        fireplaceAudio.loop = true;
+        fireplaceAudio.volume = 0.85;
+      }
+      fireplaceAudio.play().catch(()=>{});
+    } catch (e) {}
+  }
+}
+
+function stopFireplaceEffect() {
+  fireplaceActive = false;
+  // Stop fire sound
+  if (window.AudioManager && typeof AudioManager.stop === 'function') {
+    try { AudioManager.stop(fireplaceSoundName); } catch (e) {}
+  }
+  try {
+    if (typeof fireplaceAudio !== 'undefined' && fireplaceAudio) {
+      fireplaceAudio.pause();
+      fireplaceAudio.currentTime = 0;
+    }
+  } catch (e) {}
+}
+
+
+function updateFireplaceEffect() {
+  if (!fireplaceActive) return;
+  const t = (millis() - fireplaceStartTime) * 0.001;
+  // Animate color between red-orange and yellow-orange
+  // Use sine wave for smooth color cycling
+  // Slower, darker color cycling (reduced ranges) and then apply a darkness multiplier
+  const rRaw = lerp(150, 230, 0.5 + 0.5 * Math.sin(t * 0.45));
+  const gRaw = lerp(40, 140, 0.5 + 0.5 * Math.sin(t * 0.55));
+  const bRaw = lerp(0, 20, 0.5 + 0.5 * Math.sin(t * 0.35));
+  // Darken overall fireplace tint by this factor (0..1) — lower = darker
+  const darkenFactor = 0.08; // darker
+  const r = Math.floor(rRaw * darkenFactor);
+  const g = Math.floor(gRaw * darkenFactor);
+  const b = Math.floor(bRaw * darkenFactor);
+  setDarknessColor(r, g, b);
+
+  // Smooth flicker using Perlin noise (smoother than random each frame)
+  // Increase opacity flicker intensity for fireplace mode
+  const baseAlpha = 245; // high base alpha (keeps darkness strong)
+  const noiseVal = (typeof noise === 'function') ? noise(t * 0.6) : Math.random();
+  const flicker = lerp(-60, 60, noiseVal); // stronger swings
+  setDarknessOpacity(baseAlpha + Math.floor(flicker));
+  // Rebuild the darkness buffer so color/opacity changes take effect immediately
+  if (typeof buildDarknessLayer === 'function') buildDarknessLayer();
+}
+let darknessColor = { r: 0, g: 0, b: 0 }; // Default black
+
+let darknessAlpha = 245; // Default opacity for darkness overlay
+
+// Function to set darkness opacity
+function setDarknessOpacity(alpha) {
+  darknessAlpha = Math.max(0, Math.min(255, alpha));
+}
+
+// Function to set darkness color
+function setDarknessColor(r, g, b) {
+  darknessColor.r = Math.max(0, Math.min(255, r));
+  darknessColor.g = Math.max(0, Math.min(255, g));
+  darknessColor.b = Math.max(0, Math.min(255, b));
+}
 let fx, fy;
 let darkness;
 let coverW, coverH;
@@ -9,7 +88,6 @@ const outerMin = 200, outerMax = 480;
 
 const minGap = 15;
 const bands = 10;
-const darknessAlpha = 245;
 
 let blackout = false;
 
@@ -220,11 +298,37 @@ function drawLampsOverlay() {
   const flashActive = isLightningActive();
   const positions = getLampPositions();
 
-  // Clear and fill darkness on the lamp buffer:
+  // Clear and fill darkness on the lamp buffer using the current darkness tint:
   lampBuffer.clear();
   lampBuffer.noStroke();
-  lampBuffer.fill(0, darknessAlpha);
+  lampBuffer.fill(darknessColor.r, darknessColor.g, darknessColor.b, darknessAlpha);
   lampBuffer.rect(0, 0, lampBuffer.width, lampBuffer.height);
+
+  // If fireplace is active, add subtle segmented color/alpha variation across the lamp buffer
+  // to create a more organic, flickering look across the screen.
+  if (fireplaceActive) {
+    const segCols = 4;
+    const segRows = 3;
+    const segW = lampBuffer.width / segCols;
+    const segH = lampBuffer.height / segRows;
+    const t = millis() * 0.001;
+    for (let cy = 0; cy < segRows; cy++) {
+      for (let cx = 0; cx < segCols; cx++) {
+        const nx = cx / segCols;
+        const ny = cy / segRows;
+        const n = (typeof noise === 'function') ? noise(nx * 1.2 + t * 0.25, ny * 1.2) : random();
+        // Slight color shift and alpha multiplier per segment
+        const colShift = map(n, 0, 1, -40, 6);
+        const aMul = map(n, 0, 1, 0.85, 1.2);
+        const r = constrain(darknessColor.r + colShift, 0, 255);
+        const g = constrain(darknessColor.g + colShift * 0.6, 0, 255);
+        const b = constrain(darknessColor.b + colShift * 0.2, 0, 255);
+        const a = constrain(darknessAlpha * aMul, 0, 255);
+        lampBuffer.fill(r, g, b, a);
+        lampBuffer.rect(cx * segW, cy * segH, segW + 1, segH + 1);
+      }
+    }
+  }
 
   // Erase soft circles for each lamp to cut through the darkness layer:
   for (const p of positions) {
@@ -328,7 +432,7 @@ function buildDarknessLayer() {
   darkness.clear();
   
   darkness.noStroke();
-  darkness.background(0, darknessAlpha);
+  darkness.background(darknessColor.r, darknessColor.g, darknessColor.b, darknessAlpha);
 
   let inner = lerp(innerMin, innerMax, intensity);
   let outer = lerp(outerMax, outerMin, intensity);

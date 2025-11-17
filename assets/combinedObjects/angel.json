@@ -1,0 +1,117 @@
+{
+  "type": "combined",
+  "main": {
+    "type": "circle",
+    "x": 400,
+    "y": 280,
+    "r": 55,
+    "fillCol": [255, 255, 255],
+    "angle": 0,
+    "opts": {
+      "randomColor": false,
+      "deleteOnClick": false,
+      "events": ["dragStart", "select"],
+      "movement": {
+        "enabled": true,
+        "lerpStrength": 0.1,
+        "velocityLimit": 3,
+        "switchRate": 60
+      },
+      "stroke": { "enabled": true, "weight": 2, "color": [220, 220, 255] },
+      "modifiers": [],
+      "angle": 0
+    }
+  },
+
+  "children": [
+    {
+      "shape": { "type": "circle", "x": 0, "y": 0, "r": 20, "fillCol": [255, 230, 120, 200] },
+      "offsetX": 0,
+      "offsetY": -85
+    },
+    {
+      "shape": { "type": "rect", "x": 0, "y": 0, "w": 90, "h": 14, "radius": 8, "fillCol": [255, 240, 160, 200] },
+      "offsetX": 0,
+      "offsetY": -85
+    },
+    {
+      "shape": { "type": "circle", "x": 0, "y": 0, "r": 6, "fillCol": [255, 250, 180, 180] },
+      "offsetX": -45,
+      "offsetY": -85
+    },
+    {
+      "shape": { "type": "circle", "x": 0, "y": 0, "r": 6, "fillCol": [255, 250, 180, 180] },
+      "offsetX": 45,
+      "offsetY": -85
+    },
+
+    {
+      "shape": { "type": "triangle", "x": 0, "y": 0, "size": 140, "fillCol": [255, 255, 255, 90], "angle": -0.4 },
+      "offsetX": -80,
+      "offsetY": -15
+    },
+    {
+      "shape": { "type": "triangle", "x": 0, "y": 0, "size": 120, "fillCol": [250, 250, 255, 100], "angle": -0.5 },
+      "offsetX": -70,
+      "offsetY": 10
+    },
+    {
+      "shape": { "type": "triangle", "x": 0, "y": 0, "size": 100, "fillCol": [240, 240, 255, 130], "angle": -0.7 },
+      "offsetX": -65,
+      "offsetY": 30
+    },
+    {
+      "shape": { "type": "rect", "x": 0, "y": 0, "w": 60, "h": 15, "radius": 7, "fillCol": [230, 230, 255, 120] },
+      "offsetX": -55,
+      "offsetY": 50
+    },
+
+    {
+      "shape": { "type": "triangle", "x": 0, "y": 0, "size": 140, "fillCol": [255, 255, 255, 90], "angle": 0.4 },
+      "offsetX": 80,
+      "offsetY": -15
+    },
+    {
+      "shape": { "type": "triangle", "x": 0, "y": 0, "size": 120, "fillCol": [250, 250, 255, 100], "angle": 0.5 },
+      "offsetX": 70,
+      "offsetY": 10
+    },
+    {
+      "shape": { "type": "triangle", "x": 0, "y": 0, "size": 100, "fillCol": [240, 240, 255, 130], "angle": 0.7 },
+      "offsetX": 65,
+      "offsetY": 30
+    },
+    {
+      "shape": { "type": "rect", "x": 0, "y": 0, "w": 60, "h": 15, "radius": 7, "fillCol": [230, 230, 255, 120] },
+      "offsetX": 55,
+      "offsetY": 50
+    },
+
+    {
+      "shape": { "type": "rect", "x": 0, "y": 0, "w": 70, "h": 140, "radius": 25, "fillCol": [255, 255, 255] },
+      "offsetX": 0,
+      "offsetY": 100
+    },
+    {
+      "shape": { "type": "rect", "x": 0, "y": 0, "w": 50, "h": 110, "radius": 15, "fillCol": [230, 240, 255, 100] },
+      "offsetX": 0,
+      "offsetY": 90
+    },
+
+    {
+      "shape": { "type": "circle", "x": 0, "y": 0, "r": 10, "fillCol": [180, 210, 255] },
+      "offsetX": -25,
+      "offsetY": -10
+    },
+    {
+      "shape": { "type": "circle", "x": 0, "y": 0, "r": 10, "fillCol": [180, 210, 255] },
+      "offsetX": 25,
+      "offsetY": -10
+    },
+    {
+      "shape": { "type": "circle", "x": 0, "y": 0, "r": 7, "fillCol": [255, 230, 150, 160] },
+      "offsetX": 0,
+      "offsetY": -40
+    }
+  ]
+}

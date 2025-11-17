@@ -22,12 +22,28 @@ class ScoreIndicator {
   }
 }
 
-// ----------------------------------------
+// -----------------------------------------------------------------------------
 // indicating +1 score shape implementation
-// ----------------------------------------
+// -----------------------------------------------------------------------------
 class StarScoreIndicator extends ScoreIndicator {
-  show() {
-    // Only draw the text (no yellow star behind it)
+  show() { 
+    push();
+    translate(this.x, this.y);
+    
+    // glowing star
+    noStroke();
+    fill(255, 200, 0, this.alpha);
+    this.drawStar(0, 0, 5, this.radius, this.inner);
+    
+    // outline
+    stroke(255, this.alpha * 0.8);
+    strokeWeight(2);
+    noFill();
+    this.drawStar(0, 0, 5, this.radius, this.inner);
+
+    pop();
+
+    // "+1" in the middle
     push();
     translate(this.x, this.y);
     textAlign(CENTER, CENTER);
@@ -37,11 +53,12 @@ class StarScoreIndicator extends ScoreIndicator {
     textSize(this.radius * 0.8);
 
     let middle;
-    if (combo < 10)      middle = "+3 sec";
-    else if (combo < 20) middle = "+4 sec";
-    else if (combo < 30) middle = "+5 sec";
-    else if (combo < 40) middle = "+6 sec";
-    else if (combo < 50) middle = "+7 sec";
+
+    if(combo < 10) middle = "+3 sec";
+    else if(combo < 20) middle = "+4 sec";
+    else if(combo < 30) middle = "+5 sec";
+    else if(combo < 40) middle = "+6 sec";
+    else if(combo < 50) middle = "+7 sec";
 
     text(middle, 0, 0);
     pop();
@@ -131,10 +148,6 @@ class BossKillIndicator extends ScoreIndicator {
 // indicating +1 timer bonus
 // ---------------------------------------------------------------
 class BonusIndicator extends ScoreIndicator {
-  constructor(x, y, timeAdded = 1) {
-    super(x, y);
-    this.timeAdded = timeAdded;
-  }
   show() { 
     push();
     translate(this.x, this.y);
@@ -161,7 +174,7 @@ class BonusIndicator extends ScoreIndicator {
     strokeWeight(2);
     textSize(this.radius * 0.8);
 
-    let middle = "+ "+ this.timeAdded +"sec";
+    let middle = "+1 sec";
 
     text(middle, 0, 0);
     pop();
@@ -178,5 +191,4 @@ class BonusIndicator extends ScoreIndicator {
     }
     endShape(CLOSE);
   }
-
 }
