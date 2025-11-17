@@ -15,7 +15,7 @@ global.random = () => Math.random();
 const runner = new TestRunner();
 
 runner.test('We can properly click inside a rectangle ', function() {
-    const rect = new ClickRect(0,0,10,10, [);
+    const rect = new ClickRect(0,0,10,10);
     this.assertTrue(rect.contains(2,2) , '(2,2) should be inside this rectangle');
 });
 
