@@ -11,6 +11,8 @@
   <body>
     <main>
     </main>
+
+    <!-- Core Game Logic & Helpers -->
     <script src="events.js"></script>
     <script src="director.js"></script>
     <script src="finishers.js"></script>
@@ -24,12 +26,26 @@
     <script src="scoreIndicator.js"></script>
     <script src="audioManager.js"></script>
     <script src="effects/foundEffect.js"></script>
-    <script src="sketch.js"></script>
     <script src="localstorageManager.js"></script>
     <script src="finalRoundPopup.js"></script>
+
+    <!-- Model Layer -->
+
+    <!-- 'gameState.js' not currently in-use, but if we do use it someday put it here! -->
+    <!-- <script src="src/model/gameState.js"></script> -->
+    <script src="src/model/gameModel.js"></script>
+
+    <!-- View Layer -->
+    <script src="src/view/menuView.js"></script>
+    <script src="src/view/gameView.js"></script>
+    <script src="src/view/audioView.js"></script>
+
+    <!-- Controller Layer -->
+    <script src="src/controller/gameController.js"></script>
+    <script src="src/controller/inputController.js"></script>
+
+    <!-- p5 Entrypoint -->
+    <script src="sketch.js"></script>
+
   </body>
 </html>
-
-
-
-
