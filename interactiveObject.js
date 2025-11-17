@@ -1551,6 +1551,13 @@ function clearInteractors() {
   wantedObj == null;
 }
 
+export {
+  ClickCircle,
+  ClickRect,
+  ClickTri,
+  InteractiveObject,
+  // include other classes as needed
+};
 
 
 
