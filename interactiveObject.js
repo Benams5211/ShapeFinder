@@ -251,7 +251,7 @@ class InteractiveObject {
         } else if (typeof sfxCorrect !== 'undefined' && sfxCorrect && typeof sfxCorrect.play === 'function') {
           sfxCorrect.play(); // Fallback to basic logic if sound wasn't loaded correctly with the Audio Manager:
         }
-       // stars.push(new StarScoreIndicator(mouseX, mouseY));
+        stars.push(new StarScoreIndicator(mouseX, mouseY));
       // Celebrate the correct shape (color + geometry)
 if (window.FoundEffect && typeof window.FoundEffect.triggerFoundEffect === 'function') {
   const col = Array.isArray(this.fillCol) ? this.fillCol : [255, 215, 0];
@@ -1558,6 +1558,7 @@ export {
   InteractiveObject,
   // include other classes as needed
 };
+
 
 
 
