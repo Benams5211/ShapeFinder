@@ -4,7 +4,7 @@ import {
     ClickRect,
     ClickCircle,
     ClickTri
-} from '../interactiveObject.js';
+} from '../testImports/interactiveObjectSetup.js';
 
 import {
     TestRunner
