@@ -162,7 +162,7 @@ class Golagon_P1 extends BaseBoss {
     constructor() {
         super(
             "The Rainbow Crystalline Golagon's Minion",
-            "assets/combinedObjects/golagon_phase1.json",
+            "./assets/combinedObjects/golagon_phase1.json",
             150, // maxHealth
         );
         gameEvents.OnEvent("bodyHit", (shape) => {
@@ -181,7 +181,7 @@ class Golagon_P2 extends BaseBoss {
     constructor() {
         super(
             "The Rainbow Crystalline Golagon",
-            "assets/combinedObjects/golagon_phase2.json",
+            "./assets/combinedObjects/golagon_phase2.json",
             1000, // maxHealth
         );
         const handleHit = (event, dmg) => {
@@ -244,7 +244,7 @@ class RainbowGem extends BaseBoss {
     constructor() {
         super(
             "Rainbow Gem",
-            "assets/combinedObjects/rainbow_gem.json",
+            "./assets/combinedObjects/rainbow_gem.json",
             2, // maxHealth
             100,
             6,
@@ -277,7 +277,7 @@ class Heartagon extends BaseBoss {
     constructor() {
         super(
             "The Heartagon",
-            "assets/combinedObjects/heartagon.json",
+            "./assets/combinedObjects/heartagon.json",
             1000, // maxHealth
             150,
             15,
@@ -372,7 +372,7 @@ class Heartagon extends BaseBoss {
 
         // Load golden asset
         this.object = await loadCombinedObjectFromFile(
-            "assets/combinedObjects/golden_heartagon.json"
+            "./assets/combinedObjects/golden_heartagon.json"
         );
 
         // Insert new model
@@ -410,7 +410,7 @@ class Sun extends BaseBoss {
     constructor() {
         super(
             "The Sun",
-            "assets/combinedObjects/sun.json",
+            "./assets/combinedObjects/sun.json",
             1, // maxHealth
             100,
             15,
@@ -439,7 +439,7 @@ class Flaregon extends BaseBoss {
     constructor() {
         super(
             "The Flaregon",
-            "assets/combinedObjects/flaregon.json",
+            "./assets/combinedObjects/flaregon.json",
             1000, // maxHealth
             150,
             10,
@@ -544,7 +544,7 @@ class WaterMinion extends BaseBoss {
     constructor() {
         super(
             "The Water Minion",
-            "assets/combinedObjects/water_minion.json",
+            "./assets/combinedObjects/water_minion.json",
             3, // maxHealth
             120,
             20,
@@ -576,7 +576,7 @@ class Balloon extends BaseBoss {
         const balloonType = random(["blue", "red", "green", "purple"]);
         super(
             "The Balloon (" + balloonType + ")",
-            "assets/combinedObjects/"+balloonType+"_balloon.json",
+            "./assets/combinedObjects/"+balloonType+"_balloon.json",
             2, // maxHealth
             150,
             10,
@@ -604,7 +604,7 @@ class Tsunoctagon extends BaseBoss {
     constructor() {
         super(
             "The Tsunoctagon",
-            "assets/combinedObjects/tsunoctagon.json",
+            "./assets/combinedObjects/tsunoctagon.json",
             1000, // maxHealth
             300,
             10,
@@ -708,7 +708,7 @@ class Ant extends BaseBoss {
     constructor() {
         super(
             "The Ant",
-            "assets/combinedObjects/ant.json",
+            "./assets/combinedObjects/ant.json",
             100, // maxHealth
             150,
             10,
@@ -749,7 +749,7 @@ class HealthOrb extends BaseBoss {
     constructor() {
         super(
             "The Health Orb",
-            "assets/combinedObjects/health_orb.json",
+            "./assets/combinedObjects/health_orb.json",
             10, // maxHealth
             150,
             0,
@@ -793,7 +793,7 @@ class PerfectCell extends BaseBoss {
     constructor() {
         super(
             "The Perfect Cell",
-            "assets/combinedObjects/perfect.json",
+            "./assets/combinedObjects/perfect.json",
             100, 
             150,
             10,
@@ -834,7 +834,7 @@ class Delozier extends BaseBoss {
     constructor() {
         super(
             "The Professor Delozier",
-            "assets/combinedObjects/delozier.json",
+            "./assets/combinedObjects/delozier.json",
             1_000_000_000, // maxHealth
             120,
             10,

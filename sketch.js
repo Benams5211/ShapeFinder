@@ -675,6 +675,7 @@ function keyPressed() {
   if (key === 'e') triggerEZFormationEvent();
   if (key === 'l') triggerLOLFormationEvent();
   if (key === 't') delozierMode = true;
+  if (key === ',') round=9;
 
   if (keyCode === ENTER && consoleInput.elt === document.activeElement) {
     const cmd = consoleInput.value().trim();
