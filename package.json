@@ -2,7 +2,7 @@
   "name": "shapefinder",
   "version": "1.0.0",
   "description": "The deployment branch for our project",
-  "type": "commonjs",
+  "type": "module",
   "main": "audioManager.js",
   "directories": {
     "doc": "docs"
