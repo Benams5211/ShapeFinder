@@ -6,6 +6,10 @@ import {
     ClickTri
 } from '../interactiveObject.js';
 
+import {
+    TestRunner
+} from '/testClass.js';
+
 const runner = new TestRunner();
 
 runner.test('We can properly click inside a rectangle ', function() {
