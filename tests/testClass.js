@@ -50,7 +50,15 @@ class TestRunner {
         }
         
         console.log(`\n${this.passed} passed, ${this.failed} failed`);
-        return this.failed === 0;
+        
+        if (runner.failed > 0) {
+          console.error(`${runner.failed} test(s) failed`);
+          process.exit(1);  
+        } else {
+            console.log('All tests passed!');
+            process.exit(0);
+        }
+            return this.failed === 0;
     }
 }
 
