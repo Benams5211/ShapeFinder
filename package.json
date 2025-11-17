@@ -2,13 +2,12 @@
   "name": "shapefinder",
   "version": "1.0.0",
   "description": "The deployment branch for our project",
-  "type": "module",
   "main": "audioManager.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
-    "test": "mocha 'tests/*-test.{js,cjs}'",
+    "test": "mocha 'tests/*-test.*'",
     "test:cucumber": "cucumber-js",
     "test:all": "npm test && npm run test:cucumber"
   },
