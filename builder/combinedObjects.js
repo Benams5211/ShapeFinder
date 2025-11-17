@@ -5,6 +5,7 @@
 // objectList 
 // [Object] = { Offset }
 let combinedObjectList = [];
+let activeBosses = [];
 
 class CombinedObjects {
     constructor(mainObject, objectList) {

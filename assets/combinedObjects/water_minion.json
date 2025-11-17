@@ -1,0 +1,171 @@
+{
+  "type": "combined",
+  "main": {
+    "type": "circle",
+    "x": 621,
+    "y": 524,
+    "r": 34,
+    "fillCol": [110, 200, 255, 210],
+    "opts": {
+      "randomColor": false,
+      "deleteOnClick": false,
+      "stroke": { "enabled": true, "weight": 3, "color": [40, 120, 190], "randomColor": false },
+      "movement": { "enabled": false, "lerpStrength": 0.1, "velocityLimit": 4, "switchRate": 10 },
+      "modifiers": [],
+      "events": [ "waterMinionHit", "select"]
+    }
+  },
+  "children": [
+    {
+      "shape": {
+        "type": "triangle",
+        "x": 621,
+        "y": 484,
+        "size": 85,
+        "fillCol": [90, 185, 255, 160],
+        "angle": 0,
+        "opts": {
+          "movement": { "enabled": false },
+          "deleteOnClick": false,
+          "modifiers": [],
+          "events": [ "waterMinionHit", "select"],
+          "angle": 0
+        }
+      },
+      "offsetX": 0,
+      "offsetY": -40
+    },
+
+    {
+      "shape": {
+        "type": "circle",
+        "x": 605,
+        "y": 520,
+        "r": 10,
+        "fillCol": [255, 255, 255, 230],
+        "opts": {
+          "movement": { "enabled": false },
+          "stroke": { "enabled": false },
+          "deleteOnClick": false,
+          "modifiers": [],
+          "events": [ "waterMinionHit", "select"]
+        }
+      },
+      "offsetX": -16,
+      "offsetY": -4
+    },
+    {
+      "shape": {
+        "type": "circle",
+        "x": 605,
+        "y": 520,
+        "r": 6,
+        "fillCol": [0, 100, 180, 255],
+        "opts": {
+          "movement": { "enabled": false },
+          "stroke": { "enabled": false },
+          "deleteOnClick": false,
+          "modifiers": [],
+          "events": [ "waterMinionHit", "select"]
+        }
+      },
+      "offsetX": -16,
+      "offsetY": -4
+    },
+
+    {
+      "shape": {
+        "type": "circle",
+        "x": 637,
+        "y": 520,
+        "r": 10,
+        "fillCol": [255, 255, 255, 230],
+        "opts": {
+          "movement": { "enabled": false },
+          "stroke": { "enabled": false },
+          "deleteOnClick": false,
+          "modifiers": [],
+          "events": [ "waterMinionHit", "select"]
+        }
+      },
+      "offsetX": 16,
+      "offsetY": -4
+    },
+    {
+      "shape": {
+        "type": "circle",
+        "x": 637,
+        "y": 520,
+        "r": 6,
+        "fillCol": [0, 100, 180, 255],
+        "opts": {
+          "movement": { "enabled": false },
+          "stroke": { "enabled": false },
+          "deleteOnClick": false,
+          "modifiers": [],
+          "events": [ "waterMinionHit", "select"]
+        }
+      },
+      "offsetX": 16,
+      "offsetY": -4
+    },
+
+    {
+      "shape": {
+        "type": "rect",
+        "x": 621,
+        "y": 540,
+        "w": 18,
+        "h": 6,
+        "radius": 3,
+        "fillCol": [0, 60, 130, 220],
+        "opts": {
+          "movement": { "enabled": false },
+          "stroke": { "enabled": false },
+          "deleteOnClick": false,
+          "modifiers": [],
+          "events": [ "waterMinionHit", "select"]
+        }
+      },
+      "offsetX": 0,
+      "offsetY": 16
+    },
+
+    {
+      "shape": {
+        "type": "circle",
+        "x": 621,
+        "y": 507,
+        "r": 18,
+        "fillCol": [255, 255, 255, 80],
+        "opts": {
+          "movement": { "enabled": false },
+          "stroke": { "enabled": false },
+          "deleteOnClick": false,
+          "modifiers": [],
+          "events": [ "waterMinionHit", "select"]
+        }
+      },
+      "offsetX": -10,
+      "offsetY": -26
+    },
+    {
+      "shape": {
+        "type": "circle",
+        "x": 621,
+        "y": 507,
+        "r": 6,
+        "fillCol": [255, 255, 255, 160],
+        "opts": {
+          "movement": { "enabled": false },
+          "stroke": { "enabled": false },
+          "deleteOnClick": false,
+          "modifiers": [],
+          "events": [ "waterMinionHit", "select"]
+        }
+      },
+      "offsetX": -18,
+      "offsetY": -33
+    }
+  ]
+}

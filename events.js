@@ -171,7 +171,7 @@ function setupGameEvents() {
   })
 }
 
-function triggerBlackHoleEvent(ms = 3000) {
+function triggerBlackHoleEvent(ms = 3000, atX = random(width), atY = random(height), deleteOnEnd = false) {
   const freezeForever = new FreezeModifier({ chance: 1, duration: 1 }); // freeze the hole
 
   // Save original states to restore later
@@ -190,7 +190,7 @@ function triggerBlackHoleEvent(ms = 3000) {
     stroke: { enabled: false },
     isWanted: true,
   };
-  const BlackHole = new ClickCircle(random(width), random(height), 0, [0,10,0], bhOpts);
+  const BlackHole = new ClickCircle(atX, atY, 0, [0,10,0], bhOpts);
 
   // jitter used during pull phase
   const jitter = new JitterModifier({ rate: 0.1 });
@@ -215,6 +215,7 @@ function triggerBlackHoleEvent(ms = 3000) {
         if (!isPulling) {
           for (const o of interactors) {
             if (o === bh) continue;
+            if (o.isCombined) continue;
             o.modifierList.length = 0;
             o.state = {};
             o.movement.velocityLimit = 20;
@@ -239,6 +240,7 @@ function triggerBlackHoleEvent(ms = 3000) {
         bh.r = lerp(175, 0, (progress - 0.8) / 0.2);
         // Hide other objs during shrink phase
         for (const o of interactors) {
+          if (o.isCombined) continue;
           if (o !== bh) o.visible = false;
         }
       }
@@ -252,6 +254,8 @@ function triggerBlackHoleEvent(ms = 3000) {
       interactors.forEach((o, i) => {
         const saved = originalStates[i];
         if (!saved) return;
+        if (o.isCombined) return;
+        if (deleteOnEnd) o.deleteSelf();
         o.movement = { ...saved.movement };
         o.modifierList = [...saved.modifierList];
         o.state = { ...saved.state };
@@ -563,7 +567,7 @@ function triggerZombieEvent(ms=10000, zombieCount = 50) {
 }
 
 
-function spawnSplashEvent(atX = 0, atY = 0, ms = 500, itemCount = 100, col = color(0,0,0)) {
+function spawnSplashEvent(atX = 0, atY = 0, ms = 500, itemCount = 100, col = color(0,0,0), sizeRange = [5, 10]) {
   let splashObjs = [];
 
   events.start(Math.random()*1000, ms, {
@@ -578,10 +582,14 @@ function spawnSplashEvent(atX = 0, atY = 0, ms = 500, itemCount = 100, col = col
           stroke: { enabled: false },
         };
 
-        const s = random(5, 10);
+        const s = random(sizeRange[0], sizeRange[1]);
         const o = new ClickRect(atX, atY, s, s, [red(col), green(col), blue(col)], 2, opts);
-        interactors.push(o);
-        splashObjs.push(o);
+        //const o = new ClickCircle(atX, atY, s, [red(col), green(col), blue(col)], opts);
+        //interactors.push(o);
+        //splashObjs.push(o);
+        o.isCombined = true;
+        interactors.unshift(o);
+        splashObjs.unshift(o);
       }
     },
     onEnd: () => {

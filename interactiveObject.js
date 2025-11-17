@@ -35,6 +35,9 @@ class InteractiveObject {
     this.randomColor = !!opts.randomColor;
     this.outline = !!opts.outline;
     this.isWanted = !!opts.wanted;
+    // Added to prevent conflict with new boss combinedobjects velocity
+    // (The velocityLimit of the mainObject was being set to 4 by default)
+    this.isCombined = false
 
     // Shape effects related variables.
     this.alpha = 255; // Full opacity by default
@@ -159,9 +162,9 @@ class InteractiveObject {
     if (this.state.frozen) return;
     
 
-      if(!isBoss&&!isBonus){
-      if(slowMo){m.velocityLimit=1.5;}
-      else {m.velocityLimit=4;}
+      if(!isBoss&&!isBonus&&!this.isCombined){
+        if(slowMo){m.velocityLimit=1.5;}
+        else {m.velocityLimit = 4;}
       }
       
       
@@ -218,9 +221,11 @@ class InteractiveObject {
     }
 
     // On click, fire the attached event connections
-    for (let e of this.events)
+    for (let e of this.events) {
       gameEvents.Fire(e, this);
+    }
     if (gameState === "builder") return;
+    if (this.isCombined) return;
 
     try {
       const isWin = (this instanceof WinRect) || (this instanceof WinCircle) || (this instanceof WinTri);
@@ -1020,6 +1025,7 @@ function spawnInteractors() {
   const winShapeType = random(['circle','rect','tri']);
   randomWinColor(); 
 
+
   for (let i = 0; i < count; i++) {
 
     const movement = {
@@ -1353,20 +1359,51 @@ function SpawnBoss(h){
     };
 
     if (difficulty === "easy") {
-    r = 65;        // bigger shapes
-  } else if (difficulty === "medium") {
-    r = 55;        // medium size & amount
-  } else if (difficulty === "hard") {
-    r = 35;        // smaller shapes
-  }
-    const x = random(r, width  - r);
-    const y = random(r, height - r);
-    let bossObj;
-    bossObj= new BossCircle(h, x, y, r, [0,0,0], {...opts});
-    interactors.push(bossObj);
+      r = 65;        // bigger shapes
+    } else if (difficulty === "medium") {
+      r = 55;        // medium size & amount
+    } else if (difficulty === "hard") {
+      r = 35;        // smaller shapes
+    }
+    let randomBossChoice = int(random(1,6));
+    if (delozierMode) randomBossChoice = 6;
+    let preview
 
-    const preview = makeStaticWantedFromBoss(bossObj);
-     if (preview) wantedObj = preview;
+    if (randomBossChoice === 1) {
+        const x = random(r, width  - r);
+        const y = random(r, height - r);
+        spawnBossInteractors();
+        let bossObj;
+        bossObj= new BossCircle(h, x, y, r, [0,0,0], {...opts});
+        interactors.push(bossObj);
+        preview = makeStaticWantedFromBoss(bossObj);
+    } else if (randomBossChoice === 2) {
+        let golagon = new Golagon_P2();
+        golagon.spawn();
+        wantedObj = null;
+        flashlightEnabled = false;
+    } else if (randomBossChoice === 3) {
+        let heartagon = new Heartagon();
+        heartagon.spawn();
+        wantedObj = null;
+        flashlightEnabled = false;
+    } else if (randomBossChoice === 4) {
+        let tsunoctagon = new Tsunoctagon();
+        tsunoctagon.spawn();
+        wantedObj = null;
+        flashlightEnabled = false;
+    } else if (randomBossChoice === 5) {
+        let flaregon = new Flaregon();
+        flaregon.spawn();
+        wantedObj = null;
+        flashlightEnabled = false;
+    } else if (randomBossChoice === 6) {
+        let delozier = new Delozier();
+        delozier.spawn();
+        wantedObj = null;
+        flashlightEnabled = false;
+    }
+    if (preview) wantedObj = preview;
 }
 
 //helpers

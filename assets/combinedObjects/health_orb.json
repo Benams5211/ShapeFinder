@@ -1,0 +1,75 @@
+{
+  "type": "combined",
+  "main": {
+    "type": "circle",
+    "x": 600,
+    "y": 500,
+    "r": 22,
+    "fillCol": [120, 255, 160, 120],
+    "opts": {
+      "randomColor": false,
+      "deleteOnClick": false,
+      "stroke": {
+        "enabled": true,
+        "weight": 2,
+        "color": [80, 220, 110],
+        "randomColor": false
+      },
+      "movement": {
+        "enabled": false
+      },
+      "modifiers": [],
+      "events": ["healthOrbHit"]
+    }
+  },
+  "children": [
+    {
+      "shape": {
+        "type": "circle",
+        "x": 600,
+        "y": 500,
+        "r": 28,
+        "fillCol": [120, 255, 160, 40],
+        "opts": {
+          "movement": { "enabled": false },
+          "stroke": { "enabled": false },
+          "events": ["healthOrbHit"]
+        }
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "circle",
+        "x": 600,
+        "y": 500,
+        "r": 14,
+        "fillCol": [180, 255, 200, 200],
+        "opts": {
+          "movement": { "enabled": false },
+          "stroke": { "enabled": false },
+          "events": ["healthOrbHit"]
+        }
+      },
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "shape": {
+        "type": "circle",
+        "x": 590,
+        "y": 490,
+        "r": 6,
+        "fillCol": [255, 255, 255, 180],
+        "opts": {
+          "movement": { "enabled": false },
+          "stroke": { "enabled": false },
+          "events": ["healthOrbHit"]
+        }
+      },
+      "offsetX": -10,
+      "offsetY": -10
+    }
+  ]
+}

@@ -24,32 +24,41 @@ async function loadCombinedObjectFromFile(path) {
 }
 
 function shapeFromData(data) {
-  let shape;
+  const optsCopy = JSON.parse(JSON.stringify(data.opts || {}));
 
+  // Extract event array before constructing shape
+
+  let shape;
   switch (data.type) {
     case 'rect':
-      shape = new ClickRect(data.x, data.y, data.w, data.h, data.fillCol, data.radius, data.opts || opsDefault);
+      shape = new ClickRect(data.x, data.y, data.w, data.h, data.fillCol, data.radius, optsCopy);
       break;
     case 'circle':
-      shape = new ClickCircle(data.x, data.y, data.r, data.fillCol, data.opts || opsDefault);
+      shape = new ClickCircle(data.x, data.y, data.r, data.fillCol, optsCopy);
       break;
     case 'triangle':
-      shape = new ClickTri(data.x, data.y, data.size, data.fillCol, data.opts || opsDefault);
+      shape = new ClickTri(data.x, data.y, data.size, data.fillCol, optsCopy);
       break;
     default:
       throw new Error('Unknown shape type: ' + data.type);
   }
-
+  
   for (const key in data) {
     if (key in shape) {
       shape[key] = data[key];
     }
   }
+  
+  const eventList = Array.isArray(optsCopy.events)
+      ? [...optsCopy.events]
+      : ["dragStart", "select"];
+  //shape.events = eventList;
+  shape.events = eventList;
 
-  if (!shape.opts) shape.opts = {};
-  if (!Array.isArray(shape.opts.events)) shape.opts.events = ["dragStart", "select"];
+  //if (!shape.opts) shape.opts = {};
+  //if (!Array.isArray(shape.opts.events)) shape.opts.events = ["dragStart", "select"];
 
-  shape.events = shape.opts.events;
+  //shape.events = shape.opts.events;
   return shape;
 }
 
