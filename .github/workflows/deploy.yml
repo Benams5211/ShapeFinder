@@ -5,10 +5,11 @@ on:
 
 env:
   HOST: cassini.cs.kent.edu
-  USER: mulch
+  USER: shapingbad
   TARGET: shapingbad@cassini.cs.kent.edu
   RUN: ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no shapingbad@cassini.cs.kent.edu
   COPY: scp -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+  PORT: 8067
 
     
 jobs:
