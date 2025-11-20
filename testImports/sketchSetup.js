@@ -1298,11 +1298,11 @@ function bonusRound(){
 }
 
 function startGame() {
-  totalPausedTime = 0;
-  TimeOver = false;
-  gameOverTriggered = false;
-  shownGameOverScreen = false;
-  blackout = true;
+ // totalPausedTime = 0;
+ // TimeOver = false;
+ // gameOverTriggered = false;
+ // shownGameOverScreen = false;
+ // blackout = true;
   gameOver = false;
   gameState = "game";
   round =1;
