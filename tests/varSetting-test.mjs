@@ -27,6 +27,3 @@ runner.test('start at round 1', function() {
     this.assertTrue(round == 1, 'Starts at first round');
 });
 
-if (typeof window === 'undefined') {
-    runner.run();
-}
