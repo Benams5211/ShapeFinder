@@ -7,7 +7,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "mocha tests/clickArea-test.mjs tests/varSetting-test.mjs tests/localstorageManager-test.cjs",
+    "test": "mocha tests/allTests.mjs",
     "test:cucumber": "cucumber-js",
     "test:all": "npm test && npm run test:cucumber"
   },
