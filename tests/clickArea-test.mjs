@@ -12,7 +12,7 @@ import {
 
 global.random = () => Math.random();
 
-const runner = new TestRunner();
+import { runner } from './testClass.js';
 
 runner.test('We can properly click inside a rectangle ', function() {
     const rect = new ClickRect(0,0,10,10);
