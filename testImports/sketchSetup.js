@@ -1576,7 +1576,7 @@ function windowResized() {
 export{
   startGame,
   round,
-  timer
+  Timer
 }
 
 
