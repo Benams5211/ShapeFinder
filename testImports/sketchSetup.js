@@ -1298,9 +1298,6 @@ function bonusRound(){
 }
 
 function startGame() {
-  setupGameEvents();
-  Timer = StartTime;        // reset round length
-  startMillis = millis();   // bookmark the start time ONCE
   totalPausedTime = 0;
   TimeOver = false;
   gameOverTriggered = false;
@@ -1310,26 +1307,7 @@ function startGame() {
   gameState = "game";
   round =1;
   combo = 0;
-  flashlightEnabled = true;
 
-  Stats = new StatTracker();
-
-  stopBossBGM();
-  playHardBGM();
-
-  clearBosses();
-  clearInteractors();
-
-  triggerCurtains();
-  setTimeout(() => {
-    blackout = false;
-  }, 1000);
-  // Reset lamp positions to default at the start of the game:
-  if (typeof initLamps === 'function') initLamps();
-  spawnInteractors();
-  playMode();
-
-  gameEvents.Fire("setDifficulty", difficulty);
 }
 
 //draw loop
@@ -1576,7 +1554,9 @@ function windowResized() {
 export{
   startGame,
   round,
-  Timer
+  Timer,
+  combo,
+  gameState
 }
 
 
