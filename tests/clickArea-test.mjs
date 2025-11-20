@@ -180,9 +180,4 @@ runner.test('ClickTri random points', function() {
     }
 });
 
-
-// Auto-run tests in Node.js, but not in browser (browser imports explicitly)
-if (typeof window === 'undefined') {
-    // Node.js environment - run immediately
-    runner.run();
 }
