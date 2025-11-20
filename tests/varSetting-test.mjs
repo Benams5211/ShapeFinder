@@ -7,11 +7,9 @@ import {
   gameState
 } from '../testImports/sketchSetup.js';
 
-import { TestRunner } from './testClass.js';
+import { runner } from './testClass.js';
 
 global.random = () => Math.random();
-
-const runner = new TestRunner();
 
 startGame();
 
