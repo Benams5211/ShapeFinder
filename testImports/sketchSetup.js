@@ -1303,7 +1303,7 @@ function startGame() {
  // gameOverTriggered = false;
  // shownGameOverScreen = false;
  // blackout = true;
-  gameOver = false;
+ // gameOver = false;
   gameState = "game";
   round =1;
   combo = 0;
