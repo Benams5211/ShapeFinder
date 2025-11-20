@@ -1,5 +1,5 @@
 // Simple test framework
-class TestRunner {
+export class TestRunner {
     constructor() {
         this.tests = [];
         this.passed = 0;
@@ -62,6 +62,4 @@ class TestRunner {
     }
 }
 
-export {
-  TestRunner,
-};
+export const runner = new TestRunner();
