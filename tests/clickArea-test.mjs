@@ -6,10 +6,6 @@ import {
     ClickTri
 } from '../testImports/interactiveObjectSetup.js';
 
-import {
-    TestRunner
-} from './testClass.js';
-
 global.random = () => Math.random();
 
 import { runner } from './testClass.js';
