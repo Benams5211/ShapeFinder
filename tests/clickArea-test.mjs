@@ -179,5 +179,3 @@ runner.test('ClickTri random points', function() {
         this.assertTrue(typeof inside === 'boolean', `contains returned boolean for (${x.toFixed(2)},${y.toFixed(2)})`);
     }
 });
-
-}
