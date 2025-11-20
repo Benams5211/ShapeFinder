@@ -7,29 +7,31 @@ import {
   gameState
 } from '../testImports/sketchSetup.js';
 
-import {
-    TestRunner
-} from './testClass.js';
+import { TestRunner } from './testClass.js';
 
 global.random = () => Math.random();
 
-const runner = new TestRunner();
+// Mocha test suite wrapper
+describe("Var setting tests", () => {
 
-startGame();
+    const runner = new TestRunner();
 
-runner.test('Start at combo 0', function() {
-    this.assertTrue(combo==0 , 'Combo starts at zero');
+    startGame();
+
+    runner.test('Start at combo 0', function() {
+        this.assertTrue(combo == 0, 'Combo starts at zero');
+    });
+
+    runner.test('start in game state', function() {
+        this.assertTrue(gameState == 'game', 'We are in \'game\' state');
+    });
+
+    runner.test('start at round 1', function() {
+        this.assertTrue(round == 1, 'Starts at first round');
+    });
+
+    // Only autorun if NOT under Mocha
+    if (typeof window === 'undefined' && !global._under_mocha_) {
+        runner.run();
+    }
 });
-
-runner.test('start in game state', function() {
-    this.assertTrue(gameState=='game' , 'We are in \'game\' state');
-});
-
-runner.test('start at round 1', function() {
-    this.assertTrue(round==1 , 'Starts at first round');
-});
-
-if (typeof window === 'undefined') {
-    // Node.js environment - run immediately
-    runner.run();
-}
