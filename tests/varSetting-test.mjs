@@ -17,10 +17,16 @@ const runner = new TestRunner();
 
 startGame();
 
-runner.test('Our variables are properly initialized', function() {
-    this.assertTrue(round==1 , 'Starts at first round');
+runner.test('Start at combo 0', function() {
     this.assertTrue(combo==0 , 'Combo starts at zero');
+});
+
+runner.test('start in game state', function() {
     this.assertTrue(gameState=='game' , 'We are in \'game\' state');
+});
+
+runner.test('start at round 1', function() {
+    this.assertTrue(round==1 , 'Starts at first round');
 });
 
 if (typeof window === 'undefined') {
