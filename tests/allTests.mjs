@@ -1,4 +1,4 @@
 
-import './localstorageManager-test.cjs'; 
+//import './localstorageManager-test.cjs'; 
 import './clickArea-test.mjs';
 import './varSetting-test.mjs';
